@@ -1,0 +1,21 @@
+{
+  "name": "smallmouth",
+  "version": "0.0.1",
+  "homepage": "https://github.com/blittle/smallmouth",
+  "authors": [
+    "Bret Little <bret.little@gmail.com>"
+  ],
+  "description": "The client library for LargeMouth BAAS",
+  "main": "smallmouth.js",
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "socket.io-client": "~0.9.16"
+  }
+}
