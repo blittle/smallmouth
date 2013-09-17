@@ -1,0 +1,50 @@
+<!DOCTYPE HTML>
+<html>
+	<head>
+	    <title>LargeMouth BAAS</title>
+		<meta http-equiv="X-UA-Compatible" content="chrome=1">
+		<link rel="stylesheet" href="http://yui.yahooapis.com/pure/0.3.0/pure-min.css">
+
+		<script src="//cdnjs.cloudflare.com/ajax/libs/angular.js/1.1.5/angular.min.js"></script>
+        <script src="//cdnjs.cloudflare.com/ajax/libs/socket.io/0.9.16/socket.io.min.js"></script>
+		<script src="../build/smallmouth.js"></script>
+		<script>
+			var chats = new SmallMouth.Resource('http://10.1.11.36:3000/chats');
+
+			function smallmouth($scope) {
+
+				$scope.chats = [];
+
+				chats.on('value', function(snapshot) {
+					$scope.chats = snapshot instanceof Array ? snapshot : [];
+					$scope.$digest();
+				});
+
+				$scope.newChat = "";
+
+				$scope.addChat = function(chat) {
+					$scope.chats.push(chat);
+					chats.set($scope.chats);
+					$scope.newChat = "";
+				};
+
+				$scope.clearAll = function() {
+					chats.set([]);
+				};
+			}
+		</script>
+	</head>
+	<body ng-app>
+		<div ng-controller="smallmouth">
+			<ul>
+				<li ng-repeat="chat in chats">{{chat}}</li>
+			</ul>
+
+			<form class="pure-form">
+				<span>Say something: <input type="text" ng-model="newChat" /></span>
+				<button class="pure-button pure-button-primary" ng-click="addChat(newChat)">Add Chat</button>
+				<button class="pure-button" ng-click="clearAll()">Clear All</button>
+			</form>
+		</div>
+	</body>
+</html>

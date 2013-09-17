@@ -1,12 +1,15 @@
-var smallmouth;
-(function (smallmouth) {
+var SmallMouth;
+(function (SmallMouth) {
     var urlReg = new RegExp('^(([^:/?#]+):)?(//([^/?#]*))?([^?#]*)(\([^#]*))?(#(.*))?');
     var connections = {};
 
-    var SmallMouth = (function () {
-        function SmallMouth(address) {
+    var Resource = (function () {
+        function Resource(address) {
+            this.attributes = {};
+            this._callbacks = [];
             var parse = urlReg.exec(address), scheme = parse[1], domain = parse[3], path = parse[5], query = parse[6], host = (scheme ? scheme : "") + (domain ? domain : ""), url = (path ? path : "") + (query ? query : ""), socket = connections[host], scope = this;
 
+            this._path = url;
             this._socket = socket ? socket : (socket = connections[host] = io.connect(host));
 
             socket.on('data', function (data) {
@@ -21,7 +24,7 @@ var smallmouth;
 
             socket.emit('subscribe', url);
         }
-        SmallMouth.prototype.on = function (eventType, callback, context) {
+        Resource.prototype.on = function (eventType, callback, context) {
             var scope = this;
 
             this._callbacks.push(function () {
@@ -31,7 +34,7 @@ var smallmouth;
             return this;
         };
 
-        SmallMouth.prototype.set = function (value, onComplete) {
+        Resource.prototype.set = function (value, onComplete) {
             this._socket.emit('set', {
                 path: this._path,
                 value: value
@@ -39,7 +42,8 @@ var smallmouth;
 
             return this;
         };
-        return SmallMouth;
+        return Resource;
     })();
-})(smallmouth || (smallmouth = {}));
+    SmallMouth.Resource = Resource;
+})(SmallMouth || (SmallMouth = {}));
 //# sourceMappingURL=smallmouth.js.map
