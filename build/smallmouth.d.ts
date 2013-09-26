@@ -8,5 +8,6 @@ declare module SmallMouth {
         constructor(address: string);
         public on(eventType: string, callback: Function, context: any): Resource;
         public set(value: any, onComplete: Function): Resource;
+        private cleanPath(_path);
     }
 }

@@ -9,7 +9,7 @@ module SmallMouth {
 
 		private _path: string;
 		private attributes = {};
-		private _callbacks: Function[] = [];
+		private _callbacks = [];
 		private _socket: Socket;
 
 		constructor(address: string) {
@@ -19,7 +19,7 @@ module SmallMouth {
 			path = parse[5],
 			query = parse[6],
 			host = (scheme ? scheme : "") + (domain ? domain : ""),
-			url = (path ? path : "") + (query ? query : ""),
+			url = this.cleanPath((path ? path : "") + (query ? query : "")),
 			socket = connections[host],
 			scope = this;	
 
@@ -31,7 +31,7 @@ module SmallMouth {
 
 				scope.attributes[data.path] = data.value;
 				for(var i=0, iLength = scope._callbacks.length; i < iLength; i++) {
-					scope._callbacks[i]();
+					scope._callbacks[i].callback();
 				}
 			});
 
@@ -41,8 +41,11 @@ module SmallMouth {
 		on(eventType: string, callback: Function, context: any): Resource {
 			var scope = this;
 
-			this._callbacks.push(function() {
-				return callback.call(context, scope.attributes[scope._path]);
+			this._callbacks.push({
+				type: eventType,
+				callback: function() {
+					return callback.call(context, scope.attributes[scope._path]);
+				}
 			});
 
 			return this;
@@ -55,6 +58,11 @@ module SmallMouth {
 			});
 
 			return this;	
+		}
+
+		private cleanPath(_path: string): string {
+			_path = _path.charAt(0) === '/' ? _path.substring(1) : _path;
+			return _path;
 		}
 	}
 

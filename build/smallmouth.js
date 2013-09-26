@@ -7,7 +7,7 @@ var SmallMouth;
         function Resource(address) {
             this.attributes = {};
             this._callbacks = [];
-            var parse = urlReg.exec(address), scheme = parse[1], domain = parse[3], path = parse[5], query = parse[6], host = (scheme ? scheme : "") + (domain ? domain : ""), url = (path ? path : "") + (query ? query : ""), socket = connections[host], scope = this;
+            var parse = urlReg.exec(address), scheme = parse[1], domain = parse[3], path = parse[5], query = parse[6], host = (scheme ? scheme : "") + (domain ? domain : ""), url = this.cleanPath((path ? path : "") + (query ? query : "")), socket = connections[host], scope = this;
 
             this._path = url;
             this._socket = socket ? socket : (socket = connections[host] = io.connect(host));
@@ -18,7 +18,7 @@ var SmallMouth;
 
                 scope.attributes[data.path] = data.value;
                 for (var i = 0, iLength = scope._callbacks.length; i < iLength; i++) {
-                    scope._callbacks[i]();
+                    scope._callbacks[i].callback();
                 }
             });
 
@@ -27,8 +27,11 @@ var SmallMouth;
         Resource.prototype.on = function (eventType, callback, context) {
             var scope = this;
 
-            this._callbacks.push(function () {
-                return callback.call(context, scope.attributes[scope._path]);
+            this._callbacks.push({
+                type: eventType,
+                callback: function () {
+                    return callback.call(context, scope.attributes[scope._path]);
+                }
             });
 
             return this;
@@ -41,6 +44,11 @@ var SmallMouth;
             });
 
             return this;
+        };
+
+        Resource.prototype.cleanPath = function (_path) {
+            _path = _path.charAt(0) === '/' ? _path.substring(1) : _path;
+            return _path;
         };
         return Resource;
     })();
