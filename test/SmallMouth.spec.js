@@ -3,20 +3,20 @@ describe("SmallMouth", function() {
 	describe("Data Registry", function() {
 
 		afterEach(function() {
-			SmallMouth.resetRegistry();
-		})
+			SmallMouth._registry.resetRegistry();
+		});
 
 		it("Should initialize the registry with correctly", function() {
-			expect(SmallMouth.dataRegistry).toBeDefined();
-			expect(SmallMouth.dataRegistry.version).toBe(0);
-			expect(SmallMouth.dataRegistry.data).toBeNull();
+			expect(SmallMouth._registry.dataRegistry).toBeDefined();
+			expect(SmallMouth._registry.dataRegistry.version).toBe(0);
+			expect(SmallMouth._registry.dataRegistry.data).toBeNull();
 		});
 
 		it("Should add a resource to the registry", function() {
 			var resource1 = new SmallMouth.Resource('http://localhost:8080/resource1');
-			expect(SmallMouth.dataRegistry.version).toBe(0);
-			expect(SmallMouth.dataRegistry.children.resource1).toBeDefined();
-			expect(SmallMouth.dataRegistry.children.resource1.version).toBe(0);
+			expect(SmallMouth._registry.dataRegistry.version).toBe(0);
+			expect(SmallMouth._registry.dataRegistry.children.resource1).toBeDefined();
+			expect(SmallMouth._registry.dataRegistry.children.resource1.version).toBe(0);
 		});
 
 		it("Multiple references should point to the same object", function() {
@@ -33,6 +33,31 @@ describe("SmallMouth", function() {
 			resource1.set('someValue');
 			expect(resource1._getSnapshot().data).toBe('someValue');
 			expect(resource2._getSnapshot().data).toBe('someValue');
+		});
+
+		it("Should create nested resources", function() {
+			var resource1 = new SmallMouth.Resource('http://localhost:8080/some/data/for/you');
+			expect(SmallMouth._registry.dataRegistry.children.some.children.data.children.for.children.you).toBeDefined();
+		});
+	});
+
+	describe('Resource', function() {
+		afterEach(function() {
+			SmallMouth._registry.resetRegistry();
+		});
+
+		it('Should return children references', function() {
+			// var resource1 = new SmallMouth.Resource('http://localhost:8080/some/data/for/you');
+			// resource1.set('myData');
+			// var resource2 = new SmallMouth.Resource('http://localhost:8080/some/data');
+
+			// var resource3 = resource2.child('for/you');
+
+			// expect(resource1._getSnapshot()).toBe(resource3._getSnapshot());
+		});
+
+		it('Should return parent references', function() {
+
 		});
 	});
 

@@ -1,14 +1,12 @@
 var SmallMouth;
 (function (SmallMouth) {
-    var urlReg = new RegExp('^(([^:/?#]+):)?(//([^/?#]*))?([^?#]*)(\([^#]*))?(#(.*))?');
-    var connections = {};
+    var syncTimeout;
+
     var dataRegistry = JSON.parse(localStorage.getItem('LargeMouth_Registry')) || {
         data: null,
         children: {},
         version: 0
     };
-
-    var syncTimeout;
 
     function getData(path, options) {
         if (!options)
@@ -58,8 +56,6 @@ var SmallMouth;
         }, 100);
     }
 
-    SmallMouth.dataRegistry = dataRegistry;
-
     function resetRegistry() {
         dataRegistry.data = null;
         dataRegistry.children = {};
@@ -67,7 +63,20 @@ var SmallMouth;
 
         localStorage.setItem('LargeMouth_Registry', JSON.stringify(dataRegistry));
     }
-    SmallMouth.resetRegistry = resetRegistry;
+
+    SmallMouth._registry = {
+        sync: sync,
+        initializeRegistry: initializeRegistry,
+        updateRegistry: updateRegistry,
+        getData: getData,
+        dataRegistry: dataRegistry,
+        resetRegistry: resetRegistry
+    };
+})(SmallMouth || (SmallMouth = {}));
+var SmallMouth;
+(function (SmallMouth) {
+    var urlReg = new RegExp('^(([^:/?#]+):)?(//([^/?#]*))?([^?#]*)(\([^#]*))?(#(.*))?');
+    var connections = {};
 
     var Resource = (function () {
         function Resource(address) {
@@ -77,16 +86,15 @@ var SmallMouth;
             this._path = url;
             this._socket = socket ? socket : (socket = connections[host] = io.connect(host));
 
-            initializeRegistry(this);
+            SmallMouth._registry.initializeRegistry(this);
         }
-        Resource.prototype.on = function (eventType, callback, context) {
-            var _this = this;
+        Resource.prototype.on = function (eventType, callback, cancelCallbck, context) {
             var scope = this;
 
             this._callbacks.push({
                 type: eventType,
                 callback: function () {
-                    return callback.call(context, _this._getSnapshot());
+                    return callback.call(context, null);
                 }
             });
 
@@ -94,7 +102,7 @@ var SmallMouth;
         };
 
         Resource.prototype.set = function (value, onComplete) {
-            updateRegistry(this, value);
+            SmallMouth._registry.updateRegistry(this, value);
 
             return this;
         };
@@ -105,7 +113,7 @@ var SmallMouth;
         };
 
         Resource.prototype._getSnapshot = function () {
-            return getData(this._path);
+            return SmallMouth._registry.getData(this._path);
         };
         return Resource;
     })();
