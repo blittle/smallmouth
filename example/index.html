@@ -13,7 +13,7 @@
 
 			function smallmouth($scope) {
 
-				$scope.chats = [];
+				$scope.chats = chats._getSnapshot().data;
 
 				chats.on('value', function(snapshot) {
 					$scope.chats = snapshot instanceof Array ? snapshot : [];
