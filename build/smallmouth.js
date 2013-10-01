@@ -11,6 +11,8 @@ var SmallMouth;
     function getData(path, options) {
         if (!options)
             options = {};
+        if (path.trim() == '')
+            return dataRegistry;
 
         var paths = path.split('/');
         var data = dataRegistry;
@@ -84,6 +86,7 @@ var SmallMouth;
             var parse = urlReg.exec(address), scheme = parse[1], domain = parse[3], path = parse[5], query = parse[6], host = (scheme ? scheme : "") + (domain ? domain : ""), url = this.cleanPath((path ? path : "") + (query ? query : "")), socket = connections[host], scope = this;
 
             this._path = url;
+            this._host = host;
             this._socket = socket ? socket : (socket = connections[host] = io.connect(host));
 
             SmallMouth._registry.initializeRegistry(this);
@@ -105,6 +108,14 @@ var SmallMouth;
             SmallMouth._registry.updateRegistry(this, value);
 
             return this;
+        };
+
+        Resource.prototype.child = function (childPath) {
+            return new Resource(this._host + '/' + this._path + '/' + this.cleanPath(childPath));
+        };
+
+        Resource.prototype.parent = function () {
+            return new Resource(this._host + '/' + this._path.substring(0, this._path.lastIndexOf('/')));
         };
 
         Resource.prototype.cleanPath = function (_path) {

@@ -13,6 +13,7 @@ module SmallMouth {
 		private _path: string;
 		private _callbacks = [];
 		private _socket: Socket;
+		private _host: string;
 
 		constructor(address: string) {
 			var parse = urlReg.exec(address),
@@ -26,6 +27,7 @@ module SmallMouth {
 			scope = this;	
 
 			this._path = url;
+			this._host = host;
 			this._socket = socket ? socket : (socket = connections[host] = io.connect(host));
 
 			// socket.on('data', function (data) {
@@ -70,6 +72,14 @@ module SmallMouth {
 			// });
 
 			return this;	
+		}
+
+		child( childPath: string ): Resource {
+			return new Resource(this._host + '/' + this._path + '/' + this.cleanPath(childPath));
+		}
+
+		parent(): Resource {
+			return new Resource(this._host + '/' + this._path.substring(0, this._path.lastIndexOf('/')) );
 		}
 
 		private cleanPath(_path: string): string {

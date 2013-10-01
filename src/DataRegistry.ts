@@ -10,6 +10,7 @@ module SmallMouth {
 
 	function getData(path, options?: any) {
 		if(!options) options = {};
+		if(path.trim() == '') return dataRegistry;
 
 		var paths = path.split('/');
 		var data = dataRegistry;

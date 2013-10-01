@@ -39,6 +39,11 @@ describe("SmallMouth", function() {
 			var resource1 = new SmallMouth.Resource('http://localhost:8080/some/data/for/you');
 			expect(SmallMouth._registry.dataRegistry.children.some.children.data.children.for.children.you).toBeDefined();
 		});
+
+		it("Should return the root registry if the path is an empty string", function() {
+			var resource = new SmallMouth.Resource('http://localhost:8080/');
+			expect(resource._getSnapshot()).toBe(SmallMouth._registry.dataRegistry);
+		});
 	});
 
 	describe('Resource', function() {
@@ -47,17 +52,22 @@ describe("SmallMouth", function() {
 		});
 
 		it('Should return children references', function() {
-			// var resource1 = new SmallMouth.Resource('http://localhost:8080/some/data/for/you');
-			// resource1.set('myData');
-			// var resource2 = new SmallMouth.Resource('http://localhost:8080/some/data');
+			var resource1 = new SmallMouth.Resource('http://localhost:8080/some/data/for/you');
+			resource1.set('myData');
+			var resource2 = new SmallMouth.Resource('http://localhost:8080/some/data');
 
-			// var resource3 = resource2.child('for/you');
+			var resource3 = resource2.child('for/you');
 
-			// expect(resource1._getSnapshot()).toBe(resource3._getSnapshot());
+			expect(resource1._getSnapshot()).toBe(resource3._getSnapshot());
 		});
 
 		it('Should return parent references', function() {
+			var resource1 = new SmallMouth.Resource('http://localhost:8080/some/data/for/you');
+			resource1.set('myData');
+			var resource2 = new SmallMouth.Resource('http://localhost:8080/some/data/for');
+			var resource3 = resource1.parent();
 
+			expect(resource2._getSnapshot()).toBe(resource3._getSnapshot());
 		});
 	});
 

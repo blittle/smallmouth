@@ -32,6 +32,8 @@ declare module SmallMouth {
     interface SmallMouthInterface {
         on(eventType: string, callback: (snapshot: SmallMouth.SnapShotInterface, previusChild?: string) => any, cancelCallbck?: Function, context?: any): SmallMouthInterface;
         set(value: any, onComplete?: (error: any) => any): SmallMouthInterface;
+        child(childPath: string): SmallMouthInterface;
+        parent(): SmallMouthInterface;
     }
 }
 declare module SmallMouth {
@@ -39,9 +41,12 @@ declare module SmallMouth {
         private _path;
         private _callbacks;
         private _socket;
+        private _host;
         constructor(address: string);
         public on(eventType: string, callback: (snapshot: SmallMouth.SnapShotInterface, previusChild?: string) => any, cancelCallbck?: Function, context?: any): Resource;
         public set(value: any, onComplete?: (error: any) => any): Resource;
+        public child(childPath: string): Resource;
+        public parent(): Resource;
         private cleanPath(_path);
         private _getSnapshot();
     }

@@ -5,12 +5,12 @@ module SmallMouth {
 	export interface SmallMouthInterface {
 		 on( eventType: string, callback: (snapshot: SmallMouth.SnapShotInterface, previusChild ?: string) => any, cancelCallbck ?: Function, context ?: any ): SmallMouthInterface;
 		 set( value: any, onComplete ?: (error) => any ): SmallMouthInterface;
-		 // child( childPath: string ): SmallMouthInterface;
+		 child( childPath: string ): SmallMouthInterface;
+		 parent(): SmallMouthInterface;
 		 /**
 		 auth( authToken, onSuccess ?: (error, result) => any ): SmallMouthInterface;
 		 unauth(): SmallMouthInterface;
 		 
-		 parent(): SmallMouthInterface;
 		 root(): SmallMouthInterface;
 		 name(): string;
 		 toString(): string;
