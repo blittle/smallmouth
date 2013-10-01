@@ -82,8 +82,21 @@ module SmallMouth {
 			return new Resource(this._host + '/' + this._path.substring(0, this._path.lastIndexOf('/')) );
 		}
 
+		root(): SmallMouthInterface {
+			return new Resource(this._host + '/' + this._path.substring(0, this._path.indexOf('/')) );
+		}
+
+		name(): string {
+			return this._path.substring( this._path.lastIndexOf('/') + 1 );
+		}
+
+		toString(): string {
+			return this._path;
+		}
+
 		private cleanPath(_path: string): string {
 			_path = _path.charAt(0) === '/' ? _path.substring(1) : _path;
+			_path = _path.charAt(_path.length - 1) === '/' ? _path.substring(0, _path.length - 1) : _path;
 			return _path;
 		}
 

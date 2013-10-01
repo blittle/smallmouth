@@ -118,8 +118,21 @@ var SmallMouth;
             return new Resource(this._host + '/' + this._path.substring(0, this._path.lastIndexOf('/')));
         };
 
+        Resource.prototype.root = function () {
+            return new Resource(this._host + '/' + this._path.substring(0, this._path.indexOf('/')));
+        };
+
+        Resource.prototype.name = function () {
+            return this._path.substring(this._path.lastIndexOf('/') + 1);
+        };
+
+        Resource.prototype.toString = function () {
+            return this._path;
+        };
+
         Resource.prototype.cleanPath = function (_path) {
             _path = _path.charAt(0) === '/' ? _path.substring(1) : _path;
+            _path = _path.charAt(_path.length - 1) === '/' ? _path.substring(0, _path.length - 1) : _path;
             return _path;
         };
 

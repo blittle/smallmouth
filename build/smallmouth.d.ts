@@ -34,6 +34,9 @@ declare module SmallMouth {
         set(value: any, onComplete?: (error: any) => any): SmallMouthInterface;
         child(childPath: string): SmallMouthInterface;
         parent(): SmallMouthInterface;
+        root(): SmallMouthInterface;
+        name(): string;
+        toString(): string;
     }
 }
 declare module SmallMouth {
@@ -47,6 +50,9 @@ declare module SmallMouth {
         public set(value: any, onComplete?: (error: any) => any): Resource;
         public child(childPath: string): Resource;
         public parent(): Resource;
+        public root(): SmallMouth.SmallMouthInterface;
+        public name(): string;
+        public toString(): string;
         private cleanPath(_path);
         private _getSnapshot();
     }

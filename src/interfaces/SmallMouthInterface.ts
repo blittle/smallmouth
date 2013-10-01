@@ -7,13 +7,12 @@ module SmallMouth {
 		 set( value: any, onComplete ?: (error) => any ): SmallMouthInterface;
 		 child( childPath: string ): SmallMouthInterface;
 		 parent(): SmallMouthInterface;
-		 /**
-		 auth( authToken, onSuccess ?: (error, result) => any ): SmallMouthInterface;
-		 unauth(): SmallMouthInterface;
-		 
 		 root(): SmallMouthInterface;
 		 name(): string;
 		 toString(): string;
+		 /**
+		 auth( authToken, onSuccess ?: (error, result) => any ): SmallMouthInterface;
+		 unauth(): SmallMouthInterface;
 		 
 		 update( value: any, onComplete ?: (error) => any ): SmallMouthInterface;
 		 remove( onComplete?: (error) => any ): SmallMouthInterface;
