@@ -37,6 +37,7 @@ declare module SmallMouth {
         root(): SmallMouthInterface;
         name(): string;
         toString(): string;
+        update(value: any, onComplete?: (error: any) => any): SmallMouthInterface;
     }
 }
 declare module SmallMouth {
@@ -48,6 +49,7 @@ declare module SmallMouth {
         constructor(address: string);
         public on(eventType: string, callback: (snapshot: SmallMouth.SnapShotInterface, previusChild?: string) => any, cancelCallbck?: Function, context?: any): Resource;
         public set(value: any, onComplete?: (error: any) => any): Resource;
+        public update(value: any, onComplete?: (error: any) => any): SmallMouth.SmallMouthInterface;
         public child(childPath: string): Resource;
         public parent(): Resource;
         public root(): SmallMouth.SmallMouthInterface;

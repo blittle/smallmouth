@@ -8,6 +8,28 @@ module SmallMouth {
 		version: 0
 	};
 
+	function createSubDataFromObject(data, obj) {
+		if(obj instanceof Object && !(obj instanceof String) && !(obj instanceof Number) && !(obj instanceof Array) && !(obj instanceof Boolean) ) {
+			for(var key in obj) {
+				if(obj.hasOwnProperty(key)) {
+
+					if(!data.children.hasOwnProperty(key)) {
+						data.children[key] = {
+							children: {},
+							version: 0
+						};	
+					} else {
+						data.children[key].version++;
+					}
+
+					createSubDataFromObject(data.children[key], obj[key]);
+				}
+			}
+		} else {
+			data.data = obj;
+		}
+	}
+
 	function getData(path, options?: any) {
 		if(!options) options = {};
 		if(path.trim() == '') return dataRegistry;
@@ -31,9 +53,12 @@ module SmallMouth {
 		return data;
 	}
 
-	function updateRegistry(resource, value) {
+	function updateRegistry(resource, value: any) {
 		var data = getData(resource._path, {versionUpdate: true});
-		data.data = value;
+
+
+		createSubDataFromObject(data, value);
+
 		data.version++;
 
 		sync(resource);

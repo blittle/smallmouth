@@ -74,6 +74,10 @@ module SmallMouth {
 			return this;	
 		}
 
+		update( value: any, onComplete ?: (error) => any ): SmallMouthInterface {
+			return this;
+		}
+
 		child( childPath: string ): Resource {
 			return new Resource(this._host + '/' + this._path + '/' + this.cleanPath(childPath));
 		}

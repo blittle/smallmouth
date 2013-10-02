@@ -10,11 +10,12 @@ module SmallMouth {
 		 root(): SmallMouthInterface;
 		 name(): string;
 		 toString(): string;
+		 update( value: any, onComplete ?: (error) => any ): SmallMouthInterface;
 		 /**
 		 auth( authToken, onSuccess ?: (error, result) => any ): SmallMouthInterface;
 		 unauth(): SmallMouthInterface;
 		 
-		 update( value: any, onComplete ?: (error) => any ): SmallMouthInterface;
+		 
 		 remove( onComplete?: (error) => any ): SmallMouthInterface;
 		 push( value: any, complete ?: (error) => any ): SmallMouthInterface;
 		 setWithPriority( value: any, priority: any, onComplete ?: (error) => any ): SmallMouthInterface;
