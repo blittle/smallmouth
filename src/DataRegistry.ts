@@ -53,9 +53,13 @@ module SmallMouth {
 		return data;
 	}
 
-	function updateRegistry(resource, value: any) {
+	function updateRegistry(resource, value: any, options: any = {}) {
 		var data = getData(resource._path, {versionUpdate: true});
 
+		if(!options.merge) {
+			data.children = {};
+			data.data = null;
+		}
 
 		createSubDataFromObject(data, value);
 

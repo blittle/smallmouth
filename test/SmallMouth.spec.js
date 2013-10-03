@@ -116,7 +116,7 @@ describe("SmallMouth", function() {
 			expect(resource3.toString()).toBe('some');
 		});
 
-		it('Should create nested resources on set', function() {
+		it('Should create nested resources and replace on set', function() {
 			var resource1 = new SmallMouth.Resource('http://localhost:8080/some/data');
 
 			resource1.set({
@@ -130,6 +130,26 @@ describe("SmallMouth", function() {
 				}
 			});
 
+			expect(resource1.child('prop1')._getSnapshot().data).toBeUndefined();
+
+			expect(resource1.child('prop2/sub1')._getSnapshot().data).toBe(1);
+			expect(resource1.child('prop2/sub2')._getSnapshot().data).toBe(2);
+		});
+
+		it('Should create nested resources and merge on update', function() {
+			var resource1 = new SmallMouth.Resource('http://localhost:8080/some/data');
+
+			resource1.set({
+				'prop1': 1
+			});
+
+			resource1.update({
+				'prop2': {
+					sub1: 1,
+					sub2: 2
+				}
+			});
+
 			expect(resource1.child('prop1')).toBeDefined();
 			expect(resource1.child('prop1')._getSnapshot().data).toBe(1);
 
@@ -137,7 +157,7 @@ describe("SmallMouth", function() {
 			expect(resource1.child('prop2/sub2')._getSnapshot().data).toBe(2);
 		});
 
-		it('Should update parent vversions when nested resources are set', function() {
+		it('Should update parent versions when nested resources are set', function() {
 			var resource1 = new SmallMouth.Resource('http://localhost:8080/some/data');
 
 			resource1.set({
@@ -151,10 +171,9 @@ describe("SmallMouth", function() {
 					'sub2': 2
 				}
 			});				
-
-			expect(resource1.child('prop1/sub1')._getSnapshot().data).toBe(1);
+			
 			expect(resource1.child('prop1/sub2')._getSnapshot().data).toBe(2);
-			expect(resource1.child('prop1')._getSnapshot().version).toBe(1);
+			expect(resource1.child('prop1')._getSnapshot().version).toBe(0);
 			expect(resource1._getSnapshot().version).toBe(2);		
 		});
 	});

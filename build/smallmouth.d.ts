@@ -3,7 +3,7 @@ declare module SmallMouth {
     var _registry: {
         sync: (resource: any) => void;
         initializeRegistry: (resource: any) => void;
-        updateRegistry: (resource: any, value: any) => void;
+        updateRegistry: (resource: any, value: any, options?: any) => void;
         getData: (path: any, options?: any) => any;
         dataRegistry: any;
         resetRegistry: () => void;

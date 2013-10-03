@@ -75,6 +75,7 @@ module SmallMouth {
 		}
 
 		update( value: any, onComplete ?: (error) => any ): SmallMouthInterface {
+			SmallMouth._registry.updateRegistry(this, value, {merge: true});	
 			return this;
 		}
 

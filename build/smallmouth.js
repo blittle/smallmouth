@@ -55,8 +55,14 @@ var SmallMouth;
         return data;
     }
 
-    function updateRegistry(resource, value) {
+    function updateRegistry(resource, value, options) {
+        if (typeof options === "undefined") { options = {}; }
         var data = getData(resource._path, { versionUpdate: true });
+
+        if (!options.merge) {
+            data.children = {};
+            data.data = null;
+        }
 
         createSubDataFromObject(data, value);
 
@@ -134,6 +140,7 @@ var SmallMouth;
         };
 
         Resource.prototype.update = function (value, onComplete) {
+            SmallMouth._registry.updateRegistry(this, value, { merge: true });
             return this;
         };
 
