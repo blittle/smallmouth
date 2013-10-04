@@ -1,6 +1,6 @@
 ///<reference path="../d.ts/DefinitelyTyped/socket.io/socket.io.d.ts"/>
 ///<reference path="interfaces/SmallMouthInterface"/>
-///<reference path="interfaces/SnapShotInterface"/>
+///<reference path="interfaces/SnapshotInterface"/>
 ///<reference path="DataRegistry"/>
 
 module SmallMouth {	
@@ -46,7 +46,7 @@ module SmallMouth {
 
 		on(
 			eventType: string, 
-			callback: (snapshot: SmallMouth.SnapShotInterface, previusChild ?: string) => any, 
+			callback: (snapshot: SmallMouth.SnapshotInterface, previusChild ?: string) => any, 
 			cancelCallbck ?: Function, 
 			context?: any
 		): Resource {
@@ -105,8 +105,16 @@ module SmallMouth {
 			return _path;
 		}
 
-		private _getSnapshot() {
-			return SmallMouth._registry.getData(this._path);	
+		private _getSnapshot(): SmallMouth.SnapshotInterface {
+
+			var data = SmallMouth._registry.getData(this._path);
+
+			if(!data) return undefined;
+
+			return new SmallMouth.Snapshot(
+				this._path,
+				data
+			);		
 		}
 	}
 }

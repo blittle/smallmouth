@@ -10,17 +10,8 @@ declare module SmallMouth {
     };
 }
 declare module SmallMouth {
-    interface SnapShotInterface {
+    interface SnapshotInterface {
         val(): any;
-        child(path: string): SnapShotInterface;
-        forEach(childAction: (childSnapshot: SnapShotInterface) => any): boolean;
-        hasChild(childPath: string): boolean;
-        hasChildren(): boolean;
-        name(): string;
-        numChildren(): number;
-        ref(): SmallMouth.SmallMouthInterface;
-        getPriority(): any;
-        exportVal(): any;
     }
 }
 declare module SmallMouth {
@@ -30,7 +21,7 @@ declare module SmallMouth {
 }
 declare module SmallMouth {
     interface SmallMouthInterface {
-        on(eventType: string, callback: (snapshot: SmallMouth.SnapShotInterface, previusChild?: string) => any, cancelCallbck?: Function, context?: any): SmallMouthInterface;
+        on(eventType: string, callback: (snapshot: SmallMouth.SnapshotInterface, previusChild?: string) => any, cancelCallbck?: Function, context?: any): SmallMouthInterface;
         set(value: any, onComplete?: (error: any) => any): SmallMouthInterface;
         child(childPath: string): SmallMouthInterface;
         parent(): SmallMouthInterface;
@@ -47,7 +38,7 @@ declare module SmallMouth {
         private _socket;
         private _host;
         constructor(address: string);
-        public on(eventType: string, callback: (snapshot: SmallMouth.SnapShotInterface, previusChild?: string) => any, cancelCallbck?: Function, context?: any): Resource;
+        public on(eventType: string, callback: (snapshot: SmallMouth.SnapshotInterface, previusChild?: string) => any, cancelCallbck?: Function, context?: any): Resource;
         public set(value: any, onComplete?: (error: any) => any): Resource;
         public update(value: any, onComplete?: (error: any) => any): SmallMouth.SmallMouthInterface;
         public child(childPath: string): Resource;
@@ -57,5 +48,14 @@ declare module SmallMouth {
         public toString(): string;
         private cleanPath(_path);
         private _getSnapshot();
+    }
+}
+declare module SmallMouth {
+    class Snapshot implements SmallMouth.SnapshotInterface {
+        private _path;
+        private _data;
+        public version;
+        constructor(path, data);
+        public val(): any;
     }
 }

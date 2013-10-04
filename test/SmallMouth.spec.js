@@ -9,7 +9,7 @@ describe("SmallMouth", function() {
 		it("Should initialize the registry with correctly", function() {
 			expect(SmallMouth._registry.dataRegistry).toBeDefined();
 			expect(SmallMouth._registry.dataRegistry.version).toBe(0);
-			expect(SmallMouth._registry.dataRegistry.data).toBeNull();
+			expect(SmallMouth._registry.dataRegistry.data).toBeUndefined();
 		});
 
 		it("Should add a resource to the registry", function() {
@@ -19,30 +19,26 @@ describe("SmallMouth", function() {
 			expect(SmallMouth._registry.dataRegistry.children.resource1.version).toBe(0);
 		});
 
-		it("Multiple references should point to the same object", function() {
-			var resource1 = new SmallMouth.Resource('http://localhost:8080/resource1');
-			var resource2 = new SmallMouth.Resource('http://localhost:8080/resource1');
-
-			expect(resource1._getSnapshot().data).toBe(resource2._getSnapshot().data);
-		});
-
 		it("Should update the resource in the registry", function() {
 			var resource1 = new SmallMouth.Resource('http://localhost:8080/resource1');
 			var resource2 = new SmallMouth.Resource('http://localhost:8080/resource1');
 
 			resource1.set('someValue');
-			expect(resource1._getSnapshot().data).toBe('someValue');
-			expect(resource2._getSnapshot().data).toBe('someValue');
+			expect(resource1._getSnapshot().val()).toBe('someValue');
+			expect(resource2._getSnapshot().val()).toBe('someValue');
 		});
 
 		it("Should create nested resources", function() {
+			
 			var resource1 = new SmallMouth.Resource('http://localhost:8080/some/data/for/you');
 			expect(SmallMouth._registry.dataRegistry.children.some.children.data.children.for.children.you).toBeDefined();
 		});
 
 		it("Should return the root registry if the path is an empty string", function() {
+			var resource1 = new SmallMouth.Resource('http://localhost:8080/test/path');
+			resource1.set('val');
 			var resource = new SmallMouth.Resource('http://localhost:8080/');
-			expect(resource._getSnapshot()).toBe(SmallMouth._registry.dataRegistry);
+			expect(resource._getSnapshot().val().test.path).toBe('val');
 		});
 
 		it('Should update the version when the value is modified', function() {
@@ -78,7 +74,7 @@ describe("SmallMouth", function() {
 
 			var resource3 = resource2.child('for/you');
 
-			expect(resource1._getSnapshot()).toBe(resource3._getSnapshot());
+			expect(resource1._getSnapshot().val()).toBe(resource3._getSnapshot().val());
 		});
 
 		it('Should return parent references', function() {
@@ -87,7 +83,7 @@ describe("SmallMouth", function() {
 			var resource2 = new SmallMouth.Resource('http://localhost:8080/some/data/for');
 			var resource3 = resource1.parent();
 
-			expect(resource2._getSnapshot()).toBe(resource3._getSnapshot());
+			expect(resource2._getSnapshot().val().you).toBe(resource3._getSnapshot().val().you);
 		});
 
 		it('Should return the root reference', function() {
@@ -95,7 +91,8 @@ describe("SmallMouth", function() {
 			var resource2 = resource1.root();
 			var resource3 = new SmallMouth.Resource('http://localhost:8080/some');
 
-			expect(resource2._getSnapshot()).toBe(resource3._getSnapshot());
+			expect(resource2._getSnapshot().val().data.for.you).toBeNull();
+			expect(resource3._getSnapshot().val().data.for.you).toBeNull();
 		});
 
 		it('Should return the resource name', function() {
@@ -128,12 +125,12 @@ describe("SmallMouth", function() {
 					sub1: 1,
 					sub2: 2
 				}
-			});
+			});			
 
-			expect(resource1.child('prop1')._getSnapshot().data).toBeUndefined();
+			expect(resource1.child('prop1')._getSnapshot().val()).toBeNull();
 
-			expect(resource1.child('prop2/sub1')._getSnapshot().data).toBe(1);
-			expect(resource1.child('prop2/sub2')._getSnapshot().data).toBe(2);
+			expect(resource1.child('prop2/sub1')._getSnapshot().val()).toBe(1);
+			expect(resource1.child('prop2/sub2')._getSnapshot().val()).toBe(2);
 		});
 
 		it('Should create nested resources and merge on update', function() {
@@ -151,13 +148,14 @@ describe("SmallMouth", function() {
 			});
 
 			expect(resource1.child('prop1')).toBeDefined();
-			expect(resource1.child('prop1')._getSnapshot().data).toBe(1);
+			expect(resource1.child('prop1')._getSnapshot().val()).toBe(1);
 
-			expect(resource1.child('prop2/sub1')._getSnapshot().data).toBe(1);
-			expect(resource1.child('prop2/sub2')._getSnapshot().data).toBe(2);
+			expect(resource1.child('prop2/sub1')._getSnapshot().val()).toBe(1);
+			expect(resource1.child('prop2/sub2')._getSnapshot().val()).toBe(2);
 		});
 
 		it('Should update parent versions when nested resources are set', function() {
+			
 			var resource1 = new SmallMouth.Resource('http://localhost:8080/some/data');
 
 			resource1.set({
@@ -172,7 +170,7 @@ describe("SmallMouth", function() {
 				}
 			});				
 			
-			expect(resource1.child('prop1/sub2')._getSnapshot().data).toBe(2);
+			expect(resource1.child('prop1/sub2')._getSnapshot().val()).toBe(2);
 			expect(resource1.child('prop1')._getSnapshot().version).toBe(0);
 			expect(resource1._getSnapshot().version).toBe(2);		
 		});

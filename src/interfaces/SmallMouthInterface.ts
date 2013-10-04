@@ -1,9 +1,9 @@
-///<reference path="SnapShotInterface"/>
+///<reference path="SnapshotInterface"/>
 ///<reference path="ServerValueInterface"/>
 module SmallMouth {
 
 	export interface SmallMouthInterface {
-		 on( eventType: string, callback: (snapshot: SmallMouth.SnapShotInterface, previusChild ?: string) => any, cancelCallbck ?: Function, context ?: any ): SmallMouthInterface;
+		 on( eventType: string, callback: (snapshot: SmallMouth.SnapshotInterface, previusChild ?: string) => any, cancelCallbck ?: Function, context ?: any ): SmallMouthInterface;
 		 set( value: any, onComplete ?: (error) => any ): SmallMouthInterface;
 		 child( childPath: string ): SmallMouthInterface;
 		 parent(): SmallMouthInterface;

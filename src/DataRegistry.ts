@@ -3,13 +3,13 @@ module SmallMouth {
 	var syncTimeout;
 
 	var dataRegistry = JSON.parse(localStorage.getItem('LargeMouth_Registry')) || {
-		data: null,
-		children: {},
 		version: 0
 	};
 
 	function createSubDataFromObject(data, obj) {
 		if(obj instanceof Object && !(obj instanceof String) && !(obj instanceof Number) && !(obj instanceof Array) && !(obj instanceof Boolean) ) {
+			if(!data.children) data.children = {};
+
 			for(var key in obj) {
 				if(obj.hasOwnProperty(key)) {
 
@@ -37,10 +37,11 @@ module SmallMouth {
 		var paths = path.split('/');
 		var data = dataRegistry;
 		
-		for(var i=0, iLength = paths.length; i < iLength; i++) {
+		for(var i=0, iLength = paths.length; i < iLength; i++) {	
+			if(!data.children) data.children = {};
+			
 			if(!data.children[paths[i]]) {
 				data.children[paths[i]] = {
-					children: {},
 					version: 0
 				} 
 			} 
@@ -70,7 +71,6 @@ module SmallMouth {
 
 	function initializeRegistry(resource) {
 		var data = getData(resource._path);
-		resource.data = data.data;
 
 		sync(resource);		
 	}

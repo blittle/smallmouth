@@ -3,13 +3,14 @@ var SmallMouth;
     var syncTimeout;
 
     var dataRegistry = JSON.parse(localStorage.getItem('LargeMouth_Registry')) || {
-        data: null,
-        children: {},
         version: 0
     };
 
     function createSubDataFromObject(data, obj) {
         if (obj instanceof Object && !(obj instanceof String) && !(obj instanceof Number) && !(obj instanceof Array) && !(obj instanceof Boolean)) {
+            if (!data.children)
+                data.children = {};
+
             for (var key in obj) {
                 if (obj.hasOwnProperty(key)) {
                     if (!data.children.hasOwnProperty(key)) {
@@ -39,9 +40,11 @@ var SmallMouth;
         var data = dataRegistry;
 
         for (var i = 0, iLength = paths.length; i < iLength; i++) {
+            if (!data.children)
+                data.children = {};
+
             if (!data.children[paths[i]]) {
                 data.children[paths[i]] = {
-                    children: {},
                     version: 0
                 };
             }
@@ -73,7 +76,6 @@ var SmallMouth;
 
     function initializeRegistry(resource) {
         var data = getData(resource._path);
-        resource.data = data.data;
 
         sync(resource);
     }
@@ -171,10 +173,48 @@ var SmallMouth;
         };
 
         Resource.prototype._getSnapshot = function () {
-            return SmallMouth._registry.getData(this._path);
+            var data = SmallMouth._registry.getData(this._path);
+
+            if (!data)
+                return undefined;
+
+            return new SmallMouth.Snapshot(this._path, data);
         };
         return Resource;
     })();
     SmallMouth.Resource = Resource;
+})(SmallMouth || (SmallMouth = {}));
+var SmallMouth;
+(function (SmallMouth) {
+    function getJSON(data) {
+        var obj = {};
+
+        if (data.data) {
+            return data.data;
+        } else if (!data.children) {
+            return null;
+        } else {
+            for (var key in data.children) {
+                if (data.children.hasOwnProperty(key)) {
+                    obj[key] = getJSON(data.children[key]);
+                }
+            }
+        }
+
+        return obj;
+    }
+
+    var Snapshot = (function () {
+        function Snapshot(path, data) {
+            this._path = path;
+            this._data = data;
+            this.version = data.version;
+        }
+        Snapshot.prototype.val = function () {
+            return getJSON(this._data);
+        };
+        return Snapshot;
+    })();
+    SmallMouth.Snapshot = Snapshot;
 })(SmallMouth || (SmallMouth = {}));
 //# sourceMappingURL=smallmouth.js.map
