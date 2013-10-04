@@ -14,7 +14,7 @@ module.exports = function(config) {
 
     // list of files / patterns to load in the browser
     files: [
-      'build/*.js',
+      'build/smallmouth.js',
       'test/socket.io.mock.js',
       'test/*.spec.js'
     ],

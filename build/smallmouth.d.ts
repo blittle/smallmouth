@@ -12,6 +12,8 @@ declare module SmallMouth {
 declare module SmallMouth {
     interface SnapshotInterface {
         val(): any;
+        child(path: string): SnapshotInterface;
+        forEach(childAction: (childSnapshot: SnapshotInterface) => any): boolean;
     }
 }
 declare module SmallMouth {
@@ -46,7 +48,7 @@ declare module SmallMouth {
         public root(): SmallMouth.SmallMouthInterface;
         public name(): string;
         public toString(): string;
-        private cleanPath(_path);
+        static cleanPath(_path: string): string;
         private _getSnapshot();
     }
 }
@@ -57,5 +59,7 @@ declare module SmallMouth {
         public version;
         constructor(path, data);
         public val(): any;
+        public child(path: string): Snapshot;
+        public forEach(childAction: (childSnapshot: SmallMouth.SnapshotInterface) => any): boolean;
     }
 }

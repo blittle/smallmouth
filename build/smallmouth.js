@@ -114,7 +114,7 @@ var SmallMouth;
     var Resource = (function () {
         function Resource(address) {
             this._callbacks = [];
-            var parse = urlReg.exec(address), scheme = parse[1], domain = parse[3], path = parse[5], query = parse[6], host = (scheme ? scheme : "") + (domain ? domain : ""), url = this.cleanPath((path ? path : "") + (query ? query : "")), socket = connections[host], scope = this;
+            var parse = urlReg.exec(address), scheme = parse[1], domain = parse[3], path = parse[5], query = parse[6], host = (scheme ? scheme : "") + (domain ? domain : ""), url = Resource.cleanPath((path ? path : "") + (query ? query : "")), socket = connections[host], scope = this;
 
             this._path = url;
             this._host = host;
@@ -147,7 +147,7 @@ var SmallMouth;
         };
 
         Resource.prototype.child = function (childPath) {
-            return new Resource(this._host + '/' + this._path + '/' + this.cleanPath(childPath));
+            return new Resource(this._host + '/' + this._path + '/' + Resource.cleanPath(childPath));
         };
 
         Resource.prototype.parent = function () {
@@ -166,7 +166,7 @@ var SmallMouth;
             return this._path;
         };
 
-        Resource.prototype.cleanPath = function (_path) {
+        Resource.cleanPath = function (_path) {
             _path = _path.charAt(0) === '/' ? _path.substring(1) : _path;
             _path = _path.charAt(_path.length - 1) === '/' ? _path.substring(0, _path.length - 1) : _path;
             return _path;
@@ -212,6 +212,34 @@ var SmallMouth;
         }
         Snapshot.prototype.val = function () {
             return getJSON(this._data);
+        };
+
+        Snapshot.prototype.child = function (path) {
+            path = this._path + '/' + SmallMouth.Resource.cleanPath(path);
+
+            var data = SmallMouth._registry.getData(path);
+
+            if (!data)
+                return undefined;
+
+            return new SmallMouth.Snapshot(path, data);
+        };
+
+        Snapshot.prototype.forEach = function (childAction) {
+            var children = this._data.children;
+
+            for (var key in children) {
+                if (children.hasOwnProperty(key)) {
+                    var path = this._path + '/' + key;
+
+                    var cancel = childAction.call(this, new SmallMouth.Snapshot(path, SmallMouth._registry.getData(path)));
+
+                    if (cancel)
+                        return true;
+                }
+            }
+
+            return false;
         };
         return Snapshot;
     })();

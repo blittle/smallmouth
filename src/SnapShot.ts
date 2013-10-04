@@ -34,5 +34,39 @@ module SmallMouth {
 		val(): any {
 			return getJSON(this._data);
 		}
+
+		child(path: string): Snapshot {
+
+			path = this._path + '/' + Resource.cleanPath(path);
+
+			var data = SmallMouth._registry.getData(path);
+
+			if(!data) return undefined;
+
+			return new SmallMouth.Snapshot(
+				path,
+				data
+			);		
+		}
+
+		forEach(childAction: (childSnapshot: SnapshotInterface) => any): boolean {
+			var children = this._data.children;
+
+			for(var key in children) {
+				if(children.hasOwnProperty(key)) {
+					var path = this._path + '/' + key;
+
+					var cancel = childAction.call(this, 
+						new SmallMouth.Snapshot(
+							path, SmallMouth._registry.getData(path)
+						)
+					);
+
+					if(cancel) return true;
+				}
+			}
+
+			return false;
+		}
 	}
 }

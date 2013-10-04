@@ -3,8 +3,8 @@
 module SmallMouth {
 	export interface SnapshotInterface {
 		val(): any;
-		// child(path: string): SnapShotInterface;
-		// forEach(childAction: (childSnapshot: SnapShotInterface) => any): boolean;	
+		child(path: string): SnapshotInterface;
+		forEach(childAction: (childSnapshot: SnapshotInterface) => any): boolean;	
 		// hasChild( childPath: string ): boolean;
 		// hasChildren(): boolean;
 		// name(): string;

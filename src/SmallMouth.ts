@@ -22,7 +22,7 @@ module SmallMouth {
 			path = parse[5],
 			query = parse[6],
 			host = (scheme ? scheme : "") + (domain ? domain : ""),
-			url = this.cleanPath((path ? path : "") + (query ? query : "")),
+			url = Resource.cleanPath((path ? path : "") + (query ? query : "")),
 			socket = connections[host],
 			scope = this;	
 
@@ -80,7 +80,7 @@ module SmallMouth {
 		}
 
 		child( childPath: string ): Resource {
-			return new Resource(this._host + '/' + this._path + '/' + this.cleanPath(childPath));
+			return new Resource(this._host + '/' + this._path + '/' + Resource.cleanPath(childPath));
 		}
 
 		parent(): Resource {
@@ -99,7 +99,7 @@ module SmallMouth {
 			return this._path;
 		}
 
-		private cleanPath(_path: string): string {
+		public static cleanPath(_path: string): string {
 			_path = _path.charAt(0) === '/' ? _path.substring(1) : _path;
 			_path = _path.charAt(_path.length - 1) === '/' ? _path.substring(0, _path.length - 1) : _path;
 			return _path;
