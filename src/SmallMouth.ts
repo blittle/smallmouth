@@ -113,7 +113,8 @@ module SmallMouth {
 
 			return new SmallMouth.Snapshot(
 				this._path,
-				data
+				data,
+				this._host
 			);		
 		}
 	}

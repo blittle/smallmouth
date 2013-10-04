@@ -178,7 +178,7 @@ var SmallMouth;
             if (!data)
                 return undefined;
 
-            return new SmallMouth.Snapshot(this._path, data);
+            return new SmallMouth.Snapshot(this._path, data, this._host);
         };
         return Resource;
     })();
@@ -205,9 +205,11 @@ var SmallMouth;
     }
 
     var Snapshot = (function () {
-        function Snapshot(path, data) {
+        function Snapshot(path, data, host) {
             this._path = path;
-            this._data = data;
+            this._host = host;
+
+            this._data = JSON.parse(JSON.stringify(data));
             this.version = data.version;
         }
         Snapshot.prototype.val = function () {
@@ -222,7 +224,7 @@ var SmallMouth;
             if (!data)
                 return undefined;
 
-            return new SmallMouth.Snapshot(path, data);
+            return new Snapshot(path, data, this._host);
         };
 
         Snapshot.prototype.forEach = function (childAction) {
@@ -232,7 +234,7 @@ var SmallMouth;
                 if (children.hasOwnProperty(key)) {
                     var path = this._path + '/' + key;
 
-                    var cancel = childAction.call(this, new SmallMouth.Snapshot(path, SmallMouth._registry.getData(path)));
+                    var cancel = childAction.call(this, new Snapshot(path, SmallMouth._registry.getData(path), this._host));
 
                     if (cancel)
                         return true;
@@ -240,6 +242,28 @@ var SmallMouth;
             }
 
             return false;
+        };
+
+        Snapshot.prototype.hasChild = function (childPath) {
+            childPath = this._path + '/' + SmallMouth.Resource.cleanPath(childPath);
+            var data = SmallMouth._registry.getData(childPath);
+            return typeof data.children !== 'undefined' || typeof data.data !== 'undefined';
+        };
+
+        Snapshot.prototype.hasChildren = function () {
+            return this.numChildren() > 0;
+        };
+
+        Snapshot.prototype.name = function () {
+            return this._path.substring(this._path.lastIndexOf('/') + 1);
+        };
+
+        Snapshot.prototype.numChildren = function () {
+            return this._data.children ? Object.keys(this._data.children).length : 0;
+        };
+
+        Snapshot.prototype.ref = function () {
+            return new SmallMouth.Resource(this._host + '/' + this._path);
         };
         return Snapshot;
     })();

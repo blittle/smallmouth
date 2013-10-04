@@ -1,4 +1,5 @@
 ///<reference path="interfaces/SnapshotInterface"/>
+///<reference path="interfaces/SmallMouthInterface"/>
 
 module SmallMouth {
 
@@ -23,11 +24,17 @@ module SmallMouth {
 	export class Snapshot implements SmallMouth.SnapshotInterface {
 		private _path;
 		private _data;
+		private _host;
 		public version;
 
-		constructor(path, data) {
+		constructor(path, data, host) {
 			this._path = path;
-			this._data = data;
+			this._host = host;
+
+			// Deep copy the data by serializing it to JSON.
+			// This is necesary so the class remains a 'snapshot' of 
+			// the data and doesn't change as the future resource does
+			this._data = JSON.parse(JSON.stringify(data));
 			this.version = data.version;
 		}
 
@@ -43,9 +50,10 @@ module SmallMouth {
 
 			if(!data) return undefined;
 
-			return new SmallMouth.Snapshot(
+			return new Snapshot(
 				path,
-				data
+				data,
+				this._host
 			);		
 		}
 
@@ -57,8 +65,8 @@ module SmallMouth {
 					var path = this._path + '/' + key;
 
 					var cancel = childAction.call(this, 
-						new SmallMouth.Snapshot(
-							path, SmallMouth._registry.getData(path)
+						new Snapshot(
+							path, SmallMouth._registry.getData(path), this._host
 						)
 					);
 
@@ -67,6 +75,28 @@ module SmallMouth {
 			}
 
 			return false;
+		}
+
+		hasChild( childPath: string ): boolean {
+			childPath = this._path + '/' + Resource.cleanPath(childPath);
+			var data = SmallMouth._registry.getData(childPath);
+			return typeof data.children !== 'undefined' || typeof data.data !== 'undefined';
+		}
+
+		hasChildren(): boolean {
+			return this.numChildren() > 0;
+		}
+
+		name(): string {
+			return this._path.substring(this._path.lastIndexOf('/')+1);
+		}
+		
+		numChildren(): number {
+			return this._data.children ? Object.keys(this._data.children).length : 0;
+		}
+
+		ref(): Resource {
+			return new Resource(this._host + '/' + this._path);
 		}
 	}
 }
