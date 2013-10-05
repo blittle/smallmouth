@@ -39,7 +39,7 @@ module SmallMouth {
 		
 		for(var i=0, iLength = paths.length; i < iLength; i++) {	
 			if(!data.children) data.children = {};
-			
+
 			if(!data.children[paths[i]]) {
 				data.children[paths[i]] = {
 					version: 0
@@ -91,12 +91,29 @@ module SmallMouth {
 		localStorage.setItem('LargeMouth_Registry', JSON.stringify(dataRegistry));
 	}
 
+	function remove(path) {
+		if(path.trim() == '') return dataRegistry;
+
+		var paths = path.split('/');
+		var data = dataRegistry;
+		
+		for(var i=0, iLength = (paths.length - 1); i < iLength; i++) {	
+			if(!data.children) break;
+			data = data.children[paths[i]];
+			data.version++;
+		}			
+
+		delete data.children;
+		delete data.data;
+	}
+
 	export var _registry = {
 		sync: sync,
 		initializeRegistry: initializeRegistry,
 		updateRegistry: updateRegistry,
 		getData: getData,
 		dataRegistry: dataRegistry,
-		resetRegistry: resetRegistry
+		resetRegistry: resetRegistry,
+		remove: remove
 	}
 }

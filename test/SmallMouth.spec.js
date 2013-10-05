@@ -174,6 +174,28 @@ describe("SmallMouth", function() {
 			expect(resource1.child('prop1')._getSnapshot().version).toBe(0);
 			expect(resource1._getSnapshot().version).toBe(2);		
 		});
-	});
 
+		it('Should remove resource', function() {
+			var resource1 = new SmallMouth.Resource('http://localhost:8080/some/data');
+			resource1.set('value');
+
+			resource1.remove();
+
+			expect(resource1._getSnapshot().val()).toBeNull();
+
+			var parent = resource1.parent();
+			var snapshot = parent._getSnapshot();
+
+			expect(snapshot.val().data).toBeNull();
+		});
+
+		it('Should update parent resources version when a sub resource is removed', function() {
+			var resource1 = new SmallMouth.Resource('http://localhost:8080/some/data');
+			resource1.set('value');
+			expect(resource1.parent()._getSnapshot().version).toBe(1);
+			debugger;
+			resource1.remove();
+			expect(resource1.parent()._getSnapshot().version).toBe(2);
+		});
+	});
 });

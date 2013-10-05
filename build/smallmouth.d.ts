@@ -7,6 +7,7 @@ declare module SmallMouth {
         getData: (path: any, options?: any) => any;
         dataRegistry: any;
         resetRegistry: () => void;
+        remove: (path: any) => any;
     };
 }
 declare module SmallMouth {
@@ -36,6 +37,7 @@ declare module SmallMouth {
         name(): string;
         toString(): string;
         update(value: any, onComplete?: (error: any) => any): SmallMouthInterface;
+        remove(onComplete?: (error: any) => any): void;
     }
 }
 declare module SmallMouth {
@@ -47,10 +49,11 @@ declare module SmallMouth {
         constructor(address: string);
         public on(eventType: string, callback: (snapshot: SmallMouth.SnapshotInterface, previusChild?: string) => any, cancelCallbck?: Function, context?: any): Resource;
         public set(value: any, onComplete?: (error: any) => any): Resource;
-        public update(value: any, onComplete?: (error: any) => any): SmallMouth.SmallMouthInterface;
+        public update(value: any, onComplete?: (error: any) => any): Resource;
+        public remove(onComplete?: (error: any) => any): void;
         public child(childPath: string): Resource;
         public parent(): Resource;
-        public root(): SmallMouth.SmallMouthInterface;
+        public root(): Resource;
         public name(): string;
         public toString(): string;
         static cleanPath(_path: string): string;

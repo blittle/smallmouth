@@ -74,9 +74,13 @@ module SmallMouth {
 			return this;	
 		}
 
-		update( value: any, onComplete ?: (error) => any ): SmallMouthInterface {
+		update( value: any, onComplete ?: (error) => any ): Resource {
 			SmallMouth._registry.updateRegistry(this, value, {merge: true});	
 			return this;
+		}
+
+		remove( onComplete?: (error) => any ): void {
+			SmallMouth._registry.remove(this._path);
 		}
 
 		child( childPath: string ): Resource {
@@ -87,7 +91,7 @@ module SmallMouth {
 			return new Resource(this._host + '/' + this._path.substring(0, this._path.lastIndexOf('/')) );
 		}
 
-		root(): SmallMouthInterface {
+		root(): Resource {
 			return new Resource(this._host + '/' + this._path.substring(0, this._path.indexOf('/')) );
 		}
 
@@ -105,7 +109,7 @@ module SmallMouth {
 			return _path;
 		}
 
-		private _getSnapshot(): SmallMouth.SnapshotInterface {
+		private _getSnapshot(): SmallMouth.Snapshot {
 
 			var data = SmallMouth._registry.getData(this._path);
 

@@ -97,13 +97,32 @@ var SmallMouth;
         localStorage.setItem('LargeMouth_Registry', JSON.stringify(dataRegistry));
     }
 
+    function remove(path) {
+        if (path.trim() == '')
+            return dataRegistry;
+
+        var paths = path.split('/');
+        var data = dataRegistry;
+
+        for (var i = 0, iLength = (paths.length - 1); i < iLength; i++) {
+            if (!data.children)
+                break;
+            data = data.children[paths[i]];
+            data.version++;
+        }
+
+        delete data.children;
+        delete data.data;
+    }
+
     SmallMouth._registry = {
         sync: sync,
         initializeRegistry: initializeRegistry,
         updateRegistry: updateRegistry,
         getData: getData,
         dataRegistry: dataRegistry,
-        resetRegistry: resetRegistry
+        resetRegistry: resetRegistry,
+        remove: remove
     };
 })(SmallMouth || (SmallMouth = {}));
 var SmallMouth;
@@ -144,6 +163,10 @@ var SmallMouth;
         Resource.prototype.update = function (value, onComplete) {
             SmallMouth._registry.updateRegistry(this, value, { merge: true });
             return this;
+        };
+
+        Resource.prototype.remove = function (onComplete) {
+            SmallMouth._registry.remove(this._path);
         };
 
         Resource.prototype.child = function (childPath) {
