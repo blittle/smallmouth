@@ -1,9 +1,9 @@
 /// <reference path="../d.ts/DefinitelyTyped/socket.io/socket.io.d.ts" />
 declare module SmallMouth {
     var _registry: {
-        sync: (resource: any) => void;
+        connect: (host: any) => any;
         initializeRegistry: (resource: any) => void;
-        updateRegistry: (resource: any, value: any, options?: any) => void;
+        updateRegistry: (path: any, value: any, options?: any) => void;
         getData: (path: any, options?: any) => any;
         dataRegistry: any;
         eventRegistry: {
@@ -52,7 +52,6 @@ declare module SmallMouth {
 declare module SmallMouth {
     class Resource implements SmallMouth.SmallMouthInterface {
         private _path;
-        private _socket;
         private _host;
         constructor(address: string);
         public on(eventType: string, callback: (snapshot: SmallMouth.SnapshotInterface, previusChild?: string) => any, cancelCallback?: Function, context?: any): Resource;

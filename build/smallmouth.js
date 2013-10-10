@@ -1,6 +1,7 @@
 var SmallMouth;
 (function (SmallMouth) {
     var syncTimeout;
+    var connections = {};
 
     var dataRegistry = JSON.parse(localStorage.getItem('LargeMouth_Registry')) || {
         version: 0
@@ -10,6 +11,28 @@ var SmallMouth;
         events: {},
         children: {}
     };
+
+    function connect(host) {
+        var socket;
+        if (!host)
+            return;
+
+        if (connections[host]) {
+            socket = connections[host];
+        } else {
+            socket = connections[host] = io.connect(host);
+        }
+
+        socket.on('data', function (data) {
+            updateRegistry(data.path, data.value);
+
+            var registryData = SmallMouth._registry.getData(data.path);
+
+            triggerEvent(data.path, 'value', new SmallMouth.Snapshot(data.path, registryData, host));
+        });
+
+        return socket;
+    }
 
     function createSubDataFromObject(data, obj) {
         if (obj instanceof Object && !(obj instanceof String) && !(obj instanceof Number) && !(obj instanceof Array) && !(obj instanceof Boolean)) {
@@ -63,9 +86,9 @@ var SmallMouth;
         return data;
     }
 
-    function updateRegistry(resource, value, options) {
+    function updateRegistry(path, value, options) {
         if (typeof options === "undefined") { options = {}; }
-        var data = getData(resource._path, { versionUpdate: true });
+        var data = getData(path, { versionUpdate: true });
 
         if (!options.merge) {
             data.children = {};
@@ -75,8 +98,6 @@ var SmallMouth;
         createSubDataFromObject(data, value);
 
         data.version++;
-
-        sync(resource);
     }
 
     function initializeRegistry(resource) {
@@ -186,7 +207,7 @@ var SmallMouth;
     }
 
     SmallMouth._registry = {
-        sync: sync,
+        connect: connect,
         initializeRegistry: initializeRegistry,
         updateRegistry: updateRegistry,
         getData: getData,
@@ -202,20 +223,21 @@ var SmallMouth;
 var SmallMouth;
 (function (SmallMouth) {
     var urlReg = new RegExp('^(([^:/?#]+):)?(//([^/?#]*))?([^?#]*)(\([^#]*))?(#(.*))?');
-    var connections = {};
 
     var Resource = (function () {
         function Resource(address) {
-            var parse = urlReg.exec(address), scheme = parse[1], domain = parse[3], path = parse[5], query = parse[6], host = (scheme ? scheme : "") + (domain ? domain : ""), url = Resource.cleanPath((path ? path : "") + (query ? query : "")), socket = connections[host], scope = this;
+            var parse = urlReg.exec(address), scheme = parse[1], domain = parse[3], path = parse[5], query = parse[6], host = (scheme ? scheme : "") + (domain ? domain : ""), url = Resource.cleanPath((path ? path : "") + (query ? query : "")), scope = this;
 
             this._path = url;
             this._host = host;
 
-            if (host) {
-                this._socket = socket ? socket : (socket = connections[host] = io.connect(host));
-            }
-
             SmallMouth._registry.initializeRegistry(this);
+
+            var socket = SmallMouth._registry.connect(host);
+
+            if (socket) {
+                socket.emit('subscribe', url);
+            }
         }
         Resource.prototype.on = function (eventType, callback, cancelCallback, context) {
             if (typeof cancelCallback == 'function') {
@@ -234,7 +256,7 @@ var SmallMouth;
         };
 
         Resource.prototype.set = function (value, onComplete) {
-            SmallMouth._registry.updateRegistry(this, value);
+            SmallMouth._registry.updateRegistry(this._path, value);
             SmallMouth._registry.triggerEvent(this._path, 'value', this._getSnapshot());
             return this;
         };

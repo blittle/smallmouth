@@ -1,4 +1,3 @@
-///<reference path="../d.ts/DefinitelyTyped/socket.io/socket.io.d.ts"/>
 ///<reference path="interfaces/SmallMouthInterface"/>
 ///<reference path="interfaces/SnapshotInterface"/>
 ///<reference path="DataRegistry"/>
@@ -6,12 +5,10 @@
 module SmallMouth {	
 
 	var urlReg = new RegExp('^(([^:/?#]+):)?(//([^/?#]*))?([^?#]*)(\([^#]*))?(#(.*))?');
-	var connections = {};	
 
 	export class Resource implements SmallMouth.SmallMouthInterface {
 
 		private _path: string;
-		private _socket: Socket;
 		private _host: string;
 
 		constructor(address: string) {
@@ -22,29 +19,18 @@ module SmallMouth {
 			query = parse[6],
 			host = (scheme ? scheme : "") + (domain ? domain : ""),
 			url = Resource.cleanPath((path ? path : "") + (query ? query : "")),
-			socket = connections[host],
 			scope = this;	
 
 			this._path = url;
 			this._host = host;
 
-			// If no host is defined, then we will only use local storage
-			if(host) {
-				this._socket = socket ? socket : (socket = connections[host] = io.connect(host));
-			}
-
-			// socket.on('data', function (data) {
-			// 	if(scope._path !== data.path) return;
-
-			// 	scope.data = data.value;
-			// 	for(var i=0, iLength = scope._callbacks.length; i < iLength; i++) {
-			// 		scope._callbacks[i].callback();
-			// 	}
-			// });
-
-			// socket.emit('subscribe', url);
-
 			SmallMouth._registry.initializeRegistry(this);
+
+			var socket = SmallMouth._registry.connect(host);
+
+			if(socket) {
+				socket.emit('subscribe', url);
+			}
 		}
 
 		on(
@@ -70,7 +56,7 @@ module SmallMouth {
 		}
 
 		set(value: any, onComplete ?: (error) => any): Resource {
-			SmallMouth._registry.updateRegistry(this, value);	
+			SmallMouth._registry.updateRegistry(this._path, value);	
 			SmallMouth._registry.triggerEvent(this._path, 'value', this._getSnapshot());
 			return this;	
 		}

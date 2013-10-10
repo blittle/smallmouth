@@ -1,6 +1,9 @@
+///<reference path="../d.ts/DefinitelyTyped/socket.io/socket.io.d.ts"/>
+
 module SmallMouth {
 
 	var syncTimeout;
+	var connections = {};		
 
 	var dataRegistry = JSON.parse(localStorage.getItem('LargeMouth_Registry')) || {
 		version: 0
@@ -10,6 +13,31 @@ module SmallMouth {
 		events: {},
 		children: {}
 	};
+
+	function connect(host) {
+		var socket;
+		if(!host) return;
+
+		if(connections[host]) {
+			socket = connections[host];
+		} else {
+			socket = connections[host] = io.connect(host);
+		}
+
+		socket.on('data', (data) => {
+			updateRegistry(data.path, data.value);
+
+			var registryData = SmallMouth._registry.getData(data.path);	
+
+			triggerEvent(data.path, 'value', new SmallMouth.Snapshot(
+				data.path,
+				registryData,
+				host
+			));
+		});
+
+		return socket;
+	}
 
 	function createSubDataFromObject(data, obj) {
 		if(obj instanceof Object && !(obj instanceof String) && !(obj instanceof Number) && !(obj instanceof Array) && !(obj instanceof Boolean) ) {
@@ -59,8 +87,8 @@ module SmallMouth {
 		return data;
 	}
 
-	function updateRegistry(resource, value: any, options: any = {}) {
-		var data = getData(resource._path, {versionUpdate: true});
+	function updateRegistry(path, value: any, options: any = {}) {
+		var data = getData(path, {versionUpdate: true});
 
 		if(!options.merge) {
 			data.children = {};
@@ -71,7 +99,7 @@ module SmallMouth {
 
 		data.version++;
 
-		sync(resource);
+		// sync(resource);
 	}
 
 	function initializeRegistry(resource) {
@@ -176,7 +204,7 @@ module SmallMouth {
 	}
 
 	export var _registry = {
-		sync: sync,
+		connect: connect,
 		initializeRegistry: initializeRegistry,
 		updateRegistry: updateRegistry,
 		getData: getData,
