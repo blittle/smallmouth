@@ -3,7 +3,7 @@ describe("SmallMouth", function() {
 	describe("Data Registry", function() {
 
 		afterEach(function() {
-			SmallMouth._registry.resetRegistry();
+			SmallMouth._registry.resetRegistries();
 		});
 
 		it("Should initialize the registry with correctly", function() {
@@ -62,9 +62,71 @@ describe("SmallMouth", function() {
 		});
 	});
 
+	describe("Event Registry", function() {
+
+		afterEach(function() {
+			SmallMouth._registry.resetRegistries();
+		});
+
+		it('Should initialize the registry correctly', function() {
+			expect(Object.keys(SmallMouth._registry.eventRegistry.children).length).toBe(0);
+			expect(Object.keys(SmallMouth._registry.eventRegistry.events).length).toBe(0);
+		});
+
+		it('Should add events to the registry', function() {
+			SmallMouth._registry.addEvent('resource1', 'value', function() {});
+			expect(SmallMouth._registry.eventRegistry.children.resource1.events.value.length).toBe(1);
+		});
+
+		it('Should remove events from the registry', function() {
+			var func = function() {};
+
+			SmallMouth._registry.addEvent('resource1', 'value', func);
+			expect(SmallMouth._registry.eventRegistry.children.resource1.events.value.length).toBe(1);
+
+			SmallMouth._registry.removeEvent('resource1', 'value', func);
+			expect(SmallMouth._registry.eventRegistry.children.resource1.events.value.length).toBe(0);
+		});
+
+		it('Shouldn\'t error removing events that don\'t exist', function() {
+			SmallMouth._registry.removeEvent('resource1', 'value', function() {});
+			//Shouldn't error 
+			expect(true).toBe(true);
+		});
+
+		it('Should trigger events', function() {
+			var spy = jasmine.createSpy();
+			SmallMouth._registry.addEvent('resource1', 'value', spy);
+			SmallMouth._registry.triggerEvent('resource1', 'value');
+			expect(spy).toHaveBeenCalled();
+		});
+
+		it('Should not error when trigger events that don\'t exist', function() {
+			SmallMouth._registry.triggerEvent('does/not/exist', 'value');
+			//Shouldn't error 
+			expect(true).toBe(true);
+		});
+
+		it('Should trigger events in the right context', function() {
+			var context = {
+				spy: jasmine.createSpy()
+			};
+
+			var callback = function(snapshot) {
+				this.spy(snapshot);
+			};
+
+			SmallMouth._registry.addEvent('resource1', 'value', callback, context);
+			SmallMouth._registry.triggerEvent('resource1', 'value', 'someSnapshot');
+			expect(context.spy).toHaveBeenCalled();
+			expect(context.spy).toHaveBeenCalledWith('someSnapshot');
+		});
+
+	});
+
 	describe('Resource', function() {
 		afterEach(function() {
-			SmallMouth._registry.resetRegistry();
+			SmallMouth._registry.resetRegistries();
 		});
 
 		it('Should return children references', function() {
@@ -196,6 +258,28 @@ describe("SmallMouth", function() {
 			debugger;
 			resource1.remove();
 			expect(resource1.parent()._getSnapshot().version).toBe(2);
+		});
+
+		it('Should register and execute events on value change', function() {
+			var resource1 = new SmallMouth.Resource('http://localhost:8080/data');
+			var spy = jasmine.createSpy();
+
+			resource1.on('value', spy);
+			resource1.set('something');
+			expect(spy).toHaveBeenCalled();
+		});
+
+		it('On an event callback, should pass a snapshot of the data', function() {
+			var resource1 = new SmallMouth.Resource('http://localhost:8080/data');
+			var spy = jasmine.createSpy();
+
+			var callback = function(snapshot) {
+				spy(snapshot.val());
+			};
+
+			resource1.on('value', callback);
+			resource1.set('something');
+			expect(spy).toHaveBeenCalledWith('something');
 		});
 	});
 });

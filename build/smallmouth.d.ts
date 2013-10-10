@@ -6,8 +6,15 @@ declare module SmallMouth {
         updateRegistry: (resource: any, value: any, options?: any) => void;
         getData: (path: any, options?: any) => any;
         dataRegistry: any;
-        resetRegistry: () => void;
+        eventRegistry: {
+            events: {};
+            children: {};
+        };
+        resetRegistries: () => void;
         remove: (path: any) => any;
+        addEvent: (path: string, type: string, callback: Function, context: any) => void;
+        removeEvent: (path: string, type: string, callback: Function) => void;
+        triggerEvent: (path: string, type: string, snapshot: any) => void;
     };
 }
 declare module SmallMouth {
@@ -30,6 +37,7 @@ declare module SmallMouth {
 declare module SmallMouth {
     interface SmallMouthInterface {
         on(eventType: string, callback: (snapshot: SmallMouth.SnapshotInterface, previusChild?: string) => any, cancelCallbck?: Function, context?: any): SmallMouthInterface;
+        on(eventType: string, callback: (snapshot: SmallMouth.SnapshotInterface, previusChild?: string) => any, context?: any): SmallMouthInterface;
         set(value: any, onComplete?: (error: any) => any): SmallMouthInterface;
         child(childPath: string): SmallMouthInterface;
         parent(): SmallMouthInterface;
@@ -38,16 +46,17 @@ declare module SmallMouth {
         toString(): string;
         update(value: any, onComplete?: (error: any) => any): SmallMouthInterface;
         remove(onComplete?: (error: any) => any): void;
+        off(eventType: string, callback?: Function, context?: any): SmallMouthInterface;
     }
 }
 declare module SmallMouth {
     class Resource implements SmallMouth.SmallMouthInterface {
         private _path;
-        private _callbacks;
         private _socket;
         private _host;
         constructor(address: string);
-        public on(eventType: string, callback: (snapshot: SmallMouth.SnapshotInterface, previusChild?: string) => any, cancelCallbck?: Function, context?: any): Resource;
+        public on(eventType: string, callback: (snapshot: SmallMouth.SnapshotInterface, previusChild?: string) => any, cancelCallback?: Function, context?: any): Resource;
+        public off(eventType: string, callback?: Function, context?: any): Resource;
         public set(value: any, onComplete?: (error: any) => any): Resource;
         public update(value: any, onComplete?: (error: any) => any): Resource;
         public remove(onComplete?: (error: any) => any): void;

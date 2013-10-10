@@ -11,7 +11,6 @@ module SmallMouth {
 	export class Resource implements SmallMouth.SmallMouthInterface {
 
 		private _path: string;
-		private _callbacks = [];
 		private _socket: Socket;
 		private _host: string;
 
@@ -47,30 +46,28 @@ module SmallMouth {
 		on(
 			eventType: string, 
 			callback: (snapshot: SmallMouth.SnapshotInterface, previusChild ?: string) => any, 
-			cancelCallbck ?: Function, 
+			cancelCallback ?: Function, 
 			context?: any
 		): Resource {
-			var scope = this;
 
-			this._callbacks.push({
-				type: eventType,
-				callback: () => {
-					//@todo change null to actually be the snapshot
-					return callback.call(context, null);
-				}
-			});
+			if(typeof cancelCallback == 'function') {
+				SmallMouth._registry.addEvent(this._path, eventType, callback, context);	
+				SmallMouth._registry.addEvent(this._path, "cancel", cancelCallback, context);
+			} else {
+				SmallMouth._registry.addEvent(this._path, eventType, callback, cancelCallback);	
+			}
 
+			return this;
+		}
+
+		off( eventType: string, callback ?: Function, context ?: any ): Resource {
+			SmallMouth._registry.removeEvent(this._path, eventType, callback);
 			return this;
 		}
 
 		set(value: any, onComplete ?: (error) => any): Resource {
 			SmallMouth._registry.updateRegistry(this, value);	
-
-			// this._socket.emit('set', {
-			// 	path: this._path,
-			// 	value: value
-			// });
-
+			SmallMouth._registry.triggerEvent(this._path, 'value', this._getSnapshot());
 			return this;	
 		}
 

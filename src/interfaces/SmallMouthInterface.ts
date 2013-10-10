@@ -4,6 +4,7 @@ module SmallMouth {
 
 	export interface SmallMouthInterface {
 		 on( eventType: string, callback: (snapshot: SmallMouth.SnapshotInterface, previusChild ?: string) => any, cancelCallbck ?: Function, context ?: any ): SmallMouthInterface;
+		 on( eventType: string, callback: (snapshot: SmallMouth.SnapshotInterface, previusChild ?: string) => any, context ?: any ): SmallMouthInterface;
 		 set( value: any, onComplete ?: (error) => any ): SmallMouthInterface;
 		 child( childPath: string ): SmallMouthInterface;
 		 parent(): SmallMouthInterface;
@@ -12,18 +13,17 @@ module SmallMouth {
 		 toString(): string;
 		 update( value: any, onComplete ?: (error) => any ): SmallMouthInterface;
 		 remove( onComplete?: (error) => any ): void;
+		 off( eventType: string, callback ?: Function, context ?: any ): SmallMouthInterface;
 		 /**
 		 auth( authToken, onSuccess ?: (error, result) => any ): SmallMouthInterface;
 		 unauth(): SmallMouthInterface;
-		 
-		 
-		 
+		 		 
 		 push( value: any, complete ?: (error) => any ): SmallMouthInterface;
 		 setWithPriority( value: any, priority: any, onComplete ?: (error) => any ): SmallMouthInterface;
 		 setPriority( priority: any, onComplete ?: (error) => any ): SmallMouthInterface;
 		 transaction( updateFunction : (data: any) => any, onComplete ?: (error, commited: boolean, snapshot: SnapShotInterface) => any, applyLocally ?: boolean );
 		 
-		 off( eventType: string, callback ?: Function, context ?: any );
+		 
 		 once( eventType: string, successCallback: (snapshot: SnapShotInterface, previusChild ?: string) => any, failureCallback ?: Function, context?: any );
 		 limit( limit: number ): SmallMouthInterface;
 		 startAt( priority ?: any, name ?: string ): SmallMouthInterface;

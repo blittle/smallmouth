@@ -6,6 +6,11 @@ module SmallMouth {
 		version: 0
 	};
 
+	var eventRegistry = {
+		events: {},
+		children: {}
+	};
+
 	function createSubDataFromObject(data, obj) {
 		if(obj instanceof Object && !(obj instanceof String) && !(obj instanceof Number) && !(obj instanceof Array) && !(obj instanceof Boolean) ) {
 			if(!data.children) data.children = {};
@@ -83,12 +88,15 @@ module SmallMouth {
 		}, 100);
 	}
 
-	function resetRegistry() {
+	function resetRegistries() {
 		dataRegistry.data = null;
 		dataRegistry.children = {};
 		dataRegistry.version = 0;
 
 		localStorage.setItem('LargeMouth_Registry', JSON.stringify(dataRegistry));
+
+		eventRegistry.events = {};
+		eventRegistry.children = {};
 	}
 
 	function remove(path) {
@@ -107,13 +115,77 @@ module SmallMouth {
 		delete data.data;
 	}
 
+	function getEvent(path: string) {
+		var event = eventRegistry;
+		var paths = path.split('/');
+
+		for(var i=0, iLength = paths.length; i < iLength; i++) {
+			if(!event.children[paths[i]]) {
+				event.children[paths[i]] = {
+					events: {},
+					children: {}	
+				}
+			}
+
+			event = event.children[paths[i]];
+		}
+		
+		return event;	
+	}
+
+	function addEvent(path: string, type: string, callback: Function, context) {
+		var event = getEvent(path);
+
+		event.events[type] || (event.events[type] = []);
+		
+		event.events[type].push({
+			callback: callback,
+			context: context
+		});
+	}
+
+	function removeEvent(path: string, type: string, callback: Function) {
+		var removeIndex;
+
+		var event = getEvent(path);
+
+		if(!event.events[type]) return;
+
+		for(var i=0, iLength = event.events[type].length; i < iLength; i++) {
+			if(event.events[type][i].callback === callback) {
+				removeIndex = i;
+				break;
+			}
+		}
+
+		if(typeof removeIndex !== 'undefined') {
+			event.events[type].splice(removeIndex, 1);
+		}
+	}
+
+	function triggerEvent(path: string, type: string, snapshot) {
+		var event = getEvent(path);
+
+		var eventList = event.events[type];
+
+		if(!eventList) return;
+
+		for(var i=0, iLength = eventList.length; i < iLength; i++) {
+			eventList[i].callback.call(eventList[i].context, snapshot);
+		}
+	}
+
 	export var _registry = {
 		sync: sync,
 		initializeRegistry: initializeRegistry,
 		updateRegistry: updateRegistry,
 		getData: getData,
 		dataRegistry: dataRegistry,
-		resetRegistry: resetRegistry,
-		remove: remove
+		eventRegistry: eventRegistry,
+		resetRegistries: resetRegistries,
+		remove: remove,
+		addEvent: addEvent,
+		removeEvent: removeEvent,
+		triggerEvent: triggerEvent
 	}
 }

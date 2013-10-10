@@ -6,6 +6,11 @@ var SmallMouth;
         version: 0
     };
 
+    var eventRegistry = {
+        events: {},
+        children: {}
+    };
+
     function createSubDataFromObject(data, obj) {
         if (obj instanceof Object && !(obj instanceof String) && !(obj instanceof Number) && !(obj instanceof Array) && !(obj instanceof Boolean)) {
             if (!data.children)
@@ -89,12 +94,15 @@ var SmallMouth;
         }, 100);
     }
 
-    function resetRegistry() {
+    function resetRegistries() {
         dataRegistry.data = null;
         dataRegistry.children = {};
         dataRegistry.version = 0;
 
         localStorage.setItem('LargeMouth_Registry', JSON.stringify(dataRegistry));
+
+        eventRegistry.events = {};
+        eventRegistry.children = {};
     }
 
     function remove(path) {
@@ -115,14 +123,80 @@ var SmallMouth;
         delete data.data;
     }
 
+    function getEvent(path) {
+        var event = eventRegistry;
+        var paths = path.split('/');
+
+        for (var i = 0, iLength = paths.length; i < iLength; i++) {
+            if (!event.children[paths[i]]) {
+                event.children[paths[i]] = {
+                    events: {},
+                    children: {}
+                };
+            }
+
+            event = event.children[paths[i]];
+        }
+
+        return event;
+    }
+
+    function addEvent(path, type, callback, context) {
+        var event = getEvent(path);
+
+        event.events[type] || (event.events[type] = []);
+
+        event.events[type].push({
+            callback: callback,
+            context: context
+        });
+    }
+
+    function removeEvent(path, type, callback) {
+        var removeIndex;
+
+        var event = getEvent(path);
+
+        if (!event.events[type])
+            return;
+
+        for (var i = 0, iLength = event.events[type].length; i < iLength; i++) {
+            if (event.events[type][i].callback === callback) {
+                removeIndex = i;
+                break;
+            }
+        }
+
+        if (typeof removeIndex !== 'undefined') {
+            event.events[type].splice(removeIndex, 1);
+        }
+    }
+
+    function triggerEvent(path, type, snapshot) {
+        var event = getEvent(path);
+
+        var eventList = event.events[type];
+
+        if (!eventList)
+            return;
+
+        for (var i = 0, iLength = eventList.length; i < iLength; i++) {
+            eventList[i].callback.call(eventList[i].context, snapshot);
+        }
+    }
+
     SmallMouth._registry = {
         sync: sync,
         initializeRegistry: initializeRegistry,
         updateRegistry: updateRegistry,
         getData: getData,
         dataRegistry: dataRegistry,
-        resetRegistry: resetRegistry,
-        remove: remove
+        eventRegistry: eventRegistry,
+        resetRegistries: resetRegistries,
+        remove: remove,
+        addEvent: addEvent,
+        removeEvent: removeEvent,
+        triggerEvent: triggerEvent
     };
 })(SmallMouth || (SmallMouth = {}));
 var SmallMouth;
@@ -132,7 +206,6 @@ var SmallMouth;
 
     var Resource = (function () {
         function Resource(address) {
-            this._callbacks = [];
             var parse = urlReg.exec(address), scheme = parse[1], domain = parse[3], path = parse[5], query = parse[6], host = (scheme ? scheme : "") + (domain ? domain : ""), url = Resource.cleanPath((path ? path : "") + (query ? query : "")), socket = connections[host], scope = this;
 
             this._path = url;
@@ -141,22 +214,25 @@ var SmallMouth;
 
             SmallMouth._registry.initializeRegistry(this);
         }
-        Resource.prototype.on = function (eventType, callback, cancelCallbck, context) {
-            var scope = this;
+        Resource.prototype.on = function (eventType, callback, cancelCallback, context) {
+            if (typeof cancelCallback == 'function') {
+                SmallMouth._registry.addEvent(this._path, eventType, callback, context);
+                SmallMouth._registry.addEvent(this._path, "cancel", cancelCallback, context);
+            } else {
+                SmallMouth._registry.addEvent(this._path, eventType, callback, cancelCallback);
+            }
 
-            this._callbacks.push({
-                type: eventType,
-                callback: function () {
-                    return callback.call(context, null);
-                }
-            });
+            return this;
+        };
 
+        Resource.prototype.off = function (eventType, callback, context) {
+            SmallMouth._registry.removeEvent(this._path, eventType, callback);
             return this;
         };
 
         Resource.prototype.set = function (value, onComplete) {
             SmallMouth._registry.updateRegistry(this, value);
-
+            SmallMouth._registry.triggerEvent(this._path, 'value', this._getSnapshot());
             return this;
         };
 
