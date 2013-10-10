@@ -27,7 +27,11 @@ module SmallMouth {
 
 			this._path = url;
 			this._host = host;
-			this._socket = socket ? socket : (socket = connections[host] = io.connect(host));
+
+			// If no host is defined, then we will only use local storage
+			if(host) {
+				this._socket = socket ? socket : (socket = connections[host] = io.connect(host));
+			}
 
 			// socket.on('data', function (data) {
 			// 	if(scope._path !== data.path) return;

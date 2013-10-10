@@ -210,7 +210,10 @@ var SmallMouth;
 
             this._path = url;
             this._host = host;
-            this._socket = socket ? socket : (socket = connections[host] = io.connect(host));
+
+            if (host) {
+                this._socket = socket ? socket : (socket = connections[host] = io.connect(host));
+            }
 
             SmallMouth._registry.initializeRegistry(this);
         }
