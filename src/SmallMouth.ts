@@ -62,7 +62,7 @@ module SmallMouth {
 		}
 
 		update( value: any, onComplete ?: (error) => any ): Resource {
-			SmallMouth._registry.updateRegistry(this, value, {merge: true});	
+			SmallMouth._registry.updateRegistry(this._path, value, {merge: true});	
 			return this;
 		}
 

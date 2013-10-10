@@ -262,7 +262,7 @@ var SmallMouth;
         };
 
         Resource.prototype.update = function (value, onComplete) {
-            SmallMouth._registry.updateRegistry(this, value, { merge: true });
+            SmallMouth._registry.updateRegistry(this._path, value, { merge: true });
             return this;
         };
 

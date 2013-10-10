@@ -1,5 +1,12 @@
 var io = {
 	connect: function() {
-		return arguments
+		return {
+			on: function() {
+
+			},
+			emit: function() {
+				
+			}
+		}
 	}
 };
