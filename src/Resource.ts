@@ -24,9 +24,9 @@ module SmallMouth {
 			this._path = url;
 			this._host = host;
 
-			SmallMouth._registry.initializeRegistry(this);
+			SmallMouth._dataRegistry.initializeRegistry(this);
 
-			var socket = SmallMouth._registry.connect(host);
+			var socket = SmallMouth.largeMouthAdapter.connect(host);
 
 			if(socket) {
 				socket.emit('subscribe', url);
@@ -41,33 +41,34 @@ module SmallMouth {
 		): Resource {
 
 			if(typeof cancelCallback == 'function') {
-				SmallMouth._registry.addEvent(this._path, eventType, callback, context);	
-				SmallMouth._registry.addEvent(this._path, "cancel", cancelCallback, context);
+				SmallMouth._eventRegistry.addEvent(this._path, eventType, callback, context);	
+				SmallMouth._eventRegistry.addEvent(this._path, "cancel", cancelCallback, context);
 			} else {
-				SmallMouth._registry.addEvent(this._path, eventType, callback, cancelCallback);	
+				SmallMouth._eventRegistry.addEvent(this._path, eventType, callback, cancelCallback);	
 			}
 
 			return this;
 		}
 
 		off( eventType: string, callback ?: Function, context ?: any ): Resource {
-			SmallMouth._registry.removeEvent(this._path, eventType, callback);
+			SmallMouth._eventRegistry.removeEvent(this._path, eventType, callback);
 			return this;
 		}
 
 		set(value: any, onComplete ?: (error) => any): Resource {
-			SmallMouth._registry.updateRegistry(this._path, value);	
-			SmallMouth._registry.triggerEvent(this._path, 'value', this._host, this._getSnapshot());
+			SmallMouth._dataRegistry.updateRegistry(this._path, value);	
+			SmallMouth._eventRegistry.triggerEvent(this._path, 'value', this._host, this._getSnapshot());
 			return this;	
 		}
 
 		update( value: any, onComplete ?: (error) => any ): Resource {
-			SmallMouth._registry.updateRegistry(this._path, value, {merge: true});	
+			SmallMouth._dataRegistry.updateRegistry(this._path, value, {merge: true});	
+			SmallMouth._eventRegistry.triggerEvent(this._path, 'value', this._host, this._getSnapshot());
 			return this;
 		}
 
 		remove( onComplete?: (error) => any ): void {
-			SmallMouth._registry.remove(this._path);
+			SmallMouth._dataRegistry.remove(this._path);
 		}
 
 		child( childPath: string ): Resource {
@@ -98,7 +99,7 @@ module SmallMouth {
 
 		private _getSnapshot(): SmallMouth.Snapshot {
 
-			var data = SmallMouth._registry.getData(this._path);
+			var data = SmallMouth._dataRegistry.getData(this._path);
 
 			if(!data) return undefined;
 

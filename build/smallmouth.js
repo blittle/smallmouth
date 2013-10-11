@@ -1,244 +1,263 @@
 var SmallMouth;
 (function (SmallMouth) {
-    var syncTimeout;
-    var connections = {};
+    (function (_dataRegistry) {
+        var syncTimeout;
 
-    var dataRegistry = JSON.parse(localStorage.getItem('LargeMouth_Registry')) || {
-        version: 0
-    };
+        var dataRegistry = JSON.parse(localStorage.getItem('LargeMouth_Registry')) || {
+            version: 0
+        };
 
-    var eventRegistry = {
-        events: {},
-        children: {}
-    };
+        function createSubDataFromObject(data, obj) {
+            if (obj instanceof Object && !(obj instanceof String) && !(obj instanceof Number) && !(obj instanceof Array) && !(obj instanceof Boolean)) {
+                if (!data.children)
+                    data.children = {};
 
-    function connect(host) {
-        var socket;
-        if (!host)
-            return;
+                for (var key in obj) {
+                    if (obj.hasOwnProperty(key)) {
+                        if (!data.children.hasOwnProperty(key)) {
+                            data.children[key] = {
+                                children: {},
+                                version: 0
+                            };
+                        } else {
+                            data.children[key].version++;
+                        }
 
-        if (connections[host]) {
-            socket = connections[host];
-        } else {
-            socket = connections[host] = io.connect(host);
-        }
-
-        socket.on('data', function (data) {
-            updateRegistry(data.path, data.value);
-
-            var registryData = SmallMouth._registry.getData(data.path);
-
-            triggerEvent(data.path, 'value', host, new SmallMouth.Snapshot(data.path, registryData, host));
-        });
-
-        return socket;
-    }
-
-    function createSubDataFromObject(data, obj) {
-        if (obj instanceof Object && !(obj instanceof String) && !(obj instanceof Number) && !(obj instanceof Array) && !(obj instanceof Boolean)) {
-            if (!data.children)
-                data.children = {};
-
-            for (var key in obj) {
-                if (obj.hasOwnProperty(key)) {
-                    if (!data.children.hasOwnProperty(key)) {
-                        data.children[key] = {
-                            children: {},
-                            version: 0
-                        };
-                    } else {
-                        data.children[key].version++;
+                        createSubDataFromObject(data.children[key], obj[key]);
                     }
-
-                    createSubDataFromObject(data.children[key], obj[key]);
                 }
+            } else {
+                data.data = obj;
             }
-        } else {
-            data.data = obj;
         }
-    }
 
-    function getData(path, options) {
-        if (!options)
-            options = {};
-        if (path.trim() == '')
-            return dataRegistry;
+        function getData(path, options) {
+            if (!options)
+                options = {};
+            if (path.trim() == '')
+                return dataRegistry;
 
-        var paths = path.split('/');
-        var data = dataRegistry;
+            var paths = path.split('/');
+            var data = dataRegistry;
 
-        for (var i = 0, iLength = paths.length; i < iLength; i++) {
-            if (!data.children)
+            for (var i = 0, iLength = paths.length; i < iLength; i++) {
+                if (!data.children)
+                    data.children = {};
+
+                if (!data.children[paths[i]]) {
+                    data.children[paths[i]] = {
+                        version: 0
+                    };
+                }
+
+                if (options.versionUpdate)
+                    data.version++;
+
+                data = data.children[paths[i]];
+            }
+
+            return data;
+        }
+
+        function updateRegistry(path, value, options) {
+            if (typeof options === "undefined") { options = {}; }
+            var data = getData(path, { versionUpdate: true });
+
+            if (!options.merge) {
                 data.children = {};
-
-            if (!data.children[paths[i]]) {
-                data.children[paths[i]] = {
-                    version: 0
-                };
+                data.data = null;
             }
 
-            if (options.versionUpdate)
-                data.version++;
+            createSubDataFromObject(data, value);
 
-            data = data.children[paths[i]];
-        }
-
-        return data;
-    }
-
-    function updateRegistry(path, value, options) {
-        if (typeof options === "undefined") { options = {}; }
-        var data = getData(path, { versionUpdate: true });
-
-        if (!options.merge) {
-            data.children = {};
-            data.data = null;
-        }
-
-        createSubDataFromObject(data, value);
-
-        data.version++;
-    }
-
-    function initializeRegistry(resource) {
-        var data = getData(resource._path);
-
-        sync(resource);
-    }
-
-    function sync(resource) {
-        if (syncTimeout)
-            clearTimeout(syncTimeout);
-
-        syncTimeout = setTimeout(function () {
-            localStorage.setItem('LargeMouth_Registry', JSON.stringify(dataRegistry));
-        }, 100);
-    }
-
-    function resetRegistries() {
-        dataRegistry.data = null;
-        dataRegistry.children = {};
-        dataRegistry.version = 0;
-
-        localStorage.setItem('LargeMouth_Registry', JSON.stringify(dataRegistry));
-
-        eventRegistry.events = {};
-        eventRegistry.children = {};
-    }
-
-    function remove(path) {
-        if (path.trim() == '')
-            return dataRegistry;
-
-        var paths = path.split('/');
-        var data = dataRegistry;
-
-        for (var i = 0, iLength = (paths.length - 1); i < iLength; i++) {
-            if (!data.children)
-                break;
-            data = data.children[paths[i]];
             data.version++;
+
+            sync(path);
         }
 
-        delete data.children;
-        delete data.data;
-    }
+        function initializeRegistry(resource) {
+            var data = getData(resource._path);
 
-    function getEvent(path, options) {
-        if (typeof options === "undefined") { options = {}; }
-        var event = eventRegistry;
-        var paths = path.split('/');
+            sync(resource._path);
+        }
 
-        var tempPath = paths[0];
+        function sync(resource) {
+            if (syncTimeout)
+                clearTimeout(syncTimeout);
 
-        for (var i = 0, iLength = paths.length; i < iLength; i++) {
-            if (!event.children[paths[i]]) {
-                event.children[paths[i]] = {
-                    events: {},
-                    children: {}
-                };
+            syncTimeout = setTimeout(function () {
+                localStorage.setItem('LargeMouth_Registry', JSON.stringify(dataRegistry));
+            }, 100);
+        }
+
+        function resetRegistry() {
+            dataRegistry.data = null;
+            dataRegistry.children = {};
+            dataRegistry.version = 0;
+
+            localStorage.setItem('LargeMouth_Registry', JSON.stringify(dataRegistry));
+        }
+
+        function remove(path) {
+            if (path.trim() == '')
+                return dataRegistry;
+
+            var paths = path.split('/');
+            var data = dataRegistry;
+
+            for (var i = 0, iLength = (paths.length - 1); i < iLength; i++) {
+                if (!data.children)
+                    break;
+                data = data.children[paths[i]];
+                data.version++;
             }
 
-            if (typeof options.trigger !== 'undefined') {
-                var eventList = event.events[options.trigger];
+            delete data.children;
+            delete data.data;
+        }
 
-                if (eventList) {
-                    var registryData = SmallMouth._registry.getData(tempPath);
-                    var snapshot = new SmallMouth.Snapshot(tempPath, registryData, options.host);
+        _dataRegistry.initializeRegistry = initializeRegistry;
+        _dataRegistry.updateRegistry = updateRegistry;
+        _dataRegistry.getData = getData;
+        _dataRegistry.dataRegistry = dataRegistry;
+        _dataRegistry.resetRegistry = resetRegistry;
+        _dataRegistry.remove = remove;
+    })(SmallMouth._dataRegistry || (SmallMouth._dataRegistry = {}));
+    var _dataRegistry = SmallMouth._dataRegistry;
+})(SmallMouth || (SmallMouth = {}));
+var SmallMouth;
+(function (SmallMouth) {
+    (function (_eventRegistry) {
+        var eventRegistry = {
+            events: {},
+            children: {}
+        };
 
-                    for (var j = 0, jLength = eventList.length; j < jLength; j++) {
-                        eventList[j].callback.call(eventList[j].context, snapshot);
+        function getEvent(path, options) {
+            if (typeof options === "undefined") { options = {}; }
+            var event = eventRegistry;
+            var paths = path.split('/');
+
+            var tempPath = paths[0];
+
+            for (var i = 0, iLength = paths.length; i < iLength; i++) {
+                if (!event.children[paths[i]]) {
+                    event.children[paths[i]] = {
+                        events: {},
+                        children: {}
+                    };
+                }
+
+                if (typeof options.trigger !== 'undefined') {
+                    var eventList = event.events[options.trigger];
+
+                    if (eventList) {
+                        var registryData = SmallMouth._dataRegistry.getData(tempPath);
+                        var snapshot = new SmallMouth.Snapshot(tempPath, registryData, options.host);
+
+                        for (var j = 0, jLength = eventList.length; j < jLength; j++) {
+                            eventList[j].callback.call(eventList[j].context, snapshot);
+                        }
                     }
+                }
+
+                event = event.children[paths[i]];
+
+                if (i) {
+                    tempPath = tempPath + "/" + paths[i];
                 }
             }
 
-            event = event.children[paths[i]];
+            return event;
+        }
 
-            if (i) {
-                tempPath = tempPath + "/" + paths[i];
+        function addEvent(path, type, callback, context) {
+            var event = getEvent(path);
+
+            event.events[type] || (event.events[type] = []);
+
+            event.events[type].push({
+                callback: callback,
+                context: context
+            });
+        }
+
+        function removeEvent(path, type, callback) {
+            var removeIndex;
+
+            var event = getEvent(path);
+
+            if (!event.events[type])
+                return;
+
+            for (var i = 0, iLength = event.events[type].length; i < iLength; i++) {
+                if (event.events[type][i].callback === callback) {
+                    removeIndex = i;
+                    break;
+                }
+            }
+
+            if (typeof removeIndex !== 'undefined') {
+                event.events[type].splice(removeIndex, 1);
             }
         }
 
-        return event;
-    }
+        function triggerEvent(path, type, host, snapshot) {
+            var event = getEvent(path, { trigger: type, host: host });
 
-    function addEvent(path, type, callback, context) {
-        var event = getEvent(path);
+            var eventList = event.events[type];
 
-        event.events[type] || (event.events[type] = []);
+            if (!eventList)
+                return;
 
-        event.events[type].push({
-            callback: callback,
-            context: context
-        });
-    }
-
-    function removeEvent(path, type, callback) {
-        var removeIndex;
-
-        var event = getEvent(path);
-
-        if (!event.events[type])
-            return;
-
-        for (var i = 0, iLength = event.events[type].length; i < iLength; i++) {
-            if (event.events[type][i].callback === callback) {
-                removeIndex = i;
-                break;
+            for (var i = 0, iLength = eventList.length; i < iLength; i++) {
+                eventList[i].callback.call(eventList[i].context, snapshot);
             }
         }
 
-        if (typeof removeIndex !== 'undefined') {
-            event.events[type].splice(removeIndex, 1);
+        function resetRegistry() {
+            eventRegistry.events = {};
+            eventRegistry.children = {};
         }
-    }
 
-    function triggerEvent(path, type, host, snapshot) {
-        var event = getEvent(path, { trigger: type, host: host });
+        _eventRegistry.addEvent = addEvent;
+        _eventRegistry.removeEvent = removeEvent;
+        _eventRegistry.triggerEvent = triggerEvent;
+        _eventRegistry.resetRegistry = resetRegistry;
+        _eventRegistry.eventRegistry = eventRegistry;
+    })(SmallMouth._eventRegistry || (SmallMouth._eventRegistry = {}));
+    var _eventRegistry = SmallMouth._eventRegistry;
+})(SmallMouth || (SmallMouth = {}));
+var SmallMouth;
+(function (SmallMouth) {
+    (function (largeMouthAdapter) {
+        var connections = {};
 
-        var eventList = event.events[type];
+        function connect(host) {
+            var socket;
+            if (!host)
+                return;
 
-        if (!eventList)
-            return;
+            if (connections[host]) {
+                socket = connections[host];
+            } else {
+                socket = connections[host] = io.connect(host);
+            }
 
-        for (var i = 0, iLength = eventList.length; i < iLength; i++) {
-            eventList[i].callback.call(eventList[i].context, snapshot);
+            socket.on('data', function (data) {
+                SmallMouth._dataRegistry.updateRegistry(data.path, data.value);
+
+                var registryData = SmallMouth._dataRegistry.getData(data.path);
+
+                SmallMouth._eventRegistry.triggerEvent(data.path, 'value', host, new SmallMouth.Snapshot(data.path, registryData, host));
+            });
+
+            return socket;
         }
-    }
 
-    SmallMouth._registry = {
-        connect: connect,
-        initializeRegistry: initializeRegistry,
-        updateRegistry: updateRegistry,
-        getData: getData,
-        dataRegistry: dataRegistry,
-        eventRegistry: eventRegistry,
-        resetRegistries: resetRegistries,
-        remove: remove,
-        addEvent: addEvent,
-        removeEvent: removeEvent,
-        triggerEvent: triggerEvent
-    };
+        largeMouthAdapter.connect = connect;
+    })(SmallMouth.largeMouthAdapter || (SmallMouth.largeMouthAdapter = {}));
+    var largeMouthAdapter = SmallMouth.largeMouthAdapter;
 })(SmallMouth || (SmallMouth = {}));
 var SmallMouth;
 (function (SmallMouth) {
@@ -251,9 +270,9 @@ var SmallMouth;
             this._path = url;
             this._host = host;
 
-            SmallMouth._registry.initializeRegistry(this);
+            SmallMouth._dataRegistry.initializeRegistry(this);
 
-            var socket = SmallMouth._registry.connect(host);
+            var socket = SmallMouth.largeMouthAdapter.connect(host);
 
             if (socket) {
                 socket.emit('subscribe', url);
@@ -261,33 +280,34 @@ var SmallMouth;
         }
         Resource.prototype.on = function (eventType, callback, cancelCallback, context) {
             if (typeof cancelCallback == 'function') {
-                SmallMouth._registry.addEvent(this._path, eventType, callback, context);
-                SmallMouth._registry.addEvent(this._path, "cancel", cancelCallback, context);
+                SmallMouth._eventRegistry.addEvent(this._path, eventType, callback, context);
+                SmallMouth._eventRegistry.addEvent(this._path, "cancel", cancelCallback, context);
             } else {
-                SmallMouth._registry.addEvent(this._path, eventType, callback, cancelCallback);
+                SmallMouth._eventRegistry.addEvent(this._path, eventType, callback, cancelCallback);
             }
 
             return this;
         };
 
         Resource.prototype.off = function (eventType, callback, context) {
-            SmallMouth._registry.removeEvent(this._path, eventType, callback);
+            SmallMouth._eventRegistry.removeEvent(this._path, eventType, callback);
             return this;
         };
 
         Resource.prototype.set = function (value, onComplete) {
-            SmallMouth._registry.updateRegistry(this._path, value);
-            SmallMouth._registry.triggerEvent(this._path, 'value', this._host, this._getSnapshot());
+            SmallMouth._dataRegistry.updateRegistry(this._path, value);
+            SmallMouth._eventRegistry.triggerEvent(this._path, 'value', this._host, this._getSnapshot());
             return this;
         };
 
         Resource.prototype.update = function (value, onComplete) {
-            SmallMouth._registry.updateRegistry(this._path, value, { merge: true });
+            SmallMouth._dataRegistry.updateRegistry(this._path, value, { merge: true });
+            SmallMouth._eventRegistry.triggerEvent(this._path, 'value', this._host, this._getSnapshot());
             return this;
         };
 
         Resource.prototype.remove = function (onComplete) {
-            SmallMouth._registry.remove(this._path);
+            SmallMouth._dataRegistry.remove(this._path);
         };
 
         Resource.prototype.child = function (childPath) {
@@ -317,7 +337,7 @@ var SmallMouth;
         };
 
         Resource.prototype._getSnapshot = function () {
-            var data = SmallMouth._registry.getData(this._path);
+            var data = SmallMouth._dataRegistry.getData(this._path);
 
             if (!data)
                 return undefined;
@@ -363,7 +383,7 @@ var SmallMouth;
         Snapshot.prototype.child = function (path) {
             path = this._path + '/' + SmallMouth.Resource.cleanPath(path);
 
-            var data = SmallMouth._registry.getData(path);
+            var data = SmallMouth._dataRegistry.getData(path);
 
             if (!data)
                 return undefined;
@@ -378,7 +398,7 @@ var SmallMouth;
                 if (children.hasOwnProperty(key)) {
                     var path = this._path + '/' + key;
 
-                    var cancel = childAction.call(this, new Snapshot(path, SmallMouth._registry.getData(path), this._host));
+                    var cancel = childAction.call(this, new Snapshot(path, SmallMouth._dataRegistry.getData(path), this._host));
 
                     if (cancel)
                         return true;
@@ -390,7 +410,7 @@ var SmallMouth;
 
         Snapshot.prototype.hasChild = function (childPath) {
             childPath = this._path + '/' + SmallMouth.Resource.cleanPath(childPath);
-            var data = SmallMouth._registry.getData(childPath);
+            var data = SmallMouth._dataRegistry.getData(childPath);
             return typeof data.children !== 'undefined' || typeof data.data !== 'undefined';
         };
 

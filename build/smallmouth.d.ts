@@ -1,21 +1,24 @@
 /// <reference path="../d.ts/DefinitelyTyped/socket.io/socket.io.d.ts" />
-declare module SmallMouth {
-    var _registry: {
-        connect: (host: any) => any;
-        initializeRegistry: (resource: any) => void;
-        updateRegistry: (path: any, value: any, options?: any) => void;
-        getData: (path: any, options?: any) => any;
-        dataRegistry: any;
-        eventRegistry: {
-            events: {};
-            children: {};
-        };
-        resetRegistries: () => void;
-        remove: (path: any) => any;
-        addEvent: (path: string, type: string, callback: Function, context: any) => void;
-        removeEvent: (path: string, type: string, callback: Function) => void;
-        triggerEvent: (path: string, type: string, host: string, snapshot: any) => void;
+declare module SmallMouth._dataRegistry {
+    var initializeRegistry: (resource: any) => void;
+    var updateRegistry: (path: any, value: any, options?: any) => void;
+    var getData: (path: any, options?: any) => any;
+    var dataRegistry;
+    var resetRegistry: () => void;
+    var remove: (path: any) => any;
+}
+declare module SmallMouth._eventRegistry {
+    var addEvent: (path: string, type: string, callback: Function, context: any) => void;
+    var removeEvent: (path: string, type: string, callback: Function) => void;
+    var triggerEvent: (path: string, type: string, host: string, snapshot: any) => void;
+    var resetRegistry: () => void;
+    var eventRegistry: {
+        events: {};
+        children: {};
     };
+}
+declare module SmallMouth.largeMouthAdapter {
+    var connect: (host: any) => any;
 }
 declare module SmallMouth {
     interface SnapshotInterface {
