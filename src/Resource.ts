@@ -69,6 +69,7 @@ module SmallMouth {
 
 		remove( onComplete?: (error) => any ): void {
 			SmallMouth._dataRegistry.remove(this._path);
+			SmallMouth._eventRegistry.triggerEvent(this._path, 'value', this._host, this._getSnapshot());
 		}
 
 		child( childPath: string ): Resource {

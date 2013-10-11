@@ -178,4 +178,25 @@ describe('Resource', function() {
 		var snapshot = spy.mostRecentCall.args[0];
 		expect(snapshot.child('in/the/greenwood/the/animals/play').val()).toBe('hop like a bunny');
 	});
+
+	it('When a resource is removed, "value" event should get fired', function() {
+		var top = new SmallMouth.Resource('top');
+		var child = new SmallMouth.Resource('top/child');
+
+		child.set('someValue');
+
+		var spy1 = jasmine.createSpy();
+		var spy2 = jasmine.createSpy();
+
+		top.on('value', spy1);
+		child.on('value', spy2);
+
+		child.remove();
+
+		expect(spy1).toHaveBeenCalled();
+		expect(spy2).toHaveBeenCalled();
+
+		expect(spy1.mostRecentCall.args[0].val().child).toBe(null);
+		expect(spy2.mostRecentCall.args[0].val()).toBe(null);
+	});
 });

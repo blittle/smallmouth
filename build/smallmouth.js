@@ -308,6 +308,7 @@ var SmallMouth;
 
         Resource.prototype.remove = function (onComplete) {
             SmallMouth._dataRegistry.remove(this._path);
+            SmallMouth._eventRegistry.triggerEvent(this._path, 'value', this._host, this._getSnapshot());
         };
 
         Resource.prototype.child = function (childPath) {
