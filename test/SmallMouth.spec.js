@@ -117,9 +117,24 @@ describe("SmallMouth", function() {
 			};
 
 			SmallMouth._registry.addEvent('resource1', 'value', callback, context);
-			SmallMouth._registry.triggerEvent('resource1', 'value', 'someSnapshot');
+			SmallMouth._registry.triggerEvent('resource1', 'value', null, 'someSnapshot');
 			expect(context.spy).toHaveBeenCalled();
 			expect(context.spy).toHaveBeenCalledWith('someSnapshot');
+		});
+
+		it('Should trigger events on parent resources', function() {
+			var spy1 = jasmine.createSpy('parent resource spy');
+			var spy2 = jasmine.createSpy('child resource spy');
+
+			SmallMouth._registry.addEvent('resource1', 'value', spy1);
+			SmallMouth._registry.addEvent('resource1/some/path/deep', 'value', spy2);
+			SmallMouth._registry.triggerEvent('resource1/some/path/deep', 'value', null, 'someSnapshot');
+
+			expect(spy1).toHaveBeenCalled();
+			expect(spy2).toHaveBeenCalled();
+
+			expect(spy1.mostRecentCall.args[0].val()).toBe(null);
+			expect(spy2).toHaveBeenCalledWith('someSnapshot');
 		});
 
 	});
@@ -255,7 +270,6 @@ describe("SmallMouth", function() {
 			var resource1 = new SmallMouth.Resource('http://localhost:8080/some/data');
 			resource1.set('value');
 			expect(resource1.parent()._getSnapshot().version).toBe(1);
-			debugger;
 			resource1.remove();
 			expect(resource1.parent()._getSnapshot().version).toBe(2);
 		});
@@ -280,6 +294,20 @@ describe("SmallMouth", function() {
 			resource1.on('value', callback);
 			resource1.set('something');
 			expect(spy).toHaveBeenCalledWith('something');
+		});
+
+		it('On an event callback, should pass a parent snapshot of data', function() {
+			var resource1 = new SmallMouth.Resource('http://localhost:8080/deep');
+			var resource2 = new SmallMouth.Resource('http://localhost:8080/deep/in/the/greenwood/the/animals/play');
+
+			var spy = jasmine.createSpy();
+
+			resource1.on('value', spy);
+			resource2.set('hop like a bunny');
+
+			expect(spy).toHaveBeenCalled();
+			var snapshot = spy.mostRecentCall.args[0];
+			expect(snapshot.child('in/the/greenwood/the/animals/play').val()).toBe('hop like a bunny');
 		});
 	});
 });

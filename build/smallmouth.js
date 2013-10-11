@@ -28,7 +28,7 @@ var SmallMouth;
 
             var registryData = SmallMouth._registry.getData(data.path);
 
-            triggerEvent(data.path, 'value', new SmallMouth.Snapshot(data.path, registryData, host));
+            triggerEvent(data.path, 'value', host, new SmallMouth.Snapshot(data.path, registryData, host));
         });
 
         return socket;
@@ -144,9 +144,12 @@ var SmallMouth;
         delete data.data;
     }
 
-    function getEvent(path) {
+    function getEvent(path, options) {
+        if (typeof options === "undefined") { options = {}; }
         var event = eventRegistry;
         var paths = path.split('/');
+
+        var tempPath = paths[0];
 
         for (var i = 0, iLength = paths.length; i < iLength; i++) {
             if (!event.children[paths[i]]) {
@@ -156,7 +159,24 @@ var SmallMouth;
                 };
             }
 
+            if (typeof options.trigger !== 'undefined') {
+                var eventList = event.events[options.trigger];
+
+                if (eventList) {
+                    var registryData = SmallMouth._registry.getData(tempPath);
+                    var snapshot = new SmallMouth.Snapshot(tempPath, registryData, options.host);
+
+                    for (var j = 0, jLength = eventList.length; j < jLength; j++) {
+                        eventList[j].callback.call(eventList[j].context, snapshot);
+                    }
+                }
+            }
+
             event = event.children[paths[i]];
+
+            if (i) {
+                tempPath = tempPath + "/" + paths[i];
+            }
         }
 
         return event;
@@ -193,8 +213,8 @@ var SmallMouth;
         }
     }
 
-    function triggerEvent(path, type, snapshot) {
-        var event = getEvent(path);
+    function triggerEvent(path, type, host, snapshot) {
+        var event = getEvent(path, { trigger: type, host: host });
 
         var eventList = event.events[type];
 
@@ -257,7 +277,7 @@ var SmallMouth;
 
         Resource.prototype.set = function (value, onComplete) {
             SmallMouth._registry.updateRegistry(this._path, value);
-            SmallMouth._registry.triggerEvent(this._path, 'value', this._getSnapshot());
+            SmallMouth._registry.triggerEvent(this._path, 'value', this._host, this._getSnapshot());
             return this;
         };
 

@@ -57,7 +57,7 @@ module SmallMouth {
 
 		set(value: any, onComplete ?: (error) => any): Resource {
 			SmallMouth._registry.updateRegistry(this._path, value);	
-			SmallMouth._registry.triggerEvent(this._path, 'value', this._getSnapshot());
+			SmallMouth._registry.triggerEvent(this._path, 'value', this._host, this._getSnapshot());
 			return this;	
 		}
 

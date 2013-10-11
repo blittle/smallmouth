@@ -14,7 +14,7 @@ declare module SmallMouth {
         remove: (path: any) => any;
         addEvent: (path: string, type: string, callback: Function, context: any) => void;
         removeEvent: (path: string, type: string, callback: Function) => void;
-        triggerEvent: (path: string, type: string, snapshot: any) => void;
+        triggerEvent: (path: string, type: string, host: string, snapshot: any) => void;
     };
 }
 declare module SmallMouth {
