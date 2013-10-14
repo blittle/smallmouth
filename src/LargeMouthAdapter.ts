@@ -14,13 +14,13 @@ module SmallMouth.largeMouthAdapter {
 			socket = connections[host] = io.connect(host);
 		}
 
-		socket.on('data', (data) => {
-			SmallMouth._dataRegistry.updateRegistry(data.path, data.value);
+		socket.on('data', (resp) => {
+			SmallMouth._dataRegistry.updateRegistry(resp.path, resp.value);
 
-			var registryData = SmallMouth._dataRegistry.getData(data.path);	
+			var registryData = SmallMouth._dataRegistry.getData(resp.path);	
 
-			SmallMouth._eventRegistry.triggerEvent(data.path, 'value', host, new SmallMouth.Snapshot(
-				data.path,
+			SmallMouth._eventRegistry.triggerEvent(resp.path, 'value', host, new SmallMouth.Snapshot(
+				resp.path,
 				registryData,
 				host
 			));
@@ -29,5 +29,28 @@ module SmallMouth.largeMouthAdapter {
 		return socket;
 	}
 
+
+	function subscribe(host, url) {
+		var socket = connections[host];
+		if(!socket) return;
+
+		socket.emit('subscribe', {
+			url: url,
+			value: SmallMouth._dataRegistry.getData(url)
+		});
+	}
+
+	function syncRemote(host, data, url) {
+		var socket = connections[host];
+		if(!socket) return;
+
+		socket.emit('set', {
+			url: url,
+			value: data	
+		});
+	}
+
 	export var connect = connect;
+	export var subscribe = subscribe;
+	export var syncRemote = syncRemote;
 }

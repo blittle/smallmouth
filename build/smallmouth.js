@@ -59,9 +59,9 @@ var SmallMouth;
             return data;
         }
 
-        function updateRegistry(path, value, options) {
+        function updateRegistry(resource, value, options) {
             if (typeof options === "undefined") { options = {}; }
-            var data = getData(path, { versionUpdate: true });
+            var data = getData(resource._path, { versionUpdate: true });
 
             if (!options.merge) {
                 data.children = {};
@@ -72,22 +72,21 @@ var SmallMouth;
 
             data.version++;
 
-            sync(path);
+            sync(resource);
         }
 
         function initializeRegistry(resource) {
             var data = getData(resource._path);
 
-            sync(resource._path);
+            sync(resource);
         }
 
         function sync(resource) {
-            if (syncTimeout)
-                clearTimeout(syncTimeout);
+            localStorage.setItem('LargeMouth_Registry', JSON.stringify(dataRegistry));
 
-            syncTimeout = setTimeout(function () {
-                localStorage.setItem('LargeMouth_Registry', JSON.stringify(dataRegistry));
-            }, 100);
+            if (resource._host) {
+                SmallMouth.largeMouthAdapter.syncRemote(resource._host, getData(resource._path), resource._path);
+            }
         }
 
         function resetRegistry() {
@@ -98,7 +97,9 @@ var SmallMouth;
             localStorage.setItem('LargeMouth_Registry', JSON.stringify(dataRegistry));
         }
 
-        function remove(path) {
+        function remove(resource) {
+            var path = resource._path;
+
             if (path.trim() == '')
                 return dataRegistry;
 
@@ -114,6 +115,26 @@ var SmallMouth;
 
             delete data.children;
             delete data.data;
+
+            sync(resource);
+        }
+
+        function getVersions(path) {
+            var paths = path.split('/');
+            var data = dataRegistry;
+
+            var versions = [];
+
+            for (var i = 0, iLength = paths.length; i < iLength; i++) {
+                if (!data)
+                    break;
+                versions.push(data.version);
+                if (!data.children)
+                    break;
+                data = data.children[paths[i]];
+            }
+
+            return versions;
         }
 
         _dataRegistry.initializeRegistry = initializeRegistry;
@@ -122,6 +143,7 @@ var SmallMouth;
         _dataRegistry.dataRegistry = dataRegistry;
         _dataRegistry.resetRegistry = resetRegistry;
         _dataRegistry.remove = remove;
+        _dataRegistry.getVersions = getVersions;
     })(SmallMouth._dataRegistry || (SmallMouth._dataRegistry = {}));
     var _dataRegistry = SmallMouth._dataRegistry;
 })(SmallMouth || (SmallMouth = {}));
@@ -244,18 +266,42 @@ var SmallMouth;
                 socket = connections[host] = io.connect(host);
             }
 
-            socket.on('data', function (data) {
-                SmallMouth._dataRegistry.updateRegistry(data.path, data.value);
+            socket.on('data', function (resp) {
+                SmallMouth._dataRegistry.updateRegistry(resp.path, resp.value);
 
-                var registryData = SmallMouth._dataRegistry.getData(data.path);
+                var registryData = SmallMouth._dataRegistry.getData(resp.path);
 
-                SmallMouth._eventRegistry.triggerEvent(data.path, 'value', host, new SmallMouth.Snapshot(data.path, registryData, host));
+                SmallMouth._eventRegistry.triggerEvent(resp.path, 'value', host, new SmallMouth.Snapshot(resp.path, registryData, host));
             });
 
             return socket;
         }
 
+        function subscribe(host, url) {
+            var socket = connections[host];
+            if (!socket)
+                return;
+
+            socket.emit('subscribe', {
+                url: url,
+                value: SmallMouth._dataRegistry.getData(url)
+            });
+        }
+
+        function syncRemote(host, data, url) {
+            var socket = connections[host];
+            if (!socket)
+                return;
+
+            socket.emit('set', {
+                url: url,
+                value: data
+            });
+        }
+
         largeMouthAdapter.connect = connect;
+        largeMouthAdapter.subscribe = subscribe;
+        largeMouthAdapter.syncRemote = syncRemote;
     })(SmallMouth.largeMouthAdapter || (SmallMouth.largeMouthAdapter = {}));
     var largeMouthAdapter = SmallMouth.largeMouthAdapter;
 })(SmallMouth || (SmallMouth = {}));
@@ -272,11 +318,8 @@ var SmallMouth;
 
             SmallMouth._dataRegistry.initializeRegistry(this);
 
-            var socket = SmallMouth.largeMouthAdapter.connect(host);
-
-            if (socket) {
-                socket.emit('subscribe', url);
-            }
+            SmallMouth.largeMouthAdapter.connect(host);
+            SmallMouth.largeMouthAdapter.subscribe(host, url);
         }
         Resource.prototype.on = function (eventType, callback, cancelCallback, context) {
             if (typeof cancelCallback == 'function') {
@@ -295,19 +338,19 @@ var SmallMouth;
         };
 
         Resource.prototype.set = function (value, onComplete) {
-            SmallMouth._dataRegistry.updateRegistry(this._path, value);
+            SmallMouth._dataRegistry.updateRegistry(this, value);
             SmallMouth._eventRegistry.triggerEvent(this._path, 'value', this._host, this._getSnapshot());
             return this;
         };
 
         Resource.prototype.update = function (value, onComplete) {
-            SmallMouth._dataRegistry.updateRegistry(this._path, value, { merge: true });
+            SmallMouth._dataRegistry.updateRegistry(this, value, { merge: true });
             SmallMouth._eventRegistry.triggerEvent(this._path, 'value', this._host, this._getSnapshot());
             return this;
         };
 
         Resource.prototype.remove = function (onComplete) {
-            SmallMouth._dataRegistry.remove(this._path);
+            SmallMouth._dataRegistry.remove(this);
             SmallMouth._eventRegistry.triggerEvent(this._path, 'value', this._host, this._getSnapshot());
         };
 

@@ -8,8 +8,8 @@ module SmallMouth {
 
 	export class Resource implements SmallMouth.SmallMouthInterface {
 
-		private _path: string;
-		private _host: string;
+		_path: string;
+		_host: string;
 
 		constructor(address: string) {
 			var parse = urlReg.exec(address),
@@ -26,11 +26,8 @@ module SmallMouth {
 
 			SmallMouth._dataRegistry.initializeRegistry(this);
 
-			var socket = SmallMouth.largeMouthAdapter.connect(host);
-
-			if(socket) {
-				socket.emit('subscribe', url);
-			}
+			SmallMouth.largeMouthAdapter.connect(host);
+			SmallMouth.largeMouthAdapter.subscribe(host, url);
 		}
 
 		on(
@@ -56,19 +53,19 @@ module SmallMouth {
 		}
 
 		set(value: any, onComplete ?: (error) => any): Resource {
-			SmallMouth._dataRegistry.updateRegistry(this._path, value);	
+			SmallMouth._dataRegistry.updateRegistry(this, value);	
 			SmallMouth._eventRegistry.triggerEvent(this._path, 'value', this._host, this._getSnapshot());
 			return this;	
 		}
 
 		update( value: any, onComplete ?: (error) => any ): Resource {
-			SmallMouth._dataRegistry.updateRegistry(this._path, value, {merge: true});	
+			SmallMouth._dataRegistry.updateRegistry(this, value, {merge: true});	
 			SmallMouth._eventRegistry.triggerEvent(this._path, 'value', this._host, this._getSnapshot());
 			return this;
 		}
 
 		remove( onComplete?: (error) => any ): void {
-			SmallMouth._dataRegistry.remove(this._path);
+			SmallMouth._dataRegistry.remove(this);
 			SmallMouth._eventRegistry.triggerEvent(this._path, 'value', this._host, this._getSnapshot());
 		}
 

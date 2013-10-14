@@ -54,8 +54,8 @@ module SmallMouth._dataRegistry {
 		return data;
 	}
 
-	function updateRegistry(path, value: any, options: any = {}) {
-		var data = getData(path, {versionUpdate: true});
+	function updateRegistry(resource: SmallMouth.Resource, value: any, options: any = {}) {
+		var data = getData(resource._path, {versionUpdate: true});
 
 		if(!options.merge) {
 			data.children = {};
@@ -66,21 +66,26 @@ module SmallMouth._dataRegistry {
 
 		data.version++;
 
-		sync(path);
+		sync(resource);
 	}
 
-	function initializeRegistry(resource) {
+	function initializeRegistry(resource: SmallMouth.Resource) {
 		var data = getData(resource._path);
 
-		sync(resource._path);		
+		sync(resource);		
 	}
 
-	function sync(resource) {
-		if(syncTimeout) clearTimeout(syncTimeout);
+	function sync(resource: SmallMouth.Resource) {
+		// if(syncTimeout) clearTimeout(syncTimeout);
 
-		syncTimeout = setTimeout(()=> {
-			localStorage.setItem('LargeMouth_Registry', JSON.stringify(dataRegistry));
-		}, 100);
+		// syncTimeout = setTimeout(()=> {
+		localStorage.setItem('LargeMouth_Registry', JSON.stringify(dataRegistry));
+
+		if(resource._host) {
+			SmallMouth.largeMouthAdapter.syncRemote(resource._host, getData(resource._path), resource._path);
+		}
+
+		// }, 100);
 	}
 
 	function resetRegistry() {
@@ -91,7 +96,9 @@ module SmallMouth._dataRegistry {
 		localStorage.setItem('LargeMouth_Registry', JSON.stringify(dataRegistry));
 	}
 
-	function remove(path) {
+	function remove(resource: SmallMouth.Resource) {
+		var path = resource._path;
+
 		if(path.trim() == '') return dataRegistry;
 
 		var paths = path.split('/');
@@ -105,6 +112,24 @@ module SmallMouth._dataRegistry {
 
 		delete data.children;
 		delete data.data;
+
+		sync(resource);		
+	}
+
+	function getVersions(path) {
+		var paths = path.split('/');
+		var data = dataRegistry;
+
+		var versions = [];
+
+		for(var i=0, iLength = paths.length; i < iLength; i++) {	
+			if(!data) break;
+			versions.push(data.version);
+			if(!data.children) break;
+			data = data.children[paths[i]];
+		}
+
+		return versions;
 	}
 
 	export var initializeRegistry = initializeRegistry;
@@ -113,5 +138,5 @@ module SmallMouth._dataRegistry {
 	export var dataRegistry = dataRegistry;
 	export var resetRegistry = resetRegistry;
 	export var remove = remove;
-	
+	export var getVersions = getVersions;
 }

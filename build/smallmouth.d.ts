@@ -1,11 +1,12 @@
 /// <reference path="../d.ts/DefinitelyTyped/socket.io/socket.io.d.ts" />
 declare module SmallMouth._dataRegistry {
-    var initializeRegistry: (resource: any) => void;
-    var updateRegistry: (path: any, value: any, options?: any) => void;
+    var initializeRegistry: (resource: SmallMouth.Resource) => void;
+    var updateRegistry: (resource: SmallMouth.Resource, value: any, options?: any) => void;
     var getData: (path: any, options?: any) => any;
     var dataRegistry;
     var resetRegistry: () => void;
-    var remove: (path: any) => any;
+    var remove: (resource: SmallMouth.Resource) => any;
+    var getVersions: (path: any) => any[];
 }
 declare module SmallMouth._eventRegistry {
     var addEvent: (path: string, type: string, callback: Function, context: any) => void;
@@ -19,6 +20,8 @@ declare module SmallMouth._eventRegistry {
 }
 declare module SmallMouth.largeMouthAdapter {
     var connect: (host: any) => any;
+    var subscribe: (host: any, url: any) => void;
+    var syncRemote: (host: any, data: any, url: any) => void;
 }
 declare module SmallMouth {
     interface SnapshotInterface {
@@ -54,8 +57,8 @@ declare module SmallMouth {
 }
 declare module SmallMouth {
     class Resource implements SmallMouth.SmallMouthInterface {
-        private _path;
-        private _host;
+        public _path: string;
+        public _host: string;
         constructor(address: string);
         public on(eventType: string, callback: (snapshot: SmallMouth.SnapshotInterface, previusChild?: string) => any, cancelCallback?: Function, context?: any): Resource;
         public off(eventType: string, callback?: Function, context?: any): Resource;
