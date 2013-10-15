@@ -7,6 +7,7 @@ declare module SmallMouth._dataRegistry {
     var resetRegistry: () => void;
     var remove: (resource: SmallMouth.Resource) => any;
     var getVersions: (path: any) => any[];
+    var serverUpdateData: (path: string, element: any) => void;
 }
 declare module SmallMouth._eventRegistry {
     var addEvent: (path: string, type: string, callback: Function, context: any) => void;

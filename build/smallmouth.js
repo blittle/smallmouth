@@ -71,8 +71,35 @@ var SmallMouth;
             createSubDataFromObject(data, value);
 
             data.version++;
-
             sync(resource);
+        }
+
+        function serverUpdateData(path, element) {
+            var data = getData(path, { versionUpdate: true });
+            _mergeRemoteData(data, element);
+        }
+
+        function _mergeRemoteData(local, remote) {
+            local.version = remote.version;
+
+            if (remote.value)
+                local.data = remote.value;
+else {
+                if (!local.children)
+                    local.children = {};
+
+                for (var el in remote.children) {
+                    if (remote.children.hasOwnProperty(el)) {
+                        if (!local.children[el]) {
+                            local.children[el] = {
+                                version: 0
+                            };
+                        }
+
+                        _mergeRemoteData(local.children[el], remote.children[el]);
+                    }
+                }
+            }
         }
 
         function initializeRegistry(resource) {
@@ -144,6 +171,7 @@ var SmallMouth;
         _dataRegistry.resetRegistry = resetRegistry;
         _dataRegistry.remove = remove;
         _dataRegistry.getVersions = getVersions;
+        _dataRegistry.serverUpdateData = serverUpdateData;
     })(SmallMouth._dataRegistry || (SmallMouth._dataRegistry = {}));
     var _dataRegistry = SmallMouth._dataRegistry;
 })(SmallMouth || (SmallMouth = {}));
@@ -267,7 +295,7 @@ var SmallMouth;
             }
 
             socket.on('data', function (resp) {
-                SmallMouth._dataRegistry.updateRegistry(resp.path, resp.value);
+                SmallMouth._dataRegistry.serverUpdateData(resp.path, resp.value);
 
                 var registryData = SmallMouth._dataRegistry.getData(resp.path);
 

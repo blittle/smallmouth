@@ -65,8 +65,33 @@ module SmallMouth._dataRegistry {
 		createSubDataFromObject(data, value);
 
 		data.version++;
-
 		sync(resource);
+	}
+
+	function serverUpdateData(path: string, element: any) {
+		var data = getData(path, {versionUpdate: true});
+		_mergeRemoteData(data, element);
+	}
+
+	function _mergeRemoteData(local, remote) {
+		local.version = remote.version;
+
+		if(remote.value) local.data = remote.value;
+		else {
+			if(!local.children) local.children = {};
+
+			for(var el in remote.children) {
+				if(remote.children.hasOwnProperty(el)) {
+					if(!local.children[el]) {
+						local.children[el] = {
+							version: 0
+						}
+					} 
+
+					_mergeRemoteData(local.children[el], remote.children[el]);
+				}
+			}
+		}
 	}
 
 	function initializeRegistry(resource: SmallMouth.Resource) {
@@ -139,4 +164,5 @@ module SmallMouth._dataRegistry {
 	export var resetRegistry = resetRegistry;
 	export var remove = remove;
 	export var getVersions = getVersions;
+	export var serverUpdateData = serverUpdateData;
 }

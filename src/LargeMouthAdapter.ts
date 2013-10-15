@@ -15,7 +15,7 @@ module SmallMouth.largeMouthAdapter {
 		}
 
 		socket.on('data', (resp) => {
-			SmallMouth._dataRegistry.updateRegistry(resp.path, resp.value);
+			SmallMouth._dataRegistry.serverUpdateData(resp.path, resp.value);
 
 			var registryData = SmallMouth._dataRegistry.getData(resp.path);	
 
