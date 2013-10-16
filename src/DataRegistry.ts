@@ -138,7 +138,7 @@ module SmallMouth._dataRegistry {
 		delete data.children;
 		delete data.value;
 
-		sync(resource);		
+		if(resource._host) sync(resource);		
 	}
 
 	function getVersions(path) {
