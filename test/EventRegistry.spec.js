@@ -71,7 +71,7 @@ describe("Event Registry", function() {
 			expect(spy2).toHaveBeenCalled();
 
 			expect(spy1.mostRecentCall.args[0].val()).toBe(null);
-			expect(spy2).toHaveBeenCalledWith('someSnapshot');
+			expect(spy2).toHaveBeenCalledWith('someSnapshot', {});
 		});
 
 	});

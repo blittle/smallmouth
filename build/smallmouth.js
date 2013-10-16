@@ -76,7 +76,16 @@ var SmallMouth;
 
         function serverUpdateData(path, element) {
             var data = getData(path, { versionUpdate: true });
-            _mergeRemoteData(data, element);
+            if (element)
+                _mergeRemoteData(data, element);
+            localStorage.setItem('LargeMouth_Registry', JSON.stringify(dataRegistry));
+        }
+
+        function serverSetData(path, element) {
+            var data = getData(path, { versionUpdate: true });
+            data.children = {};
+            if (element)
+                _mergeRemoteData(data, element);
             localStorage.setItem('LargeMouth_Registry', JSON.stringify(dataRegistry));
         }
 
@@ -174,6 +183,7 @@ else {
         _dataRegistry.remove = remove;
         _dataRegistry.getVersions = getVersions;
         _dataRegistry.serverUpdateData = serverUpdateData;
+        _dataRegistry.serverSetData = serverSetData;
     })(SmallMouth._dataRegistry || (SmallMouth._dataRegistry = {}));
     var _dataRegistry = SmallMouth._dataRegistry;
 })(SmallMouth || (SmallMouth = {}));
@@ -208,7 +218,7 @@ var SmallMouth;
                         var snapshot = new SmallMouth.Snapshot(tempPath, registryData, options.host);
 
                         for (var j = 0, jLength = eventList.length; j < jLength; j++) {
-                            eventList[j].callback.call(eventList[j].context, snapshot);
+                            eventList[j].callback.call(eventList[j].context, snapshot, options);
                         }
                     }
                 }
@@ -254,8 +264,9 @@ var SmallMouth;
             }
         }
 
-        function triggerEvent(path, type, host, snapshot) {
-            var event = getEvent(path, { trigger: type, host: host });
+        function triggerEvent(path, type, host, snapshot, options) {
+            if (typeof options === "undefined") { options = {}; }
+            var event = getEvent(path, { trigger: type, host: host, remote: options.remote });
 
             var eventList = event.events[type];
 
@@ -263,7 +274,7 @@ var SmallMouth;
                 return;
 
             for (var i = 0, iLength = eventList.length; i < iLength; i++) {
-                eventList[i].callback.call(eventList[i].context, snapshot);
+                eventList[i].callback.call(eventList[i].context, snapshot, options);
             }
         }
 
@@ -297,11 +308,31 @@ var SmallMouth;
             }
 
             socket.on('data', function (resp) {
+                SmallMouth._dataRegistry.serverSetData(resp.path, resp.value);
+
+                var registryData = SmallMouth._dataRegistry.getData(resp.path);
+
+                SmallMouth._eventRegistry.triggerEvent(resp.path, 'value', host, new SmallMouth.Snapshot(resp.path, registryData, host), { remote: true });
+            });
+
+            socket.on('set', function (resp) {
+                SmallMouth._dataRegistry.serverSetData(resp.path, resp.value);
+
+                var registryData = SmallMouth._dataRegistry.getData(resp.path);
+
+                SmallMouth._eventRegistry.triggerEvent(resp.path, 'value', host, new SmallMouth.Snapshot(resp.path, registryData, host), { remote: true });
+            });
+
+            socket.on('update', function (resp) {
                 SmallMouth._dataRegistry.serverUpdateData(resp.path, resp.value);
 
                 var registryData = SmallMouth._dataRegistry.getData(resp.path);
 
-                SmallMouth._eventRegistry.triggerEvent(resp.path, 'value', host, new SmallMouth.Snapshot(resp.path, registryData, host));
+                SmallMouth._eventRegistry.triggerEvent(resp.path, 'value', host, new SmallMouth.Snapshot(resp.path, registryData, host), { remote: true });
+            });
+
+            socket.on('ready', function (resp) {
+                connections[host].id = resp.id;
             });
 
             return socket;
@@ -329,9 +360,17 @@ var SmallMouth;
             });
         }
 
+        function generateId(host) {
+            var id = (new Date()).getTime() + "";
+            if (host)
+                id = connections[host].id + '-' + id;
+            return id;
+        }
+
         largeMouthAdapter.connect = connect;
         largeMouthAdapter.subscribe = subscribe;
         largeMouthAdapter.syncRemote = syncRemote;
+        largeMouthAdapter.generateId = generateId;
     })(SmallMouth.largeMouthAdapter || (SmallMouth.largeMouthAdapter = {}));
     var largeMouthAdapter = SmallMouth.largeMouthAdapter;
 })(SmallMouth || (SmallMouth = {}));
@@ -382,6 +421,17 @@ var SmallMouth;
         Resource.prototype.remove = function (onComplete) {
             SmallMouth._dataRegistry.remove(this);
             SmallMouth._eventRegistry.triggerEvent(this._path, 'value', this._host, this._getSnapshot());
+        };
+
+        Resource.prototype.push = function (value, complete) {
+            var id = SmallMouth.largeMouthAdapter.generateId();
+            var ref = this.child(id);
+
+            if (typeof value !== 'undefined') {
+                ref.set(value);
+            }
+
+            return ref;
         };
 
         Resource.prototype.child = function (childPath) {

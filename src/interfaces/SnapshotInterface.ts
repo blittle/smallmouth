@@ -1,4 +1,4 @@
-///<reference path="SmallMouthInterface"/>
+///<reference path="ResourceInterface"/>
 
 module SmallMouth {
 	export interface SnapshotInterface {
@@ -9,7 +9,7 @@ module SmallMouth {
 		hasChildren(): boolean;
 		name(): string;
 		numChildren(): number;
-		ref(): SmallMouth.SmallMouthInterface;
+		ref(): SmallMouth.ResourceInterface;
 		// getPriority(): any;
 		// exportVal(): any;
 	}	

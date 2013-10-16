@@ -35,7 +35,8 @@ module SmallMouth._eventRegistry {
 					for(var j=0, jLength = eventList.length; j < jLength; j++) {
 						eventList[j].callback.call(
 							eventList[j].context, 
-							snapshot
+							snapshot,
+							options
 						);
 					}
 				}
@@ -81,15 +82,15 @@ module SmallMouth._eventRegistry {
 		}
 	}
 
-	function triggerEvent(path: string, type: string, host: string, snapshot) {
-		var event = getEvent(path, {trigger: type, host: host});
+	function triggerEvent(path: string, type: string, host: string, snapshot, options: any = {}) {
+		var event = getEvent(path, {trigger: type, host: host, remote: options.remote});
 
 		var eventList = event.events[type];
 
 		if(!eventList) return;
 
 		for(var i=0, iLength = eventList.length; i < iLength; i++) {
-			eventList[i].callback.call(eventList[i].context, snapshot);
+			eventList[i].callback.call(eventList[i].context, snapshot, options);
 		}
 	}
 

@@ -15,6 +15,30 @@ module SmallMouth.largeMouthAdapter {
 		}
 
 		socket.on('data', (resp) => {
+			SmallMouth._dataRegistry.serverSetData(resp.path, resp.value);
+
+			var registryData = SmallMouth._dataRegistry.getData(resp.path);	
+
+			SmallMouth._eventRegistry.triggerEvent(resp.path, 'value', host, new SmallMouth.Snapshot(
+				resp.path,
+				registryData,
+				host
+			), {remote: true});
+		});
+
+		socket.on('set', (resp) => {
+			SmallMouth._dataRegistry.serverSetData(resp.path, resp.value);
+
+			var registryData = SmallMouth._dataRegistry.getData(resp.path);	
+
+			SmallMouth._eventRegistry.triggerEvent(resp.path, 'value', host, new SmallMouth.Snapshot(
+				resp.path,
+				registryData,
+				host
+			), {remote: true});
+		});
+
+		socket.on('update', (resp) => {
 			SmallMouth._dataRegistry.serverUpdateData(resp.path, resp.value);
 
 			var registryData = SmallMouth._dataRegistry.getData(resp.path);	
@@ -23,7 +47,11 @@ module SmallMouth.largeMouthAdapter {
 				resp.path,
 				registryData,
 				host
-			));
+			), {remote: true});
+		});
+
+		socket.on('ready', (resp) => {
+			connections[host].id = resp.id;
 		});
 
 		return socket;
@@ -50,7 +78,14 @@ module SmallMouth.largeMouthAdapter {
 		});
 	}
 
+	function generateId(host?: string) {
+		var id = (new Date()).getTime() + "";
+		if(host) id = connections[host].id + '-' + id;
+		return id;
+	}
+
 	export var connect = connect;
 	export var subscribe = subscribe;
 	export var syncRemote = syncRemote;
+	export var generateId = generateId;
 }

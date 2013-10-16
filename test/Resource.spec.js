@@ -199,4 +199,25 @@ describe('Resource', function() {
 		expect(spy1.mostRecentCall.args[0].val().child).toBe(null);
 		expect(spy2.mostRecentCall.args[0].val()).toBe(null);
 	});
+
+	it('Should create child references', function() {
+		var chats = new SmallMouth.Resource('chats');
+
+		var chat1 = chats.push();
+		chat1.name();
+
+		var snapshot = chats._getSnapshot();
+		expect(snapshot._data.children[chat1.name()]).toBeDefined();
+	});
+
+	it('Should create child references with data', function() {
+		var chats = new SmallMouth.Resource('chats');
+
+		var chat1 = chats.push("My name!");
+		chat1.name();
+
+		var snapshot = chats._getSnapshot();
+		expect(snapshot._data.children[chat1.name()]).toBeDefined();
+		expect(snapshot._data.children[chat1.name()].value).toBe('My name!');
+	});
 });

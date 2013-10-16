@@ -8,11 +8,12 @@ declare module SmallMouth._dataRegistry {
     var remove: (resource: SmallMouth.Resource) => any;
     var getVersions: (path: any) => any[];
     var serverUpdateData: (path: string, element: any) => void;
+    var serverSetData: (path: string, element: any) => void;
 }
 declare module SmallMouth._eventRegistry {
     var addEvent: (path: string, type: string, callback: Function, context: any) => void;
     var removeEvent: (path: string, type: string, callback: Function) => void;
-    var triggerEvent: (path: string, type: string, host: string, snapshot: any) => void;
+    var triggerEvent: (path: string, type: string, host: string, snapshot: any, options?: any) => void;
     var resetRegistry: () => void;
     var eventRegistry: {
         events: {};
@@ -23,6 +24,7 @@ declare module SmallMouth.largeMouthAdapter {
     var connect: (host: any) => any;
     var subscribe: (host: any, url: any) => void;
     var syncRemote: (host: any, data: any, url: any) => void;
+    var generateId: (host?: string) => string;
 }
 declare module SmallMouth {
     interface SnapshotInterface {
@@ -33,7 +35,7 @@ declare module SmallMouth {
         hasChildren(): boolean;
         name(): string;
         numChildren(): number;
-        ref(): SmallMouth.SmallMouthInterface;
+        ref(): SmallMouth.ResourceInterface;
     }
 }
 declare module SmallMouth {
@@ -42,22 +44,23 @@ declare module SmallMouth {
     }
 }
 declare module SmallMouth {
-    interface SmallMouthInterface {
-        on(eventType: string, callback: (snapshot: SmallMouth.SnapshotInterface, previusChild?: string) => any, cancelCallbck?: Function, context?: any): SmallMouthInterface;
-        on(eventType: string, callback: (snapshot: SmallMouth.SnapshotInterface, previusChild?: string) => any, context?: any): SmallMouthInterface;
-        set(value: any, onComplete?: (error: any) => any): SmallMouthInterface;
-        child(childPath: string): SmallMouthInterface;
-        parent(): SmallMouthInterface;
-        root(): SmallMouthInterface;
+    interface ResourceInterface {
+        on(eventType: string, callback: (snapshot: SmallMouth.SnapshotInterface, previusChild?: string) => any, cancelCallbck?: Function, context?: any): ResourceInterface;
+        on(eventType: string, callback: (snapshot: SmallMouth.SnapshotInterface, previusChild?: string) => any, context?: any): ResourceInterface;
+        off(eventType: string, callback?: Function, context?: any): ResourceInterface;
+        set(value: any, onComplete?: (error: any) => any): ResourceInterface;
+        update(value: any, onComplete?: (error: any) => any): ResourceInterface;
+        push(value: any, complete?: (error: any) => any): ResourceInterface;
+        remove(onComplete?: (error: any) => any): void;
+        child(childPath: string): ResourceInterface;
+        parent(): ResourceInterface;
+        root(): ResourceInterface;
         name(): string;
         toString(): string;
-        update(value: any, onComplete?: (error: any) => any): SmallMouthInterface;
-        remove(onComplete?: (error: any) => any): void;
-        off(eventType: string, callback?: Function, context?: any): SmallMouthInterface;
     }
 }
 declare module SmallMouth {
-    class Resource implements SmallMouth.SmallMouthInterface {
+    class Resource implements SmallMouth.ResourceInterface {
         public _path: string;
         public _host: string;
         constructor(address: string);
@@ -66,6 +69,7 @@ declare module SmallMouth {
         public set(value: any, onComplete?: (error: any) => any): Resource;
         public update(value: any, onComplete?: (error: any) => any): Resource;
         public remove(onComplete?: (error: any) => any): void;
+        public push(value: any, complete?: (error: any) => any): Resource;
         public child(childPath: string): Resource;
         public parent(): Resource;
         public root(): Resource;

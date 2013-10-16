@@ -15,21 +15,20 @@
 
 				$scope.chats = chats._getSnapshot().val() || [];
 
-				chats.on('value', function(snapshot) {
+				chats.on('value', function(snapshot, options) {
 					$scope.chats = snapshot.val();
-					$scope.$digest();
+					if(options.remote) $scope.$digest(); 
 				});
 
 				$scope.newChat = "";
 
 				$scope.addChat = function(chat) {
-					$scope.chats.push(chat);
-					chats.set($scope.chats);
+					chats.push({name: chat});
 					$scope.newChat = "";
 				};
 
 				$scope.clearAll = function() {
-					chats.set([]);
+					chats.remove();
 				};
 			}
 		</script>
@@ -37,7 +36,9 @@
 	<body ng-app>
 		<div ng-controller="smallmouth">
 			<ul>
-				<li ng-repeat="chat in chats">{{chat}}</li>
+				<li ng-repeat="chat in chats">
+					{{chat.name}}
+				</li>
 			</ul>
 
 			<form class="pure-form">

@@ -1,4 +1,4 @@
-///<reference path="interfaces/SmallMouthInterface"/>
+///<reference path="interfaces/ResourceInterface"/>
 ///<reference path="interfaces/SnapshotInterface"/>
 ///<reference path="DataRegistry"/>
 
@@ -6,7 +6,7 @@ module SmallMouth {
 
 	var urlReg = new RegExp('^(([^:/?#]+):)?(//([^/?#]*))?([^?#]*)(\([^#]*))?(#(.*))?');
 
-	export class Resource implements SmallMouth.SmallMouthInterface {
+	export class Resource implements SmallMouth.ResourceInterface {
 
 		_path: string;
 		_host: string;
@@ -67,6 +67,17 @@ module SmallMouth {
 		remove( onComplete?: (error) => any ): void {
 			SmallMouth._dataRegistry.remove(this);
 			SmallMouth._eventRegistry.triggerEvent(this._path, 'value', this._host, this._getSnapshot());
+		}
+
+		push( value: any, complete ?: (error) => any ): Resource {
+			var id = SmallMouth.largeMouthAdapter.generateId();
+			var ref = this.child(id);
+
+			if(typeof value !== 'undefined') {
+				ref.set(value);
+			}
+
+			return ref;
 		}
 
 		child( childPath: string ): Resource {

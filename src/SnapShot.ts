@@ -1,5 +1,5 @@
 ///<reference path="interfaces/SnapshotInterface"/>
-///<reference path="interfaces/SmallMouthInterface"/>
+///<reference path="interfaces/ResourceInterface"/>
 
 module SmallMouth {
 

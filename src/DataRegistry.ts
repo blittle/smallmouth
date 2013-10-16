@@ -70,8 +70,15 @@ module SmallMouth._dataRegistry {
 
 	function serverUpdateData(path: string, element: any) {
 		var data = getData(path, {versionUpdate: true});
-		_mergeRemoteData(data, element);
+		if(element) _mergeRemoteData(data, element);
 		localStorage.setItem('LargeMouth_Registry', JSON.stringify(dataRegistry));
+	}
+
+	function serverSetData(path: string, element: any) {
+		var data = getData(path, {versionUpdate: true});
+		data.children = {};
+		if(element) _mergeRemoteData(data, element);
+		localStorage.setItem('LargeMouth_Registry', JSON.stringify(dataRegistry));	
 	}
 
 	function _mergeRemoteData(local, remote) {
@@ -166,4 +173,5 @@ module SmallMouth._dataRegistry {
 	export var remove = remove;
 	export var getVersions = getVersions;
 	export var serverUpdateData = serverUpdateData;
+	export var serverSetData = serverSetData;
 }
