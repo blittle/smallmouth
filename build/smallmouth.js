@@ -77,6 +77,7 @@ var SmallMouth;
         function serverUpdateData(path, element) {
             var data = getData(path, { versionUpdate: true });
             _mergeRemoteData(data, element);
+            localStorage.setItem('LargeMouth_Registry', JSON.stringify(dataRegistry));
         }
 
         function _mergeRemoteData(local, remote) {
@@ -143,7 +144,8 @@ else {
             delete data.children;
             delete data.value;
 
-            sync(resource);
+            if (resource._host)
+                sync(resource);
         }
 
         function getVersions(path) {

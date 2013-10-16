@@ -71,6 +71,7 @@ module SmallMouth._dataRegistry {
 	function serverUpdateData(path: string, element: any) {
 		var data = getData(path, {versionUpdate: true});
 		_mergeRemoteData(data, element);
+		localStorage.setItem('LargeMouth_Registry', JSON.stringify(dataRegistry));
 	}
 
 	function _mergeRemoteData(local, remote) {
