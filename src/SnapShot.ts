@@ -6,8 +6,8 @@ module SmallMouth {
 	function getJSON(data) {
 		var obj = {};
 
-		if(data.data) {
-			return data.data;
+		if(data.value) {
+			return data.value;
 		} else if(!data.children) {
 			return null;
 		} else {
@@ -80,7 +80,7 @@ module SmallMouth {
 		hasChild( childPath: string ): boolean {
 			childPath = this._path + '/' + SmallMouth.Resource.cleanPath(childPath);
 			var data = SmallMouth._dataRegistry.getData(childPath);
-			return typeof data.children !== 'undefined' || typeof data.data !== 'undefined';
+			return typeof data.children !== 'undefined' || typeof data.value !== 'undefined';
 		}
 
 		hasChildren(): boolean {

@@ -27,7 +27,7 @@ var SmallMouth;
                     }
                 }
             } else {
-                data.data = obj;
+                data.value = obj;
             }
         }
 
@@ -65,7 +65,7 @@ var SmallMouth;
 
             if (!options.merge) {
                 data.children = {};
-                data.data = null;
+                data.value = null;
             }
 
             createSubDataFromObject(data, value);
@@ -83,7 +83,7 @@ var SmallMouth;
             local.version = remote.version;
 
             if (remote.value)
-                local.data = remote.value;
+                local.value = remote.value;
 else {
                 if (!local.children)
                     local.children = {};
@@ -117,7 +117,7 @@ else {
         }
 
         function resetRegistry() {
-            dataRegistry.data = null;
+            dataRegistry.value = null;
             dataRegistry.children = {};
             dataRegistry.version = 0;
 
@@ -141,7 +141,7 @@ else {
             }
 
             delete data.children;
-            delete data.data;
+            delete data.value;
 
             sync(resource);
         }
@@ -425,8 +425,8 @@ var SmallMouth;
     function getJSON(data) {
         var obj = {};
 
-        if (data.data) {
-            return data.data;
+        if (data.value) {
+            return data.value;
         } else if (!data.children) {
             return null;
         } else {
@@ -483,7 +483,7 @@ var SmallMouth;
         Snapshot.prototype.hasChild = function (childPath) {
             childPath = this._path + '/' + SmallMouth.Resource.cleanPath(childPath);
             var data = SmallMouth._dataRegistry.getData(childPath);
-            return typeof data.children !== 'undefined' || typeof data.data !== 'undefined';
+            return typeof data.children !== 'undefined' || typeof data.value !== 'undefined';
         };
 
         Snapshot.prototype.hasChildren = function () {

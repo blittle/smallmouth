@@ -26,7 +26,7 @@ module SmallMouth._dataRegistry {
 				}
 			}
 		} else {
-			data.data = obj;
+			data.value = obj;
 		}
 	}
 
@@ -59,7 +59,7 @@ module SmallMouth._dataRegistry {
 
 		if(!options.merge) {
 			data.children = {};
-			data.data = null;
+			data.value = null;
 		}
 
 		createSubDataFromObject(data, value);
@@ -76,7 +76,7 @@ module SmallMouth._dataRegistry {
 	function _mergeRemoteData(local, remote) {
 		local.version = remote.version;
 
-		if(remote.value) local.data = remote.value;
+		if(remote.value) local.value = remote.value;
 		else {
 			if(!local.children) local.children = {};
 
@@ -114,7 +114,7 @@ module SmallMouth._dataRegistry {
 	}
 
 	function resetRegistry() {
-		dataRegistry.data = null;
+		dataRegistry.value = null;
 		dataRegistry.children = {};
 		dataRegistry.version = 0;
 
@@ -136,7 +136,7 @@ module SmallMouth._dataRegistry {
 		}			
 
 		delete data.children;
-		delete data.data;
+		delete data.value;
 
 		sync(resource);		
 	}
