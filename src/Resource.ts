@@ -70,7 +70,7 @@ module SmallMouth {
 		}
 
 		push( value: any, complete ?: (error) => any ): Resource {
-			var id = SmallMouth.largeMouthAdapter.generateId();
+			var id = SmallMouth.largeMouthAdapter.generateId(this._host);
 			var ref = this.child(id);
 
 			if(typeof value !== 'undefined') {

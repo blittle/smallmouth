@@ -19,7 +19,7 @@
 
 				chats.on('value', function(snapshot, options) {
 					$scope.chats = snapshot.val();
-					
+
 					if(timeout) clearTimeout(timeout);
 
 					timeout = setTimeout(function() {
@@ -43,7 +43,7 @@
 	<body ng-app>
 		<div ng-controller="smallmouth">
 			<ul>
-				<li ng-repeat="chat in chats">
+				<li ng-repeat="(id, chat) in chats" id="{{id}}">
 					{{chat.name}}
 				</li>
 			</ul>

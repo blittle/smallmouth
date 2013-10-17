@@ -424,7 +424,7 @@ var SmallMouth;
         };
 
         Resource.prototype.push = function (value, complete) {
-            var id = SmallMouth.largeMouthAdapter.generateId();
+            var id = SmallMouth.largeMouthAdapter.generateId(this._host);
             var ref = this.child(id);
 
             if (typeof value !== 'undefined') {
