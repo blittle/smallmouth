@@ -9,15 +9,22 @@
         <script src="//cdnjs.cloudflare.com/ajax/libs/socket.io/0.9.16/socket.io.min.js"></script>
 		<script src="../build/smallmouth.js"></script>
 		<script>
-			var chats = new SmallMouth.Resource('http://10.1.11.149:3000/chats');
+			var chats = new SmallMouth.Resource('http://localhost:3000/chats');
 
 			function smallmouth($scope) {
+
+				var timeout;
 
 				$scope.chats = chats._getSnapshot().val() || [];
 
 				chats.on('value', function(snapshot, options) {
 					$scope.chats = snapshot.val();
-					if(options.remote) $scope.$digest(); 
+					
+					if(timeout) clearTimeout(timeout);
+
+					timeout = setTimeout(function() {
+						$scope.$digest(); 
+					}, 50);
 				});
 
 				$scope.newChat = "";
