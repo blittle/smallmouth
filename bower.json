@@ -1,6 +1,6 @@
 {
   "name": "smallmouth",
-  "version": "0.0.1",
+  "version": "0.1.2",
   "homepage": "https://github.com/blittle/smallmouth",
   "authors": [
     "Bret Little <bret.little@gmail.com>"
@@ -12,8 +12,11 @@
     "**/.*",
     "node_modules",
     "bower_components",
+    "d.ts",
+    "example",
     "test",
-    "tests"
+    "tests",
+    ".gitignore"
   ],
   "dependencies": {
     "socket.io-client": "~0.9.16"
