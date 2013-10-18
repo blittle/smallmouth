@@ -24,7 +24,13 @@ module SmallMouth {
 			this._path = url;
 			this._host = host;
 
-			SmallMouth._dataRegistry.initializeRegistry(this);
+			var data = SmallMouth._dataRegistry.initializeRegistry(this);
+
+			if(data && data.value) {
+				setTimeout(() => {
+					SmallMouth._eventRegistry.triggerEvent(this._path, 'value', this._host, this._getSnapshot());
+				}, 0);
+			}
 
 			SmallMouth.largeMouthAdapter.connect(host);
 			SmallMouth.largeMouthAdapter.subscribe(host, url);

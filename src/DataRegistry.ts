@@ -103,7 +103,7 @@ module SmallMouth._dataRegistry {
 	}
 
 	function initializeRegistry(resource: SmallMouth.Resource) {
-		var data = getData(resource._path);
+		return getData(resource._path);
 	}
 
 	function sync(resource: SmallMouth.Resource) {

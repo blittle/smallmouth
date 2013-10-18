@@ -4,6 +4,20 @@ describe('Resource', function() {
 		SmallMouth._dataRegistry.resetRegistry();
 	});
 
+
+	it('Should trigger a value event on resource creation', function(run) {
+		var spy = jasmine.createSpy('Spy for resource creation callback');
+
+		var resource1 = new SmallMouth.Resource('http://localhost:8080/some');
+		resource1.set('sdfsds');
+
+		var resource1 = new SmallMouth.Resource('http://localhost:8080/some')
+		resource1.on('value', function(snapshot) {
+			expect(snapshot.val()).toBe('sdfsds');
+			run();
+		});
+	});
+
 	it('Should return children references', function() {
 		var resource1 = new SmallMouth.Resource('http://localhost:8080/some/data/for/you');
 		resource1.set('myData');

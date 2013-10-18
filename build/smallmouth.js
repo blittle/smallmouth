@@ -113,7 +113,7 @@ else {
         }
 
         function initializeRegistry(resource) {
-            var data = getData(resource._path);
+            return getData(resource._path);
         }
 
         function sync(resource) {
@@ -382,12 +382,19 @@ var SmallMouth;
 
     var Resource = (function () {
         function Resource(address) {
+            var _this = this;
             var parse = urlReg.exec(address), scheme = parse[1], domain = parse[3], path = parse[5], query = parse[6], host = (scheme ? scheme : "") + (domain ? domain : ""), url = Resource.cleanPath((path ? path : "") + (query ? query : "")), scope = this;
 
             this._path = url;
             this._host = host;
 
-            SmallMouth._dataRegistry.initializeRegistry(this);
+            var data = SmallMouth._dataRegistry.initializeRegistry(this);
+
+            if (data && data.value) {
+                setTimeout(function () {
+                    SmallMouth._eventRegistry.triggerEvent(_this._path, 'value', _this._host, _this._getSnapshot());
+                }, 0);
+            }
 
             SmallMouth.largeMouthAdapter.connect(host);
             SmallMouth.largeMouthAdapter.subscribe(host, url);

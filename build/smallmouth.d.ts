@@ -1,6 +1,6 @@
 /// <reference path="../d.ts/DefinitelyTyped/socket.io/socket.io.d.ts" />
 declare module SmallMouth._dataRegistry {
-    var initializeRegistry: (resource: SmallMouth.Resource) => void;
+    var initializeRegistry: (resource: SmallMouth.Resource) => any;
     var updateRegistry: (resource: SmallMouth.Resource, value: any, options?: any) => void;
     var getData: (path: any, options?: any) => any;
     var dataRegistry;
