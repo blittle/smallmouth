@@ -16,7 +16,10 @@
     "example",
     "test",
     "tests",
-    ".gitignore"
+    ".gitignore",
+    "Gruntfile.js",
+    "karma.conf.js",
+    "package.json"
   ],
   "dependencies": {
     "socket.io-client": "~0.9.16"
