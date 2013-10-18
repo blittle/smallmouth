@@ -6,7 +6,7 @@
     "Bret Little <bret.little@gmail.com>"
   ],
   "description": "The client library for LargeMouth BAAS",
-  "main": "smallmouth.js",
+  "main": "build/smallmouth.min.js",
   "license": "MIT",
   "ignore": [
     "**/.*",
