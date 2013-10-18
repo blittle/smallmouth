@@ -390,7 +390,7 @@ var SmallMouth;
 
             var data = SmallMouth._dataRegistry.initializeRegistry(this);
 
-            if (data && data.value) {
+            if (data && ((typeof data.value !== 'undefined' && data.value !== null) || (typeof data.children === 'object' && Object.keys(data.children).length))) {
                 setTimeout(function () {
                     SmallMouth._eventRegistry.triggerEvent(_this._path, 'value', _this._host, _this._getSnapshot());
                 }, 0);

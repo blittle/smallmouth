@@ -7,14 +7,49 @@ describe('Resource', function() {
 
 	it('Should trigger a value event on resource creation', function(run) {
 		var spy = jasmine.createSpy('Spy for resource creation callback');
+		var called = false;
 
-		var resource1 = new SmallMouth.Resource('http://localhost:8080/some');
-		resource1.set('sdfsds');
+		runs(function() {
+			var resource1 = new SmallMouth.Resource('http://localhost:8080/some');
+			resource1.set("some value");
+			
+			var resource2 = new SmallMouth.Resource('http://localhost:8080/some')
+			resource2.on('value', function() {
+				called = true;
+				spy();
+			});
+		});
 
-		var resource1 = new SmallMouth.Resource('http://localhost:8080/some')
-		resource1.on('value', function(snapshot) {
-			expect(snapshot.val()).toBe('sdfsds');
-			run();
+		waitsFor(function() {
+			return called;
+		}, 'Value event never triggered', 750);
+		
+		runs(function() {
+			expect(spy).toHaveBeenCalled();	
+		});
+	});
+
+	it('Should trigger a value event on resource creation with child objects', function() {
+		var spy = jasmine.createSpy('Spy for resource creation callback');
+		var called = false;
+
+		runs(function() {
+			var resource1 = new SmallMouth.Resource('http://localhost:8080/some');
+			resource1.set({hi: "test"});
+			
+			var resource2 = new SmallMouth.Resource('http://localhost:8080/some')
+			resource2.on('value', function() {
+				called = true;
+				spy();
+			});
+		});
+
+		waitsFor(function() {
+			return called;
+		}, 'Value event never triggered', 750);
+		
+		runs(function() {
+			expect(spy).toHaveBeenCalled();	
 		});
 	});
 

@@ -26,7 +26,7 @@ module SmallMouth {
 
 			var data = SmallMouth._dataRegistry.initializeRegistry(this);
 
-			if(data && data.value) {
+			if(data && ((typeof data.value !== 'undefined' && data.value !== null) || (typeof data.children === 'object' && Object.keys(data.children).length)) ) {
 				setTimeout(() => {
 					SmallMouth._eventRegistry.triggerEvent(this._path, 'value', this._host, this._getSnapshot());
 				}, 0);
