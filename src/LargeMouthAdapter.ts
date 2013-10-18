@@ -10,20 +10,23 @@ module SmallMouth.largeMouthAdapter {
 
 		if(connections[host]) {
 			socket = connections[host];
+
+			// If we already have a connection, we don't need to add events to the socket
+			return socket;
 		} else {
 			socket = connections[host] = io.connect(host);
 		}
 
 		socket.on('data', (resp) => {
-			SmallMouth._dataRegistry.serverSetData(resp.path, resp.value);
+			// SmallMouth._dataRegistry.serverSetData(resp.path, resp.value);
 
-			var registryData = SmallMouth._dataRegistry.getData(resp.path);	
+			// var registryData = SmallMouth._dataRegistry.getData(resp.path);	
 
-			SmallMouth._eventRegistry.triggerEvent(resp.path, 'value', host, new SmallMouth.Snapshot(
-				resp.path,
-				registryData,
-				host
-			), {remote: true});
+			// SmallMouth._eventRegistry.triggerEvent(resp.path, 'value', host, new SmallMouth.Snapshot(
+			// 	resp.path,
+			// 	registryData,
+			// 	host
+			// ), {remote: true});
 		});
 
 		socket.on('set', (resp) => {
@@ -48,6 +51,14 @@ module SmallMouth.largeMouthAdapter {
 				registryData,
 				host
 			), {remote: true});
+		});
+
+		socket.on('syncSuccess', (resp) => {
+			console.log(resp);
+		});
+
+		socket.on('syncError', (resp) => {
+
 		});
 
 		socket.on('ready', (resp) => {

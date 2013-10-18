@@ -114,8 +114,6 @@ else {
 
         function initializeRegistry(resource) {
             var data = getData(resource._path);
-
-            sync(resource);
         }
 
         function sync(resource) {
@@ -303,16 +301,13 @@ var SmallMouth;
 
             if (connections[host]) {
                 socket = connections[host];
+
+                return socket;
             } else {
                 socket = connections[host] = io.connect(host);
             }
 
             socket.on('data', function (resp) {
-                SmallMouth._dataRegistry.serverSetData(resp.path, resp.value);
-
-                var registryData = SmallMouth._dataRegistry.getData(resp.path);
-
-                SmallMouth._eventRegistry.triggerEvent(resp.path, 'value', host, new SmallMouth.Snapshot(resp.path, registryData, host), { remote: true });
             });
 
             socket.on('set', function (resp) {
@@ -329,6 +324,13 @@ var SmallMouth;
                 var registryData = SmallMouth._dataRegistry.getData(resp.path);
 
                 SmallMouth._eventRegistry.triggerEvent(resp.path, 'value', host, new SmallMouth.Snapshot(resp.path, registryData, host), { remote: true });
+            });
+
+            socket.on('syncSuccess', function (resp) {
+                console.log(resp);
+            });
+
+            socket.on('syncError', function (resp) {
             });
 
             socket.on('ready', function (resp) {
