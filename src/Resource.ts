@@ -59,14 +59,14 @@ module SmallMouth {
 		}
 
 		set(value: any, onComplete ?: (error) => any): Resource {
-			SmallMouth._dataRegistry.updateRegistry(this, value);	
-			SmallMouth._eventRegistry.triggerEvent(this._path, 'value', this._host, this._getSnapshot());
+			var changed = SmallMouth._dataRegistry.updateRegistry(this, value);	
+			if(changed) SmallMouth._eventRegistry.triggerEvent(this._path, 'value', this._host, this._getSnapshot());
 			return this;	
 		}
 
 		update( value: any, onComplete ?: (error) => any ): Resource {
-			SmallMouth._dataRegistry.updateRegistry(this, value, {merge: true});	
-			SmallMouth._eventRegistry.triggerEvent(this._path, 'value', this._host, this._getSnapshot());
+			var changed = SmallMouth._dataRegistry.updateRegistry(this, value, {merge: true});	
+			if(changed) SmallMouth._eventRegistry.triggerEvent(this._path, 'value', this._host, this._getSnapshot());
 			return this;
 		}
 

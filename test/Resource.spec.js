@@ -53,6 +53,34 @@ describe('Resource', function() {
 		});
 	});
 
+	it('Should not trigger events when the same data is set', function() {
+		var spy = jasmine.createSpy('Spy for set callback');
+		var calls = 0;
+
+		runs(function() {
+			var resource1 = new SmallMouth.Resource('http://localhost:8080/some');
+			resource1.set({hi: "test"});
+
+			resource1.on('value', function() {
+				calls++;
+				called = true;
+				spy();
+			});
+
+			debugger;
+
+			resource1.set({hi: "test"});			
+		});
+
+		waitsFor(function() {			
+			return calls == 0;
+		}, 'Value event should NOT have been triggered', 750);
+		
+		runs(function() {
+			expect(spy).not.toHaveBeenCalled();	
+		});
+	});
+
 	it('Should return children references', function() {
 		var resource1 = new SmallMouth.Resource('http://localhost:8080/some/data/for/you');
 		resource1.set('myData');

@@ -3,6 +3,81 @@ var SmallMouth;
     (function (_dataRegistry) {
         var syncTimeout;
 
+        var isEqual = function (a, b) {
+            return (function eq(a, b, aStack, bStack) {
+                if (a === b)
+                    return a !== 0 || 1 / a == 1 / b;
+
+                if (a == null || b == null)
+                    return a === b;
+
+                var className = toString.call(a);
+                if (className != toString.call(b))
+                    return false;
+                switch (className) {
+                    case '[object String]':
+                        return a == String(b);
+                    case '[object Number]':
+                        return a != +a ? b != +b : (a == 0 ? 1 / a == 1 / b : a == +b);
+                    case '[object Date]':
+                    case '[object Boolean]':
+                        return +a == +b;
+
+                    case '[object RegExp]':
+                        return a.source == b.source && a.global == b.global && a.multiline == b.multiline && a.ignoreCase == b.ignoreCase;
+                }
+                if (typeof a != 'object' || typeof b != 'object')
+                    return false;
+
+                var length = aStack.length;
+                while (length--) {
+                    if (aStack[length] == a)
+                        return bStack[length] == b;
+                }
+
+                var aCtor = a.constructor, bCtor = b.constructor;
+                if (aCtor !== bCtor && !(typeof aCtor == 'function') && (aCtor instanceof aCtor) && (typeof bCtor === 'function') && (bCtor instanceof bCtor)) {
+                    return false;
+                }
+
+                aStack.push(a);
+                bStack.push(b);
+                var size = 0, result = true;
+
+                if (className == '[object Array]') {
+                    size = a.length;
+                    result = size == b.length;
+                    if (result) {
+                        while (size--) {
+                            if (!(result = eq(a[size], b[size], aStack, bStack)))
+                                break;
+                        }
+                    }
+                } else {
+                    for (var key in a) {
+                        if (Object.hasOwnProperty.call(a, key)) {
+                            size++;
+
+                            if (!(result = Object.hasOwnProperty.call(b, key) && eq(a[key], b[key], aStack, bStack)))
+                                break;
+                        }
+                    }
+
+                    if (result) {
+                        for (key in b) {
+                            if (Object.hasOwnProperty.call(b, key) && !(size--))
+                                break;
+                        }
+                        result = !size;
+                    }
+                }
+
+                aStack.pop();
+                bStack.pop();
+                return result;
+            })(a, b, [], []);
+        };
+
         var dataRegistry = JSON.parse(localStorage.getItem('LargeMouth_Registry')) || {
             version: 0
         };
@@ -61,7 +136,9 @@ var SmallMouth;
 
         function updateRegistry(resource, value, options) {
             if (typeof options === "undefined") { options = {}; }
-            var data = getData(resource._path, { versionUpdate: true });
+            var data = getData(resource._path);
+
+            var dataCache = JSON.parse(JSON.stringify(data));
 
             if (!options.merge) {
                 data.children = {};
@@ -70,8 +147,14 @@ var SmallMouth;
 
             createSubDataFromObject(data, value);
 
-            data.version++;
-            sync(resource);
+            if (!isEqual(data, dataCache)) {
+                var data = getData(resource._path, { versionUpdate: true });
+                data.version++;
+                sync(resource);
+                return true;
+            }
+
+            return false;
         }
 
         function serverUpdateData(path, element) {
@@ -416,14 +499,16 @@ var SmallMouth;
         };
 
         Resource.prototype.set = function (value, onComplete) {
-            SmallMouth._dataRegistry.updateRegistry(this, value);
-            SmallMouth._eventRegistry.triggerEvent(this._path, 'value', this._host, this._getSnapshot());
+            var changed = SmallMouth._dataRegistry.updateRegistry(this, value);
+            if (changed)
+                SmallMouth._eventRegistry.triggerEvent(this._path, 'value', this._host, this._getSnapshot());
             return this;
         };
 
         Resource.prototype.update = function (value, onComplete) {
-            SmallMouth._dataRegistry.updateRegistry(this, value, { merge: true });
-            SmallMouth._eventRegistry.triggerEvent(this._path, 'value', this._host, this._getSnapshot());
+            var changed = SmallMouth._dataRegistry.updateRegistry(this, value, { merge: true });
+            if (changed)
+                SmallMouth._eventRegistry.triggerEvent(this._path, 'value', this._host, this._getSnapshot());
             return this;
         };
 
