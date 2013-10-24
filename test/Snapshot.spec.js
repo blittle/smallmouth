@@ -146,4 +146,18 @@ describe("Snapshot", function() {
 		expect(ref._path).toBe(resource._path);
 		expect(ref._getSnapshot().val()).toBe(resource._getSnapshot().val());
 	});
+
+	it('Should return correctly for "falsy" values', function() {
+		resource.set({
+			'1': 0,
+			'2': "",
+			'3': false
+		});	
+
+		var val = resource._getSnapshot().val();
+
+		expect(val[1]).toBe(0);
+		expect(val[2]).toBe("");
+		expect(val[3]).toBe(false);
+	})
 });

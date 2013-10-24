@@ -6,7 +6,7 @@ module SmallMouth {
 	function getJSON(data) {
 		var obj = {};
 
-		if(data.value) {
+		if(typeof data.value !== 'undefined' && data.value != null) {
 			return data.value;
 		} else if(!data.children) {
 			return null;
