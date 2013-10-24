@@ -25,6 +25,37 @@ describe("Event Registry", function() {
 			expect(SmallMouth._eventRegistry.eventRegistry.children.resource1.events.value.length).toBe(0);
 		});
 
+		it('Should clear all events when only the path and value are given', function() {
+			var func1 = function() {};
+			var func2 = function() {};
+			var func3 = function() {};
+
+			SmallMouth._eventRegistry.addEvent('resource1', 'value', func1);
+			SmallMouth._eventRegistry.addEvent('resource1', 'value', func2);
+			SmallMouth._eventRegistry.addEvent('resource1', 'value', func3);
+
+			expect(SmallMouth._eventRegistry.eventRegistry.children.resource1.events.value.length).toBe(3);
+
+			SmallMouth._eventRegistry.removeEvent('resource1', 'value');
+			expect(SmallMouth._eventRegistry.eventRegistry.children.resource1.events.value.length).toBe(0);
+		});
+
+		it('Should clear all events when only the path is given', function() {
+			var func1 = function() {};
+			var func2 = function() {};
+			var func3 = function() {};
+
+			SmallMouth._eventRegistry.addEvent('resource1', 'value', func1);
+			SmallMouth._eventRegistry.addEvent('resource1', 'value', func2);
+			SmallMouth._eventRegistry.addEvent('resource1', 'value', func3);
+
+			expect(SmallMouth._eventRegistry.eventRegistry.children.resource1.events.value.length).toBe(3);
+
+			debugger;
+			SmallMouth._eventRegistry.removeEvent('resource1');
+			expect(SmallMouth._eventRegistry.eventRegistry.children.resource1.events.value).not.toBeDefined();
+		});
+
 		it('Shouldn\'t error removing events that don\'t exist', function() {
 			SmallMouth._eventRegistry.removeEvent('resource1', 'value', function() {});
 			//Shouldn't error 

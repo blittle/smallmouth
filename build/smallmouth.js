@@ -330,8 +330,20 @@ var SmallMouth;
 
             var event = getEvent(path);
 
+            if (typeof type === 'undefined' || type === null) {
+                var keys = Object.keys(event.events);
+                for (var i = 0, iLength = keys.length; i < iLength; i++) {
+                    delete event.events[keys[i]];
+                }
+                return;
+            }
+
             if (!event.events[type])
                 return;
+
+            if (typeof callback !== 'function') {
+                return event.events[type].length = 0;
+            }
 
             for (var i = 0, iLength = event.events[type].length; i < iLength; i++) {
                 if (event.events[type][i].callback === callback) {
@@ -465,19 +477,12 @@ var SmallMouth;
 
     var Resource = (function () {
         function Resource(address) {
-            var _this = this;
             var parse = urlReg.exec(address), scheme = parse[1], domain = parse[3], path = parse[5], query = parse[6], host = (scheme ? scheme : "") + (domain ? domain : ""), url = Resource.cleanPath((path ? path : "") + (query ? query : "")), scope = this;
 
             this._path = url;
             this._host = host;
 
             var data = SmallMouth._dataRegistry.initializeRegistry(this);
-
-            if (data && ((typeof data.value !== 'undefined' && data.value !== null) || (typeof data.children === 'object' && Object.keys(data.children).length))) {
-                setTimeout(function () {
-                    SmallMouth._eventRegistry.triggerEvent(_this._path, 'value', _this._host, _this._getSnapshot());
-                }, 0);
-            }
 
             SmallMouth.largeMouthAdapter.connect(host);
             SmallMouth.largeMouthAdapter.subscribe(host, url);
@@ -486,8 +491,10 @@ var SmallMouth;
             if (typeof cancelCallback == 'function') {
                 SmallMouth._eventRegistry.addEvent(this._path, eventType, callback, context);
                 SmallMouth._eventRegistry.addEvent(this._path, "cancel", cancelCallback, context);
+                callback.call(context, this._getSnapshot());
             } else {
                 SmallMouth._eventRegistry.addEvent(this._path, eventType, callback, cancelCallback);
+                callback.call(cancelCallback, this._getSnapshot());
             }
 
             return this;

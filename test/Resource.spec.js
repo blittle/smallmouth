@@ -5,80 +5,45 @@ describe('Resource', function() {
 	});
 
 
-	it('Should trigger a value event on resource creation', function(run) {
+	it('Should trigger an event when on "value" for the initial value', function(run) {
 		var spy = jasmine.createSpy('Spy for resource creation callback');
-		var called = false;
-
-		runs(function() {
-			var resource1 = new SmallMouth.Resource('http://localhost:8080/some');
-			resource1.set("some value");
-			
-			var resource2 = new SmallMouth.Resource('http://localhost:8080/some')
-			resource2.on('value', function() {
-				called = true;
-				spy();
-			});
-		});
-
-		waitsFor(function() {
-			return called;
-		}, 'Value event never triggered', 750);
+		var resource1 = new SmallMouth.Resource('http://localhost:8080/some');
+		resource1.on('value', spy);
 		
-		runs(function() {
-			expect(spy).toHaveBeenCalled();	
-		});
+		expect(spy).toHaveBeenCalled();			
 	});
 
-	it('Should trigger a value event on resource creation with child objects', function() {
+	it('Should trigger an event on "value" for each call', function(run) {
 		var spy = jasmine.createSpy('Spy for resource creation callback');
-		var called = false;
-
-		runs(function() {
-			var resource1 = new SmallMouth.Resource('http://localhost:8080/some');
-			resource1.set({hi: "test"});
-			
-			var resource2 = new SmallMouth.Resource('http://localhost:8080/some')
-			resource2.on('value', function() {
-				called = true;
-				spy();
-			});
-		});
-
-		waitsFor(function() {
-			return called;
-		}, 'Value event never triggered', 750);
+		var resource1 = new SmallMouth.Resource('http://localhost:8080/some');
+		resource1.on('value', spy);
+		resource1.on('value', spy);
+		resource1.on('value', spy);
+		resource1.on('value', spy);
+		resource1.on('value', spy);
+		resource1.on('value', spy);
+		resource1.on('value', spy);
 		
-		runs(function() {
-			expect(spy).toHaveBeenCalled();	
-		});
+		expect(spy.calls.length).toBe(7);			
 	});
 
 	it('Should not trigger events when the same data is set', function() {
 		var spy = jasmine.createSpy('Spy for set callback');
 		var calls = 0;
 
-		runs(function() {
-			var resource1 = new SmallMouth.Resource('http://localhost:8080/some');
-			resource1.set({hi: "test"});
+		var resource1 = new SmallMouth.Resource('http://localhost:8080/some');
+		resource1.set({hi: "test"});
 
-			resource1.on('value', function() {
-				calls++;
-				called = true;
-				spy();
-			});
-
-			debugger;
-
-			resource1.set({hi: "test"});			
+		resource1.on('value', function() {
+			calls++;
+			called = true;
+			spy();
 		});
 
-		waitsFor(function() {			
-			return calls == 0;
-		}, 'Value event should NOT have been triggered', 750);
+		resource1.set({hi: "test"});			
 		
-		runs(function() {
-			expect(spy).not.toHaveBeenCalled();	
-		});
+		expect(spy).toHaveBeenCalled();	
+		expect(spy.calls.length).toBe(1);	
 	});
 
 	it('Should return children references', function() {
@@ -296,5 +261,37 @@ describe('Resource', function() {
 		var snapshot = chats._getSnapshot();
 		expect(snapshot._data.children[chat1.name()]).toBeDefined();
 		expect(snapshot._data.children[chat1.name()].value).toBe('My name!');
+	});
+
+	it('Should unregister events', function() {
+		var func = function() {}
+
+		var chats = new SmallMouth.Resource('chats');
+
+		chats.on('value', func);
+
+		expect(SmallMouth._eventRegistry.eventRegistry.children.chats.events.value.length).toBe(1);
+
+		chats.off('value', func);
+
+		expect(SmallMouth._eventRegistry.eventRegistry.children.chats.events.value.length).toBe(0);
+
+		chats.on('value', func);
+		chats.on('value', func);
+
+		expect(SmallMouth._eventRegistry.eventRegistry.children.chats.events.value.length).toBe(2);
+
+		chats.off('value');
+
+		expect(SmallMouth._eventRegistry.eventRegistry.children.chats.events.value.length).toBe(0);
+
+		chats.on('value', func);
+		chats.on('value', func);
+
+		expect(SmallMouth._eventRegistry.eventRegistry.children.chats.events.value.length).toBe(2);
+
+		chats.off();
+
+		expect(SmallMouth._eventRegistry.eventRegistry.children.chats.events.value).not.toBeDefined();
 	});
 });

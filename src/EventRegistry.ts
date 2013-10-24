@@ -68,9 +68,21 @@ module SmallMouth._eventRegistry {
 
 		var event = getEvent(path);
 
+		if(typeof type === 'undefined' || type === null) {
+			var keys : string[] = Object.keys(event.events);
+			for( var i=0, iLength = keys.length; i < iLength; i++) {
+				delete event.events[keys[i]];
+			}
+			return;
+		}
+
 		if(!event.events[type]) return;
 
-		for(var i=0, iLength = event.events[type].length; i < iLength; i++) {
+		if(typeof callback !== 'function') {
+			return event.events[type].length = 0;
+		}
+
+		for(var i=0, iLength : number = event.events[type].length; i < iLength; i++) {
 			if(event.events[type][i].callback === callback) {
 				removeIndex = i;
 				break;

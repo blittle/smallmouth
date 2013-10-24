@@ -26,12 +26,6 @@ module SmallMouth {
 
 			var data = SmallMouth._dataRegistry.initializeRegistry(this);
 
-			if(data && ((typeof data.value !== 'undefined' && data.value !== null) || (typeof data.children === 'object' && Object.keys(data.children).length)) ) {
-				setTimeout(() => {
-					SmallMouth._eventRegistry.triggerEvent(this._path, 'value', this._host, this._getSnapshot());
-				}, 0);
-			}
-
 			SmallMouth.largeMouthAdapter.connect(host);
 			SmallMouth.largeMouthAdapter.subscribe(host, url);
 		}
@@ -46,8 +40,10 @@ module SmallMouth {
 			if(typeof cancelCallback == 'function') {
 				SmallMouth._eventRegistry.addEvent(this._path, eventType, callback, context);	
 				SmallMouth._eventRegistry.addEvent(this._path, "cancel", cancelCallback, context);
+				callback.call(context, this._getSnapshot());
 			} else {
 				SmallMouth._eventRegistry.addEvent(this._path, eventType, callback, cancelCallback);	
+				callback.call(cancelCallback, this._getSnapshot());
 			}
 
 			return this;

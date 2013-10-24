@@ -12,7 +12,7 @@ declare module SmallMouth._dataRegistry {
 }
 declare module SmallMouth._eventRegistry {
     var addEvent: (path: string, type: string, callback: Function, context: any) => void;
-    var removeEvent: (path: string, type: string, callback: Function) => void;
+    var removeEvent: (path: string, type: string, callback: Function) => number;
     var triggerEvent: (path: string, type: string, host: string, snapshot: any, options?: any) => void;
     var resetRegistry: () => void;
     var eventRegistry: {
