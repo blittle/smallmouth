@@ -8,7 +8,7 @@ module SmallMouth {
 
 		if(typeof data.value !== 'undefined' && data.value != null) {
 			return data.value;
-		} else if(!data.children) {
+		} else if(!data.children || !Object.keys(data.children).length ) {
 			return null;
 		} else {
 			for(var key in data.children) {

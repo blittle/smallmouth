@@ -151,7 +151,9 @@ describe("Snapshot", function() {
 		resource.set({
 			'1': 0,
 			'2': "",
-			'3': false
+			'3': false,
+			'4': null,
+			'5': undefined
 		});	
 
 		var val = resource._getSnapshot().val();
@@ -159,5 +161,7 @@ describe("Snapshot", function() {
 		expect(val[1]).toBe(0);
 		expect(val[2]).toBe("");
 		expect(val[3]).toBe(false);
+		expect(val[4]).toBe(null);
+		expect(val[5]).toBe(null);
 	})
 });
