@@ -79,14 +79,14 @@ module SmallMouth.largeMouthAdapter {
 		});
 	}
 
-	function syncRemote(host, data, url) {
+	function syncRemote(host, data, url, onComplete ?: (error) => any) {
 		var socket = connections[host];
 		if(!socket) return;
 
 		socket.emit('set', {
 			url: url,
 			value: data	
-		});
+		}, onComplete);
 	}
 
 	function generateId(host?: string) {

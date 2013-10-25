@@ -55,19 +55,19 @@ module SmallMouth {
 		}
 
 		set(value: any, onComplete ?: (error) => any): Resource {
-			var changed = SmallMouth._dataRegistry.updateRegistry(this, value);	
+			var changed = SmallMouth._dataRegistry.updateRegistry(this, value, {onComplete: onComplete});	
 			if(changed) SmallMouth._eventRegistry.triggerEvent(this._path, 'value', this._host, this._getSnapshot());
 			return this;	
 		}
 
 		update( value: any, onComplete ?: (error) => any ): Resource {
-			var changed = SmallMouth._dataRegistry.updateRegistry(this, value, {merge: true});	
+			var changed = SmallMouth._dataRegistry.updateRegistry(this, value, {merge: true, onComplete: onComplete});	
 			if(changed) SmallMouth._eventRegistry.triggerEvent(this._path, 'value', this._host, this._getSnapshot());
 			return this;
 		}
 
 		remove( onComplete?: (error) => any ): void {
-			SmallMouth._dataRegistry.remove(this);
+			SmallMouth._dataRegistry.remove(this, {onComplete: onComplete});
 			SmallMouth._eventRegistry.triggerEvent(this._path, 'value', this._host, this._getSnapshot());
 		}
 

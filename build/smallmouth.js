@@ -150,7 +150,7 @@ var SmallMouth;
             if (!isEqual(data, dataCache)) {
                 var data = getData(resource._path, { versionUpdate: true });
                 data.version++;
-                sync(resource);
+                sync(resource, options.onComplete);
                 return true;
             }
 
@@ -199,11 +199,11 @@ else {
             return getData(resource._path);
         }
 
-        function sync(resource) {
+        function sync(resource, onComplete) {
             localStorage.setItem('LargeMouth_Registry', JSON.stringify(dataRegistry));
 
             if (resource._host) {
-                SmallMouth.largeMouthAdapter.syncRemote(resource._host, getData(resource._path), resource._path);
+                SmallMouth.largeMouthAdapter.syncRemote(resource._host, getData(resource._path), resource._path, onComplete);
             }
         }
 
@@ -215,7 +215,8 @@ else {
             localStorage.setItem('LargeMouth_Registry', JSON.stringify(dataRegistry));
         }
 
-        function remove(resource) {
+        function remove(resource, options) {
+            if (typeof options === "undefined") { options = {}; }
             var path = resource._path;
 
             if (path.trim() == '')
@@ -235,7 +236,7 @@ else {
             delete data.value;
 
             if (resource._host)
-                sync(resource);
+                sync(resource, options.onComplete);
         }
 
         function getVersions(path) {
@@ -446,7 +447,7 @@ var SmallMouth;
             });
         }
 
-        function syncRemote(host, data, url) {
+        function syncRemote(host, data, url, onComplete) {
             var socket = connections[host];
             if (!socket)
                 return;
@@ -454,7 +455,7 @@ var SmallMouth;
             socket.emit('set', {
                 url: url,
                 value: data
-            });
+            }, onComplete);
         }
 
         function generateId(host) {
@@ -506,21 +507,21 @@ var SmallMouth;
         };
 
         Resource.prototype.set = function (value, onComplete) {
-            var changed = SmallMouth._dataRegistry.updateRegistry(this, value);
+            var changed = SmallMouth._dataRegistry.updateRegistry(this, value, { onComplete: onComplete });
             if (changed)
                 SmallMouth._eventRegistry.triggerEvent(this._path, 'value', this._host, this._getSnapshot());
             return this;
         };
 
         Resource.prototype.update = function (value, onComplete) {
-            var changed = SmallMouth._dataRegistry.updateRegistry(this, value, { merge: true });
+            var changed = SmallMouth._dataRegistry.updateRegistry(this, value, { merge: true, onComplete: onComplete });
             if (changed)
                 SmallMouth._eventRegistry.triggerEvent(this._path, 'value', this._host, this._getSnapshot());
             return this;
         };
 
         Resource.prototype.remove = function (onComplete) {
-            SmallMouth._dataRegistry.remove(this);
+            SmallMouth._dataRegistry.remove(this, { onComplete: onComplete });
             SmallMouth._eventRegistry.triggerEvent(this._path, 'value', this._host, this._getSnapshot());
         };
 

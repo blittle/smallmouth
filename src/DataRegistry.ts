@@ -162,7 +162,7 @@ module SmallMouth._dataRegistry {
 		if(!isEqual(data, dataCache)) {
 			var data = getData(resource._path, {versionUpdate: true});
 			data.version++;
-			sync(resource);
+			sync(resource, options.onComplete);
 			return true;
 		}
 
@@ -207,14 +207,19 @@ module SmallMouth._dataRegistry {
 		return getData(resource._path);
 	}
 
-	function sync(resource: SmallMouth.Resource) {
+	function sync(resource: SmallMouth.Resource, onComplete ?: (error) => any ) {
 		// if(syncTimeout) clearTimeout(syncTimeout);
 
 		// syncTimeout = setTimeout(()=> {
 		localStorage.setItem('LargeMouth_Registry', JSON.stringify(dataRegistry));
 
 		if(resource._host) {
-			SmallMouth.largeMouthAdapter.syncRemote(resource._host, getData(resource._path), resource._path);
+			SmallMouth.largeMouthAdapter.syncRemote(
+				resource._host, 
+				getData(resource._path), 
+				resource._path, 
+				onComplete
+			);
 		}
 
 		// }, 100);
@@ -228,7 +233,7 @@ module SmallMouth._dataRegistry {
 		localStorage.setItem('LargeMouth_Registry', JSON.stringify(dataRegistry));
 	}
 
-	function remove(resource: SmallMouth.Resource) {
+	function remove(resource: SmallMouth.Resource, options: any = {}) {
 		var path = resource._path;
 
 		if(path.trim() == '') return dataRegistry;
@@ -245,7 +250,7 @@ module SmallMouth._dataRegistry {
 		delete data.children;
 		delete data.value;
 
-		if(resource._host) sync(resource);		
+		if(resource._host) sync(resource, options.onComplete);		
 	}
 
 	function getVersions(path) {

@@ -5,7 +5,7 @@ declare module SmallMouth._dataRegistry {
     var getData: (path: any, options?: any) => any;
     var dataRegistry;
     var resetRegistry: () => void;
-    var remove: (resource: SmallMouth.Resource) => any;
+    var remove: (resource: SmallMouth.Resource, options?: any) => any;
     var getVersions: (path: any) => any[];
     var serverUpdateData: (path: string, element: any) => void;
     var serverSetData: (path: string, element: any) => void;
@@ -23,7 +23,7 @@ declare module SmallMouth._eventRegistry {
 declare module SmallMouth.largeMouthAdapter {
     var connect: (host: any) => any;
     var subscribe: (host: any, url: any) => void;
-    var syncRemote: (host: any, data: any, url: any) => void;
+    var syncRemote: (host: any, data: any, url: any, onComplete?: (error: any) => any) => void;
     var generateId: (host?: string) => string;
 }
 declare module SmallMouth {
