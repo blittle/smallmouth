@@ -1,51 +1,51 @@
 <!DOCTYPE HTML>
 <html>
-	<head>
-	    <title>LargeMouth BAAS</title>
-		<meta http-equiv="X-UA-Compatible" content="chrome=1">
-		<link rel="stylesheet" href="http://yui.yahooapis.com/pure/0.3.0/pure-min.css">
+<head>
+	<title>LargeMouth BAAS</title>
+	<meta http-equiv="X-UA-Compatible" content="chrome=1">
+	<link rel="stylesheet" href="http://yui.yahooapis.com/pure/0.3.0/pure-min.css">
 
-		<script src="//cdnjs.cloudflare.com/ajax/libs/angular.js/1.1.5/angular.min.js"></script>
-        <script src="//cdnjs.cloudflare.com/ajax/libs/socket.io/0.9.16/socket.io.min.js"></script>
-		<script src="../build/smallmouth.js"></script>
-		<script>
-			var chats = new SmallMouth.Resource('http://localhost:3000/chats');
+	<script src="//cdnjs.cloudflare.com/ajax/libs/angular.js/1.1.5/angular.min.js"></script>
+	<script src="//cdnjs.cloudflare.com/ajax/libs/socket.io/0.9.16/socket.io.min.js"></script>
+	<script src="../build/smallmouth.js"></script>
+	<script>
+		var chats = new SmallMouth.Resource('http://localhost:3000/chats');
 
-			function smallmouth($scope, $timeout) {
-				$scope.chats = [];
+		function smallmouth($scope, $timeout) {
+			$scope.chats = [];
+			$scope.newChat = "";
+
+			chats.on('value', function(snapshot, options) {					
+				$timeout(function() {
+					$scope.chats = snapshot.val();
+					$scope.$digest(); 
+				});
+			});				
+
+			$scope.addChat = function(chat) {
+				chats.push({name: chat});
 				$scope.newChat = "";
+			};
 
-				chats.on('value', function(snapshot, options) {					
-					$timeout(function() {
-						$scope.chats = snapshot.val();
-						$scope.$digest(); 
-					});
-				});				
+			$scope.clearAll = function() {
+				chats.remove();
+			};
+		}
+	</script>
+</head>
+<body ng-app>
+	<div ng-controller="smallmouth">
+		<ul>
+			<li ng-repeat="(id, chat) in chats" id="{{id}}">
+				{{chat.name}}
+			</li>
+		</ul>
 
-				$scope.addChat = function(chat) {
-					chats.push({name: chat});
-					$scope.newChat = "";
-				};
-
-				$scope.clearAll = function() {
-					chats.remove();
-				};
-			}
-		</script>
-	</head>
-	<body ng-app>
-		<div ng-controller="smallmouth">
-			<ul>
-				<li ng-repeat="(id, chat) in chats" id="{{id}}">
-					{{chat.name}}
-				</li>
-			</ul>
-
-			<form class="pure-form">
-				<span>Say something: <input type="text" ng-model="newChat" /></span>
-				<button class="pure-button pure-button-primary" ng-click="addChat(newChat)">Add Chat</button>
-				<button class="pure-button" ng-click="clearAll()">Clear All</button>
-			</form>
-		</div>
-	</body>
+		<form class="pure-form">
+			<span>Say something: <input type="text" ng-model="newChat" /></span>
+			<button class="pure-button pure-button-primary" ng-click="addChat(newChat)">Add Chat</button>
+			<button class="pure-button" ng-click="clearAll()">Clear All</button>
+		</form>
+	</div>
+</body>
 </html>
