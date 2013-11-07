@@ -388,7 +388,11 @@ var SmallMouth;
 var SmallMouth;
 (function (SmallMouth) {
     (function (largeMouthAdapter) {
+        var callbackId = 0;
+
         var connections = {};
+
+        var callbacks = {};
 
         function connect(host) {
             var socket;
@@ -422,11 +426,8 @@ var SmallMouth;
                 SmallMouth._eventRegistry.triggerEvent(resp.path, 'value', host, new SmallMouth.Snapshot(resp.path, registryData, host), { remote: true });
             });
 
-            socket.on('syncSuccess', function (resp) {
-                console.log(resp);
-            });
-
-            socket.on('syncError', function (resp) {
+            socket.on('syncComplete', function (resp) {
+                executeCallback(resp.reqId, resp.err);
             });
 
             socket.on('ready', function (resp) {
@@ -452,10 +453,22 @@ var SmallMouth;
             if (!socket)
                 return;
 
+            var callbackId = generateCallbackId();
+
+            callbacks[callbackId] = onComplete;
+
             socket.emit('set', {
                 url: url,
-                value: data
-            }, onComplete);
+                value: data,
+                reqId: callbackId
+            });
+        }
+
+        function executeCallback(id, err) {
+            if (typeof callbacks[id] == 'function') {
+                callbacks[id](err);
+                delete callbacks[id];
+            }
         }
 
         function generateId(host) {
@@ -463,6 +476,10 @@ var SmallMouth;
             if (host)
                 id = connections[host].id + '-' + id;
             return id;
+        }
+
+        function generateCallbackId() {
+            return ++callbackId;
         }
 
         largeMouthAdapter.connect = connect;

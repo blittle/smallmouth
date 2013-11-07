@@ -2,7 +2,11 @@
 
 module SmallMouth.largeMouthAdapter {
 
-	var connections = {};	
+	var callbackId = 0;
+
+	var connections = {};
+
+	var callbacks = {};	
 
 	function connect(host) {
 		var socket;
@@ -16,18 +20,6 @@ module SmallMouth.largeMouthAdapter {
 		} else {
 			socket = connections[host] = io.connect(host);
 		}
-
-		socket.on('data', (resp) => {
-			// SmallMouth._dataRegistry.serverSetData(resp.path, resp.value);
-
-			// var registryData = SmallMouth._dataRegistry.getData(resp.path);	
-
-			// SmallMouth._eventRegistry.triggerEvent(resp.path, 'value', host, new SmallMouth.Snapshot(
-			// 	resp.path,
-			// 	registryData,
-			// 	host
-			// ), {remote: true});
-		});
 
 		socket.on('set', (resp) => {
 			SmallMouth._dataRegistry.serverSetData(resp.path, resp.value);
@@ -53,12 +45,8 @@ module SmallMouth.largeMouthAdapter {
 			), {remote: true});
 		});
 
-		socket.on('syncSuccess', (resp) => {
-			console.log(resp);
-		});
-
-		socket.on('syncError', (resp) => {
-
+		socket.on('syncComplete', (resp) => {
+			executeCallback(resp.reqId, resp.err);
 		});
 
 		socket.on('ready', (resp) => {
@@ -83,16 +71,33 @@ module SmallMouth.largeMouthAdapter {
 		var socket = connections[host];
 		if(!socket) return;
 
+		if(typeof onComplete == 'function') {
+			var callbackId = generateCallbackId();
+			callbacks[callbackId] = onComplete;
+		}
+
 		socket.emit('set', {
 			url: url,
-			value: data	
-		}, onComplete);
+			value: data,
+			reqId: callbackId	
+		});
+	}
+
+	function executeCallback(id, err) {
+		if(typeof callbacks[id] == 'function') {
+			callbacks[id](err);
+			delete callbacks[id];
+		}
 	}
 
 	function generateId(host?: string) {
 		var id = (new Date()).getTime() + "";
 		if(host) id = connections[host].id + '-' + id;
 		return id;
+	}
+
+	function generateCallbackId() {
+		return ++callbackId;
 	}
 
 	export var connect = connect;
