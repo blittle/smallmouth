@@ -1,4 +1,6 @@
-module SmallMouth._dataRegistry {	
+///<reference path="interfaces/ServerAdapter"/>
+
+module SmallMouth {	
 
 	var syncTimeout;
 
@@ -93,11 +95,7 @@ module SmallMouth._dataRegistry {
 	    bStack.pop();
 	    return result;
 	  })(a, b, [], []);
-	}
-
-	var dataRegistry = JSON.parse(localStorage.getItem('LargeMouth_Registry')) || {
-		version: 0
-	};
+	}	
 
 	function createSubDataFromObject(data, obj) {
 		if(obj instanceof Object && !(obj instanceof String) && !(obj instanceof Number) && !(obj instanceof Array) && !(obj instanceof Boolean) ) {
@@ -123,66 +121,7 @@ module SmallMouth._dataRegistry {
 		}
 	}
 
-	function getData(path, options?: any) {
-		if(!options) options = {};
-		if(path.trim() == '') return dataRegistry;
-
-		var paths = path.split('/');
-		var data = dataRegistry;
-		
-		for(var i=0, iLength = paths.length; i < iLength; i++) {	
-			if(!data.children) data.children = {};
-
-			if(!data.children[paths[i]]) {
-				data.children[paths[i]] = {
-					version: 0
-				} 
-			} 
-
-			if(options.versionUpdate) data.version++;
-
-			data = data.children[paths[i]];
-		}
-
-		return data;
-	}
-
-	function updateRegistry(resource: SmallMouth.Resource, value: any, options: any = {}): boolean {
-		var data = getData(resource._path);
-
-		var dataCache = JSON.parse(JSON.stringify(data));
-
-		if(!options.merge) {
-			data.children = {};
-			data.value = null;
-		}
-
-		createSubDataFromObject(data, value);
-
-		if(!isEqual(data, dataCache)) {
-			var data = getData(resource._path, {versionUpdate: true});
-			data.version++;
-			sync(resource, options.onComplete);
-			return true;
-		}
-
-		return false;
-	}
-
-	function serverUpdateData(path: string, element: any) {
-		var data = getData(path, {versionUpdate: true});
-		if(element) _mergeRemoteData(data, element);
-		localStorage.setItem('LargeMouth_Registry', JSON.stringify(dataRegistry));
-	}
-
-	function serverSetData(path: string, element: any) {
-		var data = getData(path, {versionUpdate: true});
-		data.children = {};
-		if(element) _mergeRemoteData(data, element);
-		localStorage.setItem('LargeMouth_Registry', JSON.stringify(dataRegistry));	
-	}
-
-	function _mergeRemoteData(local, remote) {
+	function mergeRemoteData(local, remote) {
 		local.version = remote.version;
 
 		if(remote.value) local.value = remote.value;
@@ -195,87 +134,156 @@ module SmallMouth._dataRegistry {
 						local.children[el] = {
 							version: 0
 						}
-					} 
-
-					_mergeRemoteData(local.children[el], remote.children[el]);
+					}
+					mergeRemoteData(local.children[el], remote.children[el]);
 				}
 			}
 		}
 	}
 
-	function initializeRegistry(resource: SmallMouth.Resource) {
-		return getData(resource._path);
-	}
+	export class DataRegistry {
 
-	function sync(resource: SmallMouth.Resource, onComplete ?: (error) => any ) {
-		// if(syncTimeout) clearTimeout(syncTimeout);
+		private _dataRegistry: any;
+		private _host: string;
+		private _serverAdapter: SmallMouth.ServerAdapter;
 
-		// syncTimeout = setTimeout(()=> {
-		localStorage.setItem('LargeMouth_Registry', JSON.stringify(dataRegistry));
+		constructor(host: string, serverAdapter: SmallMouth.ServerAdapter) {
+			
+			this._serverAdapter = serverAdapter;
 
-		if(resource._host) {
-			SmallMouth.largeMouthAdapter.syncRemote(
-				resource._host, 
-				getData(resource._path), 
-				resource._path, 
-				onComplete
-			);
+			this._dataRegistry = JSON.parse(localStorage.getItem('LargeMouth_Registry_' + host)) || {
+				version: 0
+			};
+
+			this._host = host;
 		}
 
-		// }, 100);
-	}
+		initializeResource(resource: SmallMouth.Resource): DataRegistry {
+			return this.getData(resource._path);
+		}
 
-	function resetRegistry() {
-		dataRegistry.value = null;
-		dataRegistry.children = {};
-		dataRegistry.version = 0;
+		updateRegistry(resource: SmallMouth.Resource, value: any, options: any = {}): boolean {
+			var data = this.getData(resource._path);
 
-		localStorage.setItem('LargeMouth_Registry', JSON.stringify(dataRegistry));
-	}
+			var dataCache = JSON.parse(JSON.stringify(data));
 
-	function remove(resource: SmallMouth.Resource, options: any = {}) {
-		var path = resource._path;
+			if(!options.merge) {
+				data.children = {};
+				data.value = null;
+			}
 
-		if(path.trim() == '') return dataRegistry;
+			createSubDataFromObject(data, value);
 
-		var paths = path.split('/');
-		var data = dataRegistry;
+			if(!isEqual(data, dataCache)) {
+				var data = this.getData(resource._path, {versionUpdate: true});
+				data.version++;
+				this.sync(resource, options.onComplete);
+				return true;
+			}
+
+			return false;
+		}
+
+		getData(path, options?: any) {
+			if(!options) options = {};
+			if(path.trim() == '') return this._dataRegistry;
+
+			var paths = path.split('/');
+			var data = this._dataRegistry;
+			
+			for(var i=0, iLength = paths.length; i < iLength; i++) {	
+				if(!data.children) data.children = {};
+
+				if(!data.children[paths[i]]) {
+					data.children[paths[i]] = {
+						version: 0
+					} 
+				} 
+
+				if(options.versionUpdate) data.version++;
+
+				data = data.children[paths[i]];
+			}
+
+			return data;
+		}
+
+		remove(resource: SmallMouth.Resource, options: any = {}) {
+			var path = resource._path;
+
+			if(path.trim() == '') return this._dataRegistry;
+
+			var paths = path.split('/');
+			var data = this._dataRegistry;
+			
+			for(var i=0, iLength = (paths.length - 1); i < iLength; i++) {	
+				if(!data.children) break;
+				data = data.children[paths[i]];
+				data.version++;
+			}			
+
+			delete data.children;
+			delete data.value;
+
+			if(resource._host) this.sync(resource, options.onComplete);		
+		}
+
+		getVersions(path) {
+			var paths = path.split('/');
+			var data = this._dataRegistry;
+
+			var versions = [];
+
+			for(var i=0, iLength = paths.length; i < iLength; i++) {	
+				if(!data) break;
+				versions.push(data.version);
+				if(!data.children) break;
+				data = data.children[paths[i]];
+			}
+
+			return versions;
+		}
+
+		serverUpdateData(path: string, element: any) {
+			var data = this.getData(path, {versionUpdate: true});
+			if(element) mergeRemoteData(data, element);
+			this.saveToLocalStorage();
+		}
+
+		serverSetData(path: string, element: any) {
+			var data = this.getData(path, {versionUpdate: true});
+			data.children = {};
+			if(element) mergeRemoteData(data, element);
+			this.saveToLocalStorage();	
+		}
+
+		resetRegistry() {
+			this._dataRegistry.value = null;
+			this._dataRegistry.children = {};
+			this._dataRegistry.version = 0;
+
+			this.saveToLocalStorage();
+		}
+
+		saveToLocalStorage() {
+			localStorage.setItem('LargeMouth_Registry_' + this._host, JSON.stringify(this._dataRegistry));
+		}
+
+		sync(resource: SmallMouth.Resource, onComplete ?: (error) => any ) {
 		
-		for(var i=0, iLength = (paths.length - 1); i < iLength; i++) {	
-			if(!data.children) break;
-			data = data.children[paths[i]];
-			data.version++;
-		}			
+			this.saveToLocalStorage();
 
-		delete data.children;
-		delete data.value;
-
-		if(resource._host) sync(resource, options.onComplete);		
-	}
-
-	function getVersions(path) {
-		var paths = path.split('/');
-		var data = dataRegistry;
-
-		var versions = [];
-
-		for(var i=0, iLength = paths.length; i < iLength; i++) {	
-			if(!data) break;
-			versions.push(data.version);
-			if(!data.children) break;
-			data = data.children[paths[i]];
+			if(resource._host) {
+				this._serverAdapter.syncRemote(
+					this.getData(resource._path), 
+					resource._path, 
+					onComplete
+				);
+			}
 		}
 
-		return versions;
+		public static getDataRegistry(host: string): DataRegistry {
+			return SmallMouth.hosts[host].data;
+		}
 	}
-
-	export var initializeRegistry = initializeRegistry;
-	export var updateRegistry = updateRegistry;
-	export var getData = getData;
-	export var dataRegistry = dataRegistry;
-	export var resetRegistry = resetRegistry;
-	export var remove = remove;
-	export var getVersions = getVersions;
-	export var serverUpdateData = serverUpdateData;
-	export var serverSetData = serverSetData;
 }

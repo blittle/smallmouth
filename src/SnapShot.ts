@@ -46,7 +46,7 @@ module SmallMouth {
 
 			path = this._path + '/' + Resource.cleanPath(path);
 
-			var data = SmallMouth._dataRegistry.getData(path);
+			var data = SmallMouth.DataRegistry.getDataRegistry(this._host).getData(path);
 
 			if(!data) return undefined;
 
@@ -66,7 +66,7 @@ module SmallMouth {
 
 					var cancel = childAction.call(this, 
 						new Snapshot(
-							path, SmallMouth._dataRegistry.getData(path), this._host
+							path, SmallMouth.DataRegistry.getDataRegistry(this._host).getData(path), this._host
 						)
 					);
 
@@ -79,7 +79,7 @@ module SmallMouth {
 
 		hasChild( childPath: string ): boolean {
 			childPath = this._path + '/' + SmallMouth.Resource.cleanPath(childPath);
-			var data = SmallMouth._dataRegistry.getData(childPath);
+			var data = SmallMouth.DataRegistry.getDataRegistry(this._host).getData(childPath);
 			return typeof data.children !== 'undefined' || typeof data.value !== 'undefined';
 		}
 

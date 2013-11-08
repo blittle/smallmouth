@@ -1,5 +1,6 @@
 ///<reference path="interfaces/ResourceInterface"/>
 ///<reference path="interfaces/SnapshotInterface"/>
+///<reference path="interfaces/ServerAdapter"/>
 ///<reference path="DataRegistry"/>
 
 module SmallMouth {	
@@ -10,6 +11,8 @@ module SmallMouth {
 
 		_path: string;
 		_host: string;
+		_serverAdapter: SmallMouth.ServerAdapter;
+		_dataRegistry: SmallMouth.DataRegistry;
 
 		constructor(address: string) {
 			var parse = urlReg.exec(address),
@@ -24,10 +27,11 @@ module SmallMouth {
 			this._path = url;
 			this._host = host;
 
-			var data = SmallMouth._dataRegistry.initializeRegistry(this);
+			this._serverAdapter = SmallMouth.makeConnection(host);
+			this._dataRegistry = SmallMouth.makeDataRegistry(host, this._serverAdapter);
 
-			SmallMouth.largeMouthAdapter.connect(host);
-			SmallMouth.largeMouthAdapter.subscribe(host, url);
+			var data = this._dataRegistry.initializeResource(this);
+			this._serverAdapter.subscribe(url);
 		}
 
 		on(
@@ -55,24 +59,24 @@ module SmallMouth {
 		}
 
 		set(value: any, onComplete ?: (error) => any): Resource {
-			var changed = SmallMouth._dataRegistry.updateRegistry(this, value, {onComplete: onComplete});	
+			var changed = this._dataRegistry.updateRegistry(this, value, {onComplete: onComplete});	
 			if(changed) SmallMouth._eventRegistry.triggerEvent(this._path, 'value', this._host, this._getSnapshot());
 			return this;	
 		}
 
 		update( value: any, onComplete ?: (error) => any ): Resource {
-			var changed = SmallMouth._dataRegistry.updateRegistry(this, value, {merge: true, onComplete: onComplete});	
+			var changed = this._dataRegistry.updateRegistry(this, value, {merge: true, onComplete: onComplete});	
 			if(changed) SmallMouth._eventRegistry.triggerEvent(this._path, 'value', this._host, this._getSnapshot());
 			return this;
 		}
 
 		remove( onComplete?: (error) => any ): void {
-			SmallMouth._dataRegistry.remove(this, {onComplete: onComplete});
+			this._dataRegistry.remove(this, {onComplete: onComplete});
 			SmallMouth._eventRegistry.triggerEvent(this._path, 'value', this._host, this._getSnapshot());
 		}
 
 		push( value: any, complete ?: (error) => any ): Resource {
-			var id = SmallMouth.largeMouthAdapter.generateId(this._host);
+			var id = this._serverAdapter.generateId();
 			var ref = this.child(id);
 
 			if(typeof value !== 'undefined') {
@@ -110,7 +114,7 @@ module SmallMouth {
 
 		private _getSnapshot(): SmallMouth.Snapshot {
 
-			var data = SmallMouth._dataRegistry.getData(this._path);
+			var data = this._dataRegistry.getData(this._path);
 
 			if(!data) return undefined;
 

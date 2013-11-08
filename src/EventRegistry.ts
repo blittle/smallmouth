@@ -25,7 +25,7 @@ module SmallMouth._eventRegistry {
 
 				if(eventList) {
 
-					var registryData = SmallMouth._dataRegistry.getData(tempPath);	
+					var registryData = SmallMouth.DataRegistry.getDataRegistry(options.host).getData(tempPath);	
 					var snapshot = new SmallMouth.Snapshot(
 						tempPath,
 						registryData,

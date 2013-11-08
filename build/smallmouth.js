@@ -1,119 +1,173 @@
 var SmallMouth;
 (function (SmallMouth) {
-    (function (_dataRegistry) {
-        var syncTimeout;
+    var syncTimeout;
 
-        var isEqual = function (a, b) {
-            return (function eq(a, b, aStack, bStack) {
-                if (a === b)
-                    return a !== 0 || 1 / a == 1 / b;
+    var isEqual = function (a, b) {
+        return (function eq(a, b, aStack, bStack) {
+            if (a === b)
+                return a !== 0 || 1 / a == 1 / b;
 
-                if (a == null || b == null)
-                    return a === b;
+            if (a == null || b == null)
+                return a === b;
 
-                var className = toString.call(a);
-                if (className != toString.call(b))
-                    return false;
-                switch (className) {
-                    case '[object String]':
-                        return a == String(b);
-                    case '[object Number]':
-                        return a != +a ? b != +b : (a == 0 ? 1 / a == 1 / b : a == +b);
-                    case '[object Date]':
-                    case '[object Boolean]':
-                        return +a == +b;
+            var className = toString.call(a);
+            if (className != toString.call(b))
+                return false;
+            switch (className) {
+                case '[object String]':
+                    return a == String(b);
+                case '[object Number]':
+                    return a != +a ? b != +b : (a == 0 ? 1 / a == 1 / b : a == +b);
+                case '[object Date]':
+                case '[object Boolean]':
+                    return +a == +b;
 
-                    case '[object RegExp]':
-                        return a.source == b.source && a.global == b.global && a.multiline == b.multiline && a.ignoreCase == b.ignoreCase;
-                }
-                if (typeof a != 'object' || typeof b != 'object')
-                    return false;
+                case '[object RegExp]':
+                    return a.source == b.source && a.global == b.global && a.multiline == b.multiline && a.ignoreCase == b.ignoreCase;
+            }
+            if (typeof a != 'object' || typeof b != 'object')
+                return false;
 
-                var length = aStack.length;
-                while (length--) {
-                    if (aStack[length] == a)
-                        return bStack[length] == b;
-                }
+            var length = aStack.length;
+            while (length--) {
+                if (aStack[length] == a)
+                    return bStack[length] == b;
+            }
 
-                var aCtor = a.constructor, bCtor = b.constructor;
-                if (aCtor !== bCtor && !(typeof aCtor == 'function') && (aCtor instanceof aCtor) && (typeof bCtor === 'function') && (bCtor instanceof bCtor)) {
-                    return false;
-                }
+            var aCtor = a.constructor, bCtor = b.constructor;
+            if (aCtor !== bCtor && !(typeof aCtor == 'function') && (aCtor instanceof aCtor) && (typeof bCtor === 'function') && (bCtor instanceof bCtor)) {
+                return false;
+            }
 
-                aStack.push(a);
-                bStack.push(b);
-                var size = 0, result = true;
+            aStack.push(a);
+            bStack.push(b);
+            var size = 0, result = true;
 
-                if (className == '[object Array]') {
-                    size = a.length;
-                    result = size == b.length;
-                    if (result) {
-                        while (size--) {
-                            if (!(result = eq(a[size], b[size], aStack, bStack)))
-                                break;
-                        }
-                    }
-                } else {
-                    for (var key in a) {
-                        if (Object.hasOwnProperty.call(a, key)) {
-                            size++;
-
-                            if (!(result = Object.hasOwnProperty.call(b, key) && eq(a[key], b[key], aStack, bStack)))
-                                break;
-                        }
-                    }
-
-                    if (result) {
-                        for (key in b) {
-                            if (Object.hasOwnProperty.call(b, key) && !(size--))
-                                break;
-                        }
-                        result = !size;
-                    }
-                }
-
-                aStack.pop();
-                bStack.pop();
-                return result;
-            })(a, b, [], []);
-        };
-
-        var dataRegistry = JSON.parse(localStorage.getItem('LargeMouth_Registry')) || {
-            version: 0
-        };
-
-        function createSubDataFromObject(data, obj) {
-            if (obj instanceof Object && !(obj instanceof String) && !(obj instanceof Number) && !(obj instanceof Array) && !(obj instanceof Boolean)) {
-                if (!data.children)
-                    data.children = {};
-
-                for (var key in obj) {
-                    if (obj.hasOwnProperty(key)) {
-                        if (!data.children.hasOwnProperty(key)) {
-                            data.children[key] = {
-                                children: {},
-                                version: 0
-                            };
-                        } else {
-                            data.children[key].version++;
-                        }
-
-                        createSubDataFromObject(data.children[key], obj[key]);
+            if (className == '[object Array]') {
+                size = a.length;
+                result = size == b.length;
+                if (result) {
+                    while (size--) {
+                        if (!(result = eq(a[size], b[size], aStack, bStack)))
+                            break;
                     }
                 }
             } else {
-                data.value = obj;
+                for (var key in a) {
+                    if (Object.hasOwnProperty.call(a, key)) {
+                        size++;
+
+                        if (!(result = Object.hasOwnProperty.call(b, key) && eq(a[key], b[key], aStack, bStack)))
+                            break;
+                    }
+                }
+
+                if (result) {
+                    for (key in b) {
+                        if (Object.hasOwnProperty.call(b, key) && !(size--))
+                            break;
+                    }
+                    result = !size;
+                }
+            }
+
+            aStack.pop();
+            bStack.pop();
+            return result;
+        })(a, b, [], []);
+    };
+
+    function createSubDataFromObject(data, obj) {
+        if (obj instanceof Object && !(obj instanceof String) && !(obj instanceof Number) && !(obj instanceof Array) && !(obj instanceof Boolean)) {
+            if (!data.children)
+                data.children = {};
+
+            for (var key in obj) {
+                if (obj.hasOwnProperty(key)) {
+                    if (!data.children.hasOwnProperty(key)) {
+                        data.children[key] = {
+                            children: {},
+                            version: 0
+                        };
+                    } else {
+                        data.children[key].version++;
+                    }
+
+                    createSubDataFromObject(data.children[key], obj[key]);
+                }
+            }
+        } else {
+            data.value = obj;
+        }
+    }
+
+    function mergeRemoteData(local, remote) {
+        local.version = remote.version;
+
+        if (remote.value)
+            local.value = remote.value;
+else {
+            if (!local.children)
+                local.children = {};
+
+            for (var el in remote.children) {
+                if (remote.children.hasOwnProperty(el)) {
+                    if (!local.children[el]) {
+                        local.children[el] = {
+                            version: 0
+                        };
+                    }
+                    mergeRemoteData(local.children[el], remote.children[el]);
+                }
             }
         }
+    }
 
-        function getData(path, options) {
+    var DataRegistry = (function () {
+        function DataRegistry(host, serverAdapter) {
+            this._serverAdapter = serverAdapter;
+
+            this._dataRegistry = JSON.parse(localStorage.getItem('LargeMouth_Registry_' + host)) || {
+                version: 0
+            };
+
+            this._host = host;
+        }
+        DataRegistry.prototype.initializeResource = function (resource) {
+            return this.getData(resource._path);
+        };
+
+        DataRegistry.prototype.updateRegistry = function (resource, value, options) {
+            if (typeof options === "undefined") { options = {}; }
+            var data = this.getData(resource._path);
+
+            var dataCache = JSON.parse(JSON.stringify(data));
+
+            if (!options.merge) {
+                data.children = {};
+                data.value = null;
+            }
+
+            createSubDataFromObject(data, value);
+
+            if (!isEqual(data, dataCache)) {
+                var data = this.getData(resource._path, { versionUpdate: true });
+                data.version++;
+                this.sync(resource, options.onComplete);
+                return true;
+            }
+
+            return false;
+        };
+
+        DataRegistry.prototype.getData = function (path, options) {
             if (!options)
                 options = {};
             if (path.trim() == '')
-                return dataRegistry;
+                return this._dataRegistry;
 
             var paths = path.split('/');
-            var data = dataRegistry;
+            var data = this._dataRegistry;
 
             for (var i = 0, iLength = paths.length; i < iLength; i++) {
                 if (!data.children)
@@ -132,98 +186,17 @@ var SmallMouth;
             }
 
             return data;
-        }
+        };
 
-        function updateRegistry(resource, value, options) {
-            if (typeof options === "undefined") { options = {}; }
-            var data = getData(resource._path);
-
-            var dataCache = JSON.parse(JSON.stringify(data));
-
-            if (!options.merge) {
-                data.children = {};
-                data.value = null;
-            }
-
-            createSubDataFromObject(data, value);
-
-            if (!isEqual(data, dataCache)) {
-                var data = getData(resource._path, { versionUpdate: true });
-                data.version++;
-                sync(resource, options.onComplete);
-                return true;
-            }
-
-            return false;
-        }
-
-        function serverUpdateData(path, element) {
-            var data = getData(path, { versionUpdate: true });
-            if (element)
-                _mergeRemoteData(data, element);
-            localStorage.setItem('LargeMouth_Registry', JSON.stringify(dataRegistry));
-        }
-
-        function serverSetData(path, element) {
-            var data = getData(path, { versionUpdate: true });
-            data.children = {};
-            if (element)
-                _mergeRemoteData(data, element);
-            localStorage.setItem('LargeMouth_Registry', JSON.stringify(dataRegistry));
-        }
-
-        function _mergeRemoteData(local, remote) {
-            local.version = remote.version;
-
-            if (remote.value)
-                local.value = remote.value;
-else {
-                if (!local.children)
-                    local.children = {};
-
-                for (var el in remote.children) {
-                    if (remote.children.hasOwnProperty(el)) {
-                        if (!local.children[el]) {
-                            local.children[el] = {
-                                version: 0
-                            };
-                        }
-
-                        _mergeRemoteData(local.children[el], remote.children[el]);
-                    }
-                }
-            }
-        }
-
-        function initializeRegistry(resource) {
-            return getData(resource._path);
-        }
-
-        function sync(resource, onComplete) {
-            localStorage.setItem('LargeMouth_Registry', JSON.stringify(dataRegistry));
-
-            if (resource._host) {
-                SmallMouth.largeMouthAdapter.syncRemote(resource._host, getData(resource._path), resource._path, onComplete);
-            }
-        }
-
-        function resetRegistry() {
-            dataRegistry.value = null;
-            dataRegistry.children = {};
-            dataRegistry.version = 0;
-
-            localStorage.setItem('LargeMouth_Registry', JSON.stringify(dataRegistry));
-        }
-
-        function remove(resource, options) {
+        DataRegistry.prototype.remove = function (resource, options) {
             if (typeof options === "undefined") { options = {}; }
             var path = resource._path;
 
             if (path.trim() == '')
-                return dataRegistry;
+                return this._dataRegistry;
 
             var paths = path.split('/');
-            var data = dataRegistry;
+            var data = this._dataRegistry;
 
             for (var i = 0, iLength = (paths.length - 1); i < iLength; i++) {
                 if (!data.children)
@@ -236,12 +209,12 @@ else {
             delete data.value;
 
             if (resource._host)
-                sync(resource, options.onComplete);
-        }
+                this.sync(resource, options.onComplete);
+        };
 
-        function getVersions(path) {
+        DataRegistry.prototype.getVersions = function (path) {
             var paths = path.split('/');
-            var data = dataRegistry;
+            var data = this._dataRegistry;
 
             var versions = [];
 
@@ -255,19 +228,49 @@ else {
             }
 
             return versions;
-        }
+        };
 
-        _dataRegistry.initializeRegistry = initializeRegistry;
-        _dataRegistry.updateRegistry = updateRegistry;
-        _dataRegistry.getData = getData;
-        _dataRegistry.dataRegistry = dataRegistry;
-        _dataRegistry.resetRegistry = resetRegistry;
-        _dataRegistry.remove = remove;
-        _dataRegistry.getVersions = getVersions;
-        _dataRegistry.serverUpdateData = serverUpdateData;
-        _dataRegistry.serverSetData = serverSetData;
-    })(SmallMouth._dataRegistry || (SmallMouth._dataRegistry = {}));
-    var _dataRegistry = SmallMouth._dataRegistry;
+        DataRegistry.prototype.serverUpdateData = function (path, element) {
+            var data = this.getData(path, { versionUpdate: true });
+            if (element)
+                mergeRemoteData(data, element);
+            this.saveToLocalStorage();
+        };
+
+        DataRegistry.prototype.serverSetData = function (path, element) {
+            var data = this.getData(path, { versionUpdate: true });
+            data.children = {};
+            if (element)
+                mergeRemoteData(data, element);
+            this.saveToLocalStorage();
+        };
+
+        DataRegistry.prototype.resetRegistry = function () {
+            this._dataRegistry.value = null;
+            this._dataRegistry.children = {};
+            this._dataRegistry.version = 0;
+
+            this.saveToLocalStorage();
+        };
+
+        DataRegistry.prototype.saveToLocalStorage = function () {
+            localStorage.setItem('LargeMouth_Registry_' + this._host, JSON.stringify(this._dataRegistry));
+        };
+
+        DataRegistry.prototype.sync = function (resource, onComplete) {
+            this.saveToLocalStorage();
+
+            if (resource._host) {
+                this._serverAdapter.syncRemote(this.getData(resource._path), resource._path, onComplete);
+            }
+        };
+
+        DataRegistry.getDataRegistry = function (host) {
+            return SmallMouth.hosts[host].data;
+        };
+        return DataRegistry;
+    })();
+    SmallMouth.DataRegistry = DataRegistry;
 })(SmallMouth || (SmallMouth = {}));
 var SmallMouth;
 (function (SmallMouth) {
@@ -296,7 +299,7 @@ var SmallMouth;
                     var eventList = event.events[options.trigger];
 
                     if (eventList) {
-                        var registryData = SmallMouth._dataRegistry.getData(tempPath);
+                        var registryData = SmallMouth.DataRegistry.getDataRegistry(options.host).getData(tempPath);
                         var snapshot = new SmallMouth.Snapshot(tempPath, registryData, options.host);
 
                         for (var j = 0, jLength = eventList.length; j < jLength; j++) {
@@ -387,107 +390,97 @@ var SmallMouth;
 })(SmallMouth || (SmallMouth = {}));
 var SmallMouth;
 (function (SmallMouth) {
-    (function (largeMouthAdapter) {
-        var callbackId = 0;
+    var LargeMouthAdapter = (function () {
+        function LargeMouthAdapter(host) {
+            this._callbackId = 0;
+            this.connect(host);
+            this._host = host;
+        }
+        LargeMouthAdapter.prototype.generateCallbackId = function () {
+            return ++this._callbackId;
+        };
 
-        var connections = {};
-
-        var callbacks = {};
-
-        function connect(host) {
+        LargeMouthAdapter.prototype.connect = function (host) {
+            var _this = this;
             var socket;
-            if (!host)
+
+            if (!host || this._socket)
                 return;
 
-            if (connections[host]) {
-                socket = connections[host];
-
-                return socket;
-            } else {
-                socket = connections[host] = io.connect(host);
-            }
-
-            socket.on('data', function (resp) {
-            });
+            this._socket = socket = io.connect(host);
 
             socket.on('set', function (resp) {
-                SmallMouth._dataRegistry.serverSetData(resp.path, resp.value);
+                SmallMouth.DataRegistry.getDataRegistry(_this._host).serverSetData(resp.path, resp.value);
 
-                var registryData = SmallMouth._dataRegistry.getData(resp.path);
+                var registryData = SmallMouth.DataRegistry.getDataRegistry(_this._host).getData(resp.path);
 
                 SmallMouth._eventRegistry.triggerEvent(resp.path, 'value', host, new SmallMouth.Snapshot(resp.path, registryData, host), { remote: true });
             });
 
             socket.on('update', function (resp) {
-                SmallMouth._dataRegistry.serverUpdateData(resp.path, resp.value);
+                SmallMouth.DataRegistry.getDataRegistry(_this._host).serverUpdateData(resp.path, resp.value);
 
-                var registryData = SmallMouth._dataRegistry.getData(resp.path);
+                var registryData = SmallMouth.DataRegistry.getDataRegistry(_this._host).getData(resp.path);
 
                 SmallMouth._eventRegistry.triggerEvent(resp.path, 'value', host, new SmallMouth.Snapshot(resp.path, registryData, host), { remote: true });
             });
 
             socket.on('syncComplete', function (resp) {
-                executeCallback(resp.reqId, resp.err);
+                _this.executeCallback(resp.reqId, resp.err);
             });
 
             socket.on('ready', function (resp) {
-                connections[host].id = resp.id;
+                _this._socket.id = resp.id;
             });
 
-            return socket;
-        }
+            return this;
+        };
 
-        function subscribe(host, url) {
-            var socket = connections[host];
-            if (!socket)
+        LargeMouthAdapter.prototype.executeCallback = function (id, err) {
+            if (typeof this._callbacks[id] == 'function') {
+                this._callbacks[id](err);
+                delete this._callbacks[id];
+            }
+        };
+
+        LargeMouthAdapter.prototype.subscribe = function (url) {
+            if (!this._socket)
                 return;
 
-            socket.emit('subscribe', {
+            this._socket.emit('subscribe', {
                 url: url,
-                value: SmallMouth._dataRegistry.getData(url)
+                value: SmallMouth.DataRegistry.getDataRegistry(this._host).getData(url)
             });
-        }
+            return this;
+        };
 
-        function syncRemote(host, data, url, onComplete) {
-            var socket = connections[host];
-            if (!socket)
+        LargeMouthAdapter.prototype.syncRemote = function (data, url, onComplete) {
+            if (!this._socket)
                 return;
 
-            var callbackId = generateCallbackId();
+            if (typeof onComplete == 'function') {
+                var callbackId = this.generateCallbackId();
+                this._callbacks[callbackId] = onComplete;
+            }
 
-            callbacks[callbackId] = onComplete;
-
-            socket.emit('set', {
+            this._socket.emit('set', {
                 url: url,
                 value: data,
                 reqId: callbackId
             });
-        }
 
-        function executeCallback(id, err) {
-            if (typeof callbacks[id] == 'function') {
-                callbacks[id](err);
-                delete callbacks[id];
-            }
-        }
+            return this;
+        };
 
-        function generateId(host) {
+        LargeMouthAdapter.prototype.generateId = function () {
             var id = (new Date()).getTime() + "";
-            if (host)
-                id = connections[host].id + '-' + id;
+            if (this._socket)
+                id = this._socket.id + '-' + id;
             return id;
-        }
-
-        function generateCallbackId() {
-            return ++callbackId;
-        }
-
-        largeMouthAdapter.connect = connect;
-        largeMouthAdapter.subscribe = subscribe;
-        largeMouthAdapter.syncRemote = syncRemote;
-        largeMouthAdapter.generateId = generateId;
-    })(SmallMouth.largeMouthAdapter || (SmallMouth.largeMouthAdapter = {}));
-    var largeMouthAdapter = SmallMouth.largeMouthAdapter;
+        };
+        return LargeMouthAdapter;
+    })();
+    SmallMouth.LargeMouthAdapter = LargeMouthAdapter;
 })(SmallMouth || (SmallMouth = {}));
 var SmallMouth;
 (function (SmallMouth) {
@@ -500,10 +493,11 @@ var SmallMouth;
             this._path = url;
             this._host = host;
 
-            var data = SmallMouth._dataRegistry.initializeRegistry(this);
+            this._serverAdapter = SmallMouth.makeConnection(host);
+            this._dataRegistry = SmallMouth.makeDataRegistry(host, this._serverAdapter);
 
-            SmallMouth.largeMouthAdapter.connect(host);
-            SmallMouth.largeMouthAdapter.subscribe(host, url);
+            var data = this._dataRegistry.initializeResource(this);
+            this._serverAdapter.subscribe(url);
         }
         Resource.prototype.on = function (eventType, callback, cancelCallback, context) {
             if (typeof cancelCallback == 'function') {
@@ -524,26 +518,26 @@ var SmallMouth;
         };
 
         Resource.prototype.set = function (value, onComplete) {
-            var changed = SmallMouth._dataRegistry.updateRegistry(this, value, { onComplete: onComplete });
+            var changed = this._dataRegistry.updateRegistry(this, value, { onComplete: onComplete });
             if (changed)
                 SmallMouth._eventRegistry.triggerEvent(this._path, 'value', this._host, this._getSnapshot());
             return this;
         };
 
         Resource.prototype.update = function (value, onComplete) {
-            var changed = SmallMouth._dataRegistry.updateRegistry(this, value, { merge: true, onComplete: onComplete });
+            var changed = this._dataRegistry.updateRegistry(this, value, { merge: true, onComplete: onComplete });
             if (changed)
                 SmallMouth._eventRegistry.triggerEvent(this._path, 'value', this._host, this._getSnapshot());
             return this;
         };
 
         Resource.prototype.remove = function (onComplete) {
-            SmallMouth._dataRegistry.remove(this, { onComplete: onComplete });
+            this._dataRegistry.remove(this, { onComplete: onComplete });
             SmallMouth._eventRegistry.triggerEvent(this._path, 'value', this._host, this._getSnapshot());
         };
 
         Resource.prototype.push = function (value, complete) {
-            var id = SmallMouth.largeMouthAdapter.generateId(this._host);
+            var id = this._serverAdapter.generateId();
             var ref = this.child(id);
 
             if (typeof value !== 'undefined') {
@@ -580,7 +574,7 @@ var SmallMouth;
         };
 
         Resource.prototype._getSnapshot = function () {
-            var data = SmallMouth._dataRegistry.getData(this._path);
+            var data = this._dataRegistry.getData(this._path);
 
             if (!data)
                 return undefined;
@@ -590,6 +584,22 @@ var SmallMouth;
         return Resource;
     })();
     SmallMouth.Resource = Resource;
+})(SmallMouth || (SmallMouth = {}));
+var SmallMouth;
+(function (SmallMouth) {
+    SmallMouth.hosts = {};
+
+    SmallMouth.makeConnection = function (host) {
+        if (!SmallMouth.hosts[host])
+            SmallMouth.hosts[host] = {};
+        return SmallMouth.hosts[host].connection || SmallMouth.hosts[host].connection = new SmallMouth.LargeMouthAdapter(host);
+    };
+
+    SmallMouth.makeDataRegistry = function (host, connection) {
+        if (!SmallMouth.hosts[host])
+            SmallMouth.hosts[host] = {};
+        return SmallMouth.hosts[host].data || SmallMouth.hosts[host].data = new SmallMouth.DataRegistry(host, connection);
+    };
 })(SmallMouth || (SmallMouth = {}));
 var SmallMouth;
 (function (SmallMouth) {
@@ -626,7 +636,7 @@ var SmallMouth;
         Snapshot.prototype.child = function (path) {
             path = this._path + '/' + SmallMouth.Resource.cleanPath(path);
 
-            var data = SmallMouth._dataRegistry.getData(path);
+            var data = SmallMouth.DataRegistry.getDataRegistry(this._host).getData(path);
 
             if (!data)
                 return undefined;
@@ -641,7 +651,7 @@ var SmallMouth;
                 if (children.hasOwnProperty(key)) {
                     var path = this._path + '/' + key;
 
-                    var cancel = childAction.call(this, new Snapshot(path, SmallMouth._dataRegistry.getData(path), this._host));
+                    var cancel = childAction.call(this, new Snapshot(path, SmallMouth.DataRegistry.getDataRegistry(this._host).getData(path), this._host));
 
                     if (cancel)
                         return true;
@@ -653,7 +663,7 @@ var SmallMouth;
 
         Snapshot.prototype.hasChild = function (childPath) {
             childPath = this._path + '/' + SmallMouth.Resource.cleanPath(childPath);
-            var data = SmallMouth._dataRegistry.getData(childPath);
+            var data = SmallMouth.DataRegistry.getDataRegistry(this._host).getData(childPath);
             return typeof data.children !== 'undefined' || typeof data.value !== 'undefined';
         };
 

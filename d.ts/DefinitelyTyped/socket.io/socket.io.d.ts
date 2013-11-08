@@ -10,6 +10,7 @@ interface Socket {
 	log: any;
 	volatile: any;
 	broadcast: any;
+	id: string;
 	in(room: string): Socket;
 	to(room: string): Socket;
 	join(name: string, fn: Function): Socket;
