@@ -9,9 +9,11 @@ module SmallMouth {
 		public id: string = new Date().getTime() + "";
 
 		private eventListeners;
+		private messageQueue: string[];
 
 		constructor() {
 			this.eventListeners = {};
+			this.messageQueue = [];
 		}
 
 		connect(host): SockJSAdapter {
@@ -26,6 +28,12 @@ module SmallMouth {
 					this.eventListeners[resp.type](resp.data);
 				}
 			};
+
+			this.socket.onopen = function() {
+		    	while(this.messageQueue.length) {
+		    		this.socket.send(this.messageQueue.splice(0,1)[0]);
+		    	}
+		   	};
 
 			this.onMessage('ready', (resp) => {
 				this.id = resp.id;
@@ -42,11 +50,19 @@ module SmallMouth {
 		}
 
 		send(type: string, data: any, onComplete ?: (error) => any): SockJSAdapter {
+			var packet;
+
 			if(this.socket) {
-				this.socket.send(JSON.stringify({
+				packet = JSON.stringify({
 					type: type,
 					data: data
-				}));
+				});
+
+				if(this.socket.readyState !== this.socket.OPEN) {
+					this.socket.send(packet);
+				} else {
+					this.messageQueue.push(packet);
+				}
 			}
 			return this;
 		}

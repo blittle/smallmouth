@@ -363,6 +363,7 @@ var SmallMouth;
         function SockJSAdapter() {
             this.id = new Date().getTime() + "";
             this.eventListeners = {};
+            this.messageQueue = [];
         }
         SockJSAdapter.prototype.connect = function (host) {
             var _this = this;
@@ -375,6 +376,12 @@ var SmallMouth;
                 var resp = JSON.parse(e.data);
                 if (_this.eventListeners[resp.type]) {
                     _this.eventListeners[resp.type](resp.data);
+                }
+            };
+
+            this.socket.onopen = function () {
+                while (this.messageQueue.length) {
+                    this.socket.send(this.messageQueue.splice(0, 1)[0]);
                 }
             };
 
@@ -393,11 +400,19 @@ var SmallMouth;
         };
 
         SockJSAdapter.prototype.send = function (type, data, onComplete) {
+            var packet;
+
             if (this.socket) {
-                this.socket.send(JSON.stringify({
+                packet = JSON.stringify({
                     type: type,
                     data: data
-                }));
+                });
+
+                if (this.socket.readyState !== this.socket.OPEN) {
+                    this.socket.send(packet);
+                } else {
+                    this.messageQueue.push(packet);
+                }
             }
             return this;
         };

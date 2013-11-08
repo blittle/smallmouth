@@ -110,6 +110,7 @@ declare module SmallMouth {
         public socket: SockJS;
         public id: string;
         private eventListeners;
+        private messageQueue;
         constructor();
         public connect(host): SockJSAdapter;
         public onMessage(type: string, callback?: (resp: any) => any): SockJSAdapter;

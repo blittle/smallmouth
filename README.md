@@ -35,6 +35,7 @@ See a more [complete example](example/index.html) with AngularJS.
 ##Release notes
  - v0.1.11 - Support a minimal portion of the Firebase API with the following resource methods: on, off, set, update, remove, push, child, parent, root, name, toString. Support the following snapshot methods: val, child, forEach, hasChild, hasChildren, name, numChildren, ref
  - v0.2.0 - Support connecting to multiple backend hosts (create separate data registries for each host). Support multiple types of socket architectures (socket.io and sockjs).
+ - v0.2.1 - Fix sockjs implementation to queue events to send once the connection is finally made
 
 ##Road map
 LargeMouth is under active development with the following roadmap. If interested in contributing, please fork the project!
