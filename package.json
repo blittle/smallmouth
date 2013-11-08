@@ -1,6 +1,6 @@
 {
   "name": "smallmouth",
-  "version": "0.1.11",
+  "version": "0.2.0",
   "description": "smallmouth ==========",
   "main": "smallmouth.js",
   "dependencies": {
