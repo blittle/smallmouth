@@ -108,8 +108,8 @@ declare module SmallMouth {
 }
 declare module SmallMouth {
     var hosts: {};
-    var makeConnection: (host: any) => LargeMouthAdapter;
-    var makeDataRegistry: (host: any, connection: any) => DataRegistry;
+    var makeConnection: (host: any) => any;
+    var makeDataRegistry: (host: any, connection: any) => any;
 }
 declare module SmallMouth {
     class Snapshot implements SmallMouth.SnapshotInterface {

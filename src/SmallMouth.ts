@@ -4,11 +4,13 @@ module SmallMouth {
 
 	export var makeConnection = function(host) {
 		if(!hosts[host]) hosts[host] = {};
-		return hosts[host].connection || hosts[host].connection = new SmallMouth.LargeMouthAdapter(host);
+		if(hosts[host].connection) return hosts[host].connection;		
+		return hosts[host].connection = new SmallMouth.LargeMouthAdapter(host);
 	}
 
 	export var makeDataRegistry = function(host, connection) {
 		if(!hosts[host]) hosts[host] = {};
-		return hosts[host].data || hosts[host].data = new SmallMouth.DataRegistry(host, connection);
+		if(hosts[host].data) return hosts[host].data;
+		return  hosts[host].data = new SmallMouth.DataRegistry(host, connection);
 	}
 }

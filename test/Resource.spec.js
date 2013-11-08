@@ -1,13 +1,21 @@
 describe('Resource', function() {
+	var dataRegistry;
+	var serverConnection;
+
+	beforeEach(function() {
+		serverConnection = SmallMouth.makeConnection('');
+		dataRegistry = SmallMouth.makeDataRegistry('', serverConnection);
+	});
+
 	afterEach(function() {
+		dataRegistry.resetRegistry();
 		SmallMouth._eventRegistry.resetRegistry();
-		SmallMouth._dataRegistry.resetRegistry();
 	});
 
 
 	it('Should trigger an event when on "value" for the initial value', function(run) {
 		var spy = jasmine.createSpy('Spy for resource creation callback');
-		var resource1 = new SmallMouth.Resource('http://localhost:8080/some');
+		var resource1 = new SmallMouth.Resource('/some');
 		resource1.on('value', spy);
 		
 		expect(spy).toHaveBeenCalled();			
@@ -15,7 +23,7 @@ describe('Resource', function() {
 
 	it('Should trigger an event on "value" for each call', function(run) {
 		var spy = jasmine.createSpy('Spy for resource creation callback');
-		var resource1 = new SmallMouth.Resource('http://localhost:8080/some');
+		var resource1 = new SmallMouth.Resource('/some');
 		resource1.on('value', spy);
 		resource1.on('value', spy);
 		resource1.on('value', spy);
@@ -31,7 +39,7 @@ describe('Resource', function() {
 		var spy = jasmine.createSpy('Spy for set callback');
 		var calls = 0;
 
-		var resource1 = new SmallMouth.Resource('http://localhost:8080/some');
+		var resource1 = new SmallMouth.Resource('/some');
 		resource1.set({hi: "test"});
 
 		resource1.on('value', function() {
@@ -47,9 +55,9 @@ describe('Resource', function() {
 	});
 
 	it('Should return children references', function() {
-		var resource1 = new SmallMouth.Resource('http://localhost:8080/some/data/for/you');
+		var resource1 = new SmallMouth.Resource('/some/data/for/you');
 		resource1.set('myData');
-		var resource2 = new SmallMouth.Resource('http://localhost:8080/some/data');
+		var resource2 = new SmallMouth.Resource('/some/data');
 
 		var resource3 = resource2.child('for/you');
 
@@ -57,43 +65,43 @@ describe('Resource', function() {
 	});
 
 	it('Should return parent references', function() {
-		var resource1 = new SmallMouth.Resource('http://localhost:8080/some/data/for/you');
+		var resource1 = new SmallMouth.Resource('/some/data/for/you');
 		resource1.set('myData');
-		var resource2 = new SmallMouth.Resource('http://localhost:8080/some/data/for');
+		var resource2 = new SmallMouth.Resource('/some/data/for');
 		var resource3 = resource1.parent();
 
 		expect(resource2._getSnapshot().val().you).toBe(resource3._getSnapshot().val().you);
 	});
 
 	it('Should return the root reference', function() {
-		var resource1 = new SmallMouth.Resource('http://localhost:8080/some/data/for/you');
+		var resource1 = new SmallMouth.Resource('/some/data/for/you');
 		var resource2 = resource1.root();
-		var resource3 = new SmallMouth.Resource('http://localhost:8080/some');
+		var resource3 = new SmallMouth.Resource('/some');
 
 		expect(resource2._getSnapshot().val().data.for.you).toBeNull();
 		expect(resource3._getSnapshot().val().data.for.you).toBeNull();
 	});
 
 	it('Should return the resource name', function() {
-		var resource1 = new SmallMouth.Resource('http://localhost:8080/some/data/for/you');
-		var resource2 = new SmallMouth.Resource('http://localhost:8080/');
-		var resource3 = new SmallMouth.Resource('http://localhost:8080/some/');
+		var resource1 = new SmallMouth.Resource('/some/data/for/you');
+		var resource2 = new SmallMouth.Resource('/');
+		var resource3 = new SmallMouth.Resource('/some/');
 		expect(resource1.name()).toBe('you');
 		expect(resource2.name()).toBe('');
 		expect(resource3.name()).toBe('some');
 	});
 
 	it('Should return the resource path', function() {
-		var resource1 = new SmallMouth.Resource('http://localhost:8080/some/data/for/you');
-		var resource2 = new SmallMouth.Resource('http://localhost:8080/');
-		var resource3 = new SmallMouth.Resource('http://localhost:8080/some/');
+		var resource1 = new SmallMouth.Resource('/some/data/for/you');
+		var resource2 = new SmallMouth.Resource('/');
+		var resource3 = new SmallMouth.Resource('/some/');
 		expect(resource1.toString()).toBe('some/data/for/you');
 		expect(resource2.toString()).toBe('');
 		expect(resource3.toString()).toBe('some');
 	});
 
 	it('Should create nested resources and replace on set', function() {
-		var resource1 = new SmallMouth.Resource('http://localhost:8080/some/data');
+		var resource1 = new SmallMouth.Resource('/some/data');
 
 		resource1.set({
 			'prop1': 1
@@ -113,7 +121,7 @@ describe('Resource', function() {
 	});
 
 	it('Should create nested resources and merge on update', function() {
-		var resource1 = new SmallMouth.Resource('http://localhost:8080/some/data');
+		var resource1 = new SmallMouth.Resource('/some/data');
 
 		resource1.set({
 			'prop1': 1
@@ -135,7 +143,7 @@ describe('Resource', function() {
 
 	it('Should update parent versions when nested resources are set', function() {
 		
-		var resource1 = new SmallMouth.Resource('http://localhost:8080/some/data');
+		var resource1 = new SmallMouth.Resource('/some/data');
 
 		resource1.set({
 			'prop1': {
@@ -155,7 +163,7 @@ describe('Resource', function() {
 	});
 
 	it('Should remove resource', function() {
-		var resource1 = new SmallMouth.Resource('http://localhost:8080/some/data');
+		var resource1 = new SmallMouth.Resource('/some/data');
 		resource1.set('value');
 
 		resource1.remove();
@@ -169,7 +177,7 @@ describe('Resource', function() {
 	});
 
 	it('Should update parent resources version when a sub resource is removed', function() {
-		var resource1 = new SmallMouth.Resource('http://localhost:8080/some/data');
+		var resource1 = new SmallMouth.Resource('/some/data');
 		resource1.set('value');
 		expect(resource1.parent()._getSnapshot().version).toBe(1);
 		resource1.remove();
@@ -177,7 +185,7 @@ describe('Resource', function() {
 	});
 
 	it('Should register and execute events on value set', function() {
-		var resource1 = new SmallMouth.Resource('http://localhost:8080/data');
+		var resource1 = new SmallMouth.Resource('/data');
 		var spy = jasmine.createSpy();
 
 		resource1.on('value', spy);
@@ -186,7 +194,7 @@ describe('Resource', function() {
 	});
 
 	it('Should register and execute events on value update', function() {
-		var resource1 = new SmallMouth.Resource('http://localhost:8080/data');
+		var resource1 = new SmallMouth.Resource('/data');
 		var spy = jasmine.createSpy();
 
 		resource1.on('value', spy);
@@ -195,7 +203,7 @@ describe('Resource', function() {
 	});
 
 	it('On an event callback, should pass a snapshot of the data', function() {
-		var resource1 = new SmallMouth.Resource('http://localhost:8080/data');
+		var resource1 = new SmallMouth.Resource('/data');
 		var spy = jasmine.createSpy();
 
 		var callback = function(snapshot) {
@@ -208,8 +216,8 @@ describe('Resource', function() {
 	});
 
 	it('On an event callback, should pass a parent snapshot of data', function() {
-		var resource1 = new SmallMouth.Resource('http://localhost:8080/deep');
-		var resource2 = new SmallMouth.Resource('http://localhost:8080/deep/in/the/greenwood/the/animals/play');
+		var resource1 = new SmallMouth.Resource('/deep');
+		var resource2 = new SmallMouth.Resource('/deep/in/the/greenwood/the/animals/play');
 
 		var spy = jasmine.createSpy();
 

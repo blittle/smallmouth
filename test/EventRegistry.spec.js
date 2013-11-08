@@ -1,7 +1,15 @@
 describe("Event Registry", function() {
 
+		var dataRegistry;
+		var serverConnection;
+
+		beforeEach(function() {
+			serverConnection = SmallMouth.makeConnection('');
+			dataRegistry = SmallMouth.makeDataRegistry('', serverConnection);
+		});
+
 		afterEach(function() {
-			SmallMouth._dataRegistry.resetRegistry();
+			dataRegistry.resetRegistry();
 			SmallMouth._eventRegistry.resetRegistry();
 		});
 
@@ -96,7 +104,7 @@ describe("Event Registry", function() {
 
 			SmallMouth._eventRegistry.addEvent('resource1', 'value', spy1);
 			SmallMouth._eventRegistry.addEvent('resource1/some/path/deep', 'value', spy2);
-			SmallMouth._eventRegistry.triggerEvent('resource1/some/path/deep', 'value', null, 'someSnapshot');
+			SmallMouth._eventRegistry.triggerEvent('resource1/some/path/deep', 'value', '', 'someSnapshot');
 
 			expect(spy1).toHaveBeenCalled();
 			expect(spy2).toHaveBeenCalled();

@@ -592,13 +592,17 @@ var SmallMouth;
     SmallMouth.makeConnection = function (host) {
         if (!SmallMouth.hosts[host])
             SmallMouth.hosts[host] = {};
-        return SmallMouth.hosts[host].connection || SmallMouth.hosts[host].connection = new SmallMouth.LargeMouthAdapter(host);
+        if (SmallMouth.hosts[host].connection)
+            return SmallMouth.hosts[host].connection;
+        return SmallMouth.hosts[host].connection = new SmallMouth.LargeMouthAdapter(host);
     };
 
     SmallMouth.makeDataRegistry = function (host, connection) {
         if (!SmallMouth.hosts[host])
             SmallMouth.hosts[host] = {};
-        return SmallMouth.hosts[host].data || SmallMouth.hosts[host].data = new SmallMouth.DataRegistry(host, connection);
+        if (SmallMouth.hosts[host].data)
+            return SmallMouth.hosts[host].data;
+        return SmallMouth.hosts[host].data = new SmallMouth.DataRegistry(host, connection);
     };
 })(SmallMouth || (SmallMouth = {}));
 var SmallMouth;
