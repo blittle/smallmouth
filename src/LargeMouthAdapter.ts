@@ -1,16 +1,27 @@
 ///<reference path="../d.ts/DefinitelyTyped/socket.io/socket.io.d.ts"/>
-///<reference path="interfaces/ServerAdapter"/>
+///<reference path="DataRegistry"/>
+///<reference path="Resource"/>
+///<reference path="SmallMouth"/>
+///<reference path="EventRegistry"/>
+///<reference path="SnapShot"/>
+///<reference path="serverAdapters/ServerAdapter"/>
+///<reference path="serverAdapters/SocketIOAdapter"/>
+///<reference path="serverAdapters/SockJSAdapter"/>
 
 module SmallMouth {
 
-	export class LargeMouthAdapter implements SmallMouth.ServerAdapter {
-
-		private _socket: Socket;
+	export class LargeMouthAdapter {
+		
 		private _callbacks: {};
 		private _callbackId = 0;
 		private _host: string;
 
-		constructor(host: string) {
+		private _adapter: SmallMouth.ServerAdapter;
+
+		constructor(host: string, type: string = "SocketIOAdapter") {
+
+			this._adapter = new SmallMouth[type]();
+
 			this.connect(host);
 			this._host = host;
 			this._callbacks = {};
@@ -21,16 +32,10 @@ module SmallMouth {
 		}
 
 		connect( host: string ): LargeMouthAdapter {
-			var socket;
 
-			// If in localstorage mode, the host should be null
-			// and we don't need to connect. If we have already 
-			// connected, don't try again
-			if(!host || this._socket) return;
+			this._adapter.connect(host);
 
-			this._socket = socket = io.connect(host);
-
-			socket.on('set', (resp) => {
+			this._adapter.onMessage('set', (resp) => {
 				SmallMouth.DataRegistry.getDataRegistry(this._host).serverSetData(resp.path, resp.value);
 
 				var registryData = SmallMouth.DataRegistry.getDataRegistry(this._host).getData(resp.path);	
@@ -42,7 +47,7 @@ module SmallMouth {
 				), {remote: true});
 			});
 
-			socket.on('update', (resp) => {
+			this._adapter.onMessage('update', (resp) => {
 				SmallMouth.DataRegistry.getDataRegistry(this._host).serverUpdateData(resp.path, resp.value);
 
 				var registryData = SmallMouth.DataRegistry.getDataRegistry(this._host).getData(resp.path);	
@@ -54,12 +59,8 @@ module SmallMouth {
 				), {remote: true});
 			});
 
-			socket.on('syncComplete', (resp) => {
+			this._adapter.onMessage('syncComplete', (resp) => {
 				this.executeCallback(resp.reqId, resp.err);
-			});
-
-			socket.on('ready', (resp) => {
-				this._socket.id = resp.id;
 			});
 
 			return this;
@@ -73,25 +74,26 @@ module SmallMouth {
 		}
 
 		subscribe( url: string ): LargeMouthAdapter {
-			if(!this._socket) return;
+			if(!this._host) return;
 
-			this._socket.emit('subscribe', {
+			this._adapter.send('subscribe', {
 				url: url,
 				value: SmallMouth.DataRegistry.getDataRegistry(this._host).getData(url)
 			});
+
 			return this;
 		}
 
 		syncRemote(data, url: string, onComplete ?: (error) => any): LargeMouthAdapter {
 
-			if(!this._socket) return;
+			if(!this._host) return;
 
 			if(typeof onComplete == 'function') {
 				var callbackId = this.generateCallbackId();
 				this._callbacks[callbackId] = onComplete;
 			}
 
-			this._socket.emit('set', {
+			this._adapter.send('set', {
 				url: url,
 				value: data,
 				reqId: callbackId	
@@ -100,10 +102,8 @@ module SmallMouth {
 			return this;
 		}
 
-		generateId(): string {
-			var id = (new Date()).getTime() + "";
-			if(this._socket) id = this._socket.id + '-' + id;
-			return id;
+		generateId(): string {			
+			return this._adapter.id + "-" + (new Date()).getTime();
 		}
 	}
 }

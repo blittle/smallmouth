@@ -1,57 +1,5 @@
 /// <reference path="../d.ts/DefinitelyTyped/socket.io/socket.io.d.ts" />
 declare module SmallMouth {
-    interface ServerAdapter {
-        connect(host: string): ServerAdapter;
-        subscribe(url: string): ServerAdapter;
-        syncRemote(data, url: string, onComplete?: (error: any) => any): ServerAdapter;
-        generateId(): string;
-    }
-}
-declare module SmallMouth {
-    class DataRegistry {
-        private _dataRegistry;
-        private _host;
-        private _serverAdapter;
-        constructor(host: string, serverAdapter: SmallMouth.ServerAdapter);
-        public initializeResource(resource: SmallMouth.Resource): DataRegistry;
-        public updateRegistry(resource: SmallMouth.Resource, value: any, options?: any): boolean;
-        public getData(path, options?: any);
-        public remove(resource: SmallMouth.Resource, options?: any);
-        public getVersions(path): any[];
-        public serverUpdateData(path: string, element: any): void;
-        public serverSetData(path: string, element: any): void;
-        public resetRegistry(): void;
-        public saveToLocalStorage(): void;
-        public sync(resource: SmallMouth.Resource, onComplete?: (error: any) => any): void;
-        static getDataRegistry(host: string): DataRegistry;
-    }
-}
-declare module SmallMouth._eventRegistry {
-    var addEvent: (path: string, type: string, callback: Function, context: any) => void;
-    var removeEvent: (path: string, type: string, callback: Function) => number;
-    var triggerEvent: (path: string, type: string, host: string, snapshot: any, options?: any) => void;
-    var resetRegistry: () => void;
-    var eventRegistry: {
-        events: {};
-        children: {};
-    };
-}
-declare module SmallMouth {
-    class LargeMouthAdapter implements SmallMouth.ServerAdapter {
-        private _socket;
-        private _callbacks;
-        private _callbackId;
-        private _host;
-        constructor(host: string);
-        private generateCallbackId();
-        public connect(host: string): LargeMouthAdapter;
-        public executeCallback(id, err): void;
-        public subscribe(url: string): LargeMouthAdapter;
-        public syncRemote(data, url: string, onComplete?: (error: any) => any): LargeMouthAdapter;
-        public generateId(): string;
-    }
-}
-declare module SmallMouth {
     interface SnapshotInterface {
         val(): any;
         child(path: string): SnapshotInterface;
@@ -88,7 +36,7 @@ declare module SmallMouth {
     class Resource implements SmallMouth.ResourceInterface {
         public _path: string;
         public _host: string;
-        public _serverAdapter: SmallMouth.ServerAdapter;
+        public _largeMouthAdapter: SmallMouth.LargeMouthAdapter;
         public _dataRegistry: SmallMouth.DataRegistry;
         constructor(address: string);
         public on(eventType: string, callback: (snapshot: SmallMouth.SnapshotInterface, previusChild?: string) => any, cancelCallback?: Function, context?: any): Resource;
@@ -111,6 +59,16 @@ declare module SmallMouth {
     var makeConnection: (host: any) => any;
     var makeDataRegistry: (host: any, connection: any) => any;
 }
+declare module SmallMouth._eventRegistry {
+    var addEvent: (path: string, type: string, callback: Function, context: any) => void;
+    var removeEvent: (path: string, type: string, callback: Function) => number;
+    var triggerEvent: (path: string, type: string, host: string, snapshot: any, options?: any) => void;
+    var resetRegistry: () => void;
+    var eventRegistry: {
+        events: {};
+        children: {};
+    };
+}
 declare module SmallMouth {
     class Snapshot implements SmallMouth.SnapshotInterface {
         private _path;
@@ -126,5 +84,57 @@ declare module SmallMouth {
         public name(): string;
         public numChildren(): number;
         public ref(): SmallMouth.Resource;
+    }
+}
+declare module SmallMouth {
+    interface ServerAdapter {
+        id: string;
+        connect(host): ServerAdapter;
+        onMessage(type: string, callback?: (error: any) => any): ServerAdapter;
+        send(type: string, data: any, onComplete?: (error: any) => any): ServerAdapter;
+    }
+}
+declare module SmallMouth {
+    class SocketIOAdapter implements SmallMouth.ServerAdapter {
+        public socket: Socket;
+        public id: string;
+        constructor();
+        public connect(host): SocketIOAdapter;
+        public onMessage(type: string, callback?: (resp: any) => any): SocketIOAdapter;
+        public send(type: string, data: any, onComplete?: (error: any) => any): SocketIOAdapter;
+    }
+}
+declare module SmallMouth {
+    class LargeMouthAdapter {
+        private _callbacks;
+        private _callbackId;
+        private _host;
+        private _adapter;
+        constructor(host: string, type?: string);
+        private generateCallbackId();
+        public connect(host: string): LargeMouthAdapter;
+        public executeCallback(id, err): void;
+        public subscribe(url: string): LargeMouthAdapter;
+        public syncRemote(data, url: string, onComplete?: (error: any) => any): LargeMouthAdapter;
+        public generateId(): string;
+    }
+}
+declare module SmallMouth {
+    class DataRegistry {
+        private _dataRegistry;
+        private _host;
+        private _largeMouthAdapter;
+        constructor(host: string, largeMouthAdapter: SmallMouth.LargeMouthAdapter);
+        public initializeResource(resource: SmallMouth.Resource): DataRegistry;
+        public updateRegistry(resource: SmallMouth.Resource, value: any, options?: any): boolean;
+        public getData(path, options?: any);
+        public remove(resource: SmallMouth.Resource, options?: any);
+        public getVersions(path): any[];
+        public serverUpdateData(path: string, element: any): void;
+        public serverSetData(path: string, element: any): void;
+        public resetRegistry(): void;
+        public saveToLocalStorage(): void;
+        public sync(resource: SmallMouth.Resource, onComplete?: (error: any) => any): void;
+        static getDataRegistry(host: string): DataRegistry;
     }
 }

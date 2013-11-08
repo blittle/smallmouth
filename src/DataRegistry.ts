@@ -1,4 +1,4 @@
-///<reference path="interfaces/ServerAdapter"/>
+///<reference path="LargeMouthAdapter"/>
 
 module SmallMouth {	
 
@@ -145,11 +145,11 @@ module SmallMouth {
 
 		private _dataRegistry: any;
 		private _host: string;
-		private _serverAdapter: SmallMouth.ServerAdapter;
+		private _largeMouthAdapter;
 
-		constructor(host: string, serverAdapter: SmallMouth.ServerAdapter) {
+		constructor(host: string, largeMouthAdapter: SmallMouth.LargeMouthAdapter) {
 			
-			this._serverAdapter = serverAdapter;
+			this._largeMouthAdapter = largeMouthAdapter;
 
 			this._dataRegistry = JSON.parse(localStorage.getItem('LargeMouth_Registry_' + host)) || {
 				version: 0
@@ -274,7 +274,7 @@ module SmallMouth {
 			this.saveToLocalStorage();
 
 			if(resource._host) {
-				this._serverAdapter.syncRemote(
+				this._largeMouthAdapter.syncRemote(
 					this.getData(resource._path), 
 					resource._path, 
 					onComplete

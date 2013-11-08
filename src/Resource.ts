@@ -1,6 +1,6 @@
 ///<reference path="interfaces/ResourceInterface"/>
 ///<reference path="interfaces/SnapshotInterface"/>
-///<reference path="interfaces/ServerAdapter"/>
+///<reference path="LargeMouthAdapter"/>
 ///<reference path="DataRegistry"/>
 
 module SmallMouth {	
@@ -11,7 +11,7 @@ module SmallMouth {
 
 		_path: string;
 		_host: string;
-		_serverAdapter: SmallMouth.ServerAdapter;
+		_largeMouthAdapter: SmallMouth.LargeMouthAdapter;
 		_dataRegistry: SmallMouth.DataRegistry;
 
 		constructor(address: string) {
@@ -27,11 +27,11 @@ module SmallMouth {
 			this._path = url;
 			this._host = host;
 
-			this._serverAdapter = SmallMouth.makeConnection(host);
-			this._dataRegistry = SmallMouth.makeDataRegistry(host, this._serverAdapter);
+			this._largeMouthAdapter = SmallMouth.makeConnection(host);
+			this._dataRegistry = SmallMouth.makeDataRegistry(host, this._largeMouthAdapter);
 
 			var data = this._dataRegistry.initializeResource(this);
-			this._serverAdapter.subscribe(url);
+			this._largeMouthAdapter.subscribe(url);
 		}
 
 		on(
@@ -76,7 +76,7 @@ module SmallMouth {
 		}
 
 		push( value: any, complete ?: (error) => any ): Resource {
-			var id = this._serverAdapter.generateId();
+			var id = this._largeMouthAdapter.generateId();
 			var ref = this.child(id);
 
 			if(typeof value !== 'undefined') {
