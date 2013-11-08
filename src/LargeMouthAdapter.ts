@@ -13,6 +13,7 @@ module SmallMouth {
 		constructor(host: string) {
 			this.connect(host);
 			this._host = host;
+			this._callbacks = {};
 		}
 
 		private generateCallbackId() {

@@ -395,6 +395,7 @@ var SmallMouth;
             this._callbackId = 0;
             this.connect(host);
             this._host = host;
+            this._callbacks = {};
         }
         LargeMouthAdapter.prototype.generateCallbackId = function () {
             return ++this._callbackId;
