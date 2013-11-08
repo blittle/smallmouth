@@ -1,4 +1,4 @@
-SmallMouth [![Build Status](https://travis-ci.org/blittle/smallmouth.png?branch=master)](https://travis-ci.org/blittle/smallmouth)
+![LargeMouth an open BAAS](smallmouth.png) [![Build Status](https://travis-ci.org/blittle/smallmouth.png?branch=master)](https://travis-ci.org/blittle/smallmouth)
 ==========
 
 The Client Library for [LargeMouth BAAS](https://github.com/blittle/largemouth)
