@@ -1,4 +1,5 @@
 /// <reference path="../d.ts/DefinitelyTyped/socket.io/socket.io.d.ts" />
+/// <reference path="../d.ts/DefinitelyTyped/sockjs/sockjs.d.ts" />
 declare module SmallMouth {
     interface SnapshotInterface {
         val(): any;
@@ -105,6 +106,19 @@ declare module SmallMouth {
     }
 }
 declare module SmallMouth {
+    class SockJSAdapter implements SmallMouth.ServerAdapter {
+        public socket: SockJS;
+        public id: string;
+        private eventListeners;
+        constructor();
+        public connect(host): SockJSAdapter;
+        public onMessage(type: string, callback?: (resp: any) => any): SockJSAdapter;
+        public send(type: string, data: any, onComplete?: (error: any) => any): SockJSAdapter;
+    }
+}
+declare module SmallMouth {
+    var SERVER_TYPES: any;
+    var serverAdapterType;
     class LargeMouthAdapter {
         private _callbacks;
         private _callbackId;

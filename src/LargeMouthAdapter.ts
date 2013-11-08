@@ -10,6 +10,13 @@
 
 module SmallMouth {
 
+	export var SERVER_TYPES: any = {
+		SOCK_JS: "SockJSAdapter",
+		SOCKET_IO: "SocketIOAdapter"
+	};
+	
+	export var serverAdapterType = SERVER_TYPES.SOCKET_IO;
+
 	export class LargeMouthAdapter {
 		
 		private _callbacks: {};
@@ -18,7 +25,7 @@ module SmallMouth {
 
 		private _adapter: SmallMouth.ServerAdapter;
 
-		constructor(host: string, type: string = "SocketIOAdapter") {
+		constructor(host: string, type: string = serverAdapterType) {
 
 			this._adapter = new SmallMouth[type]();
 

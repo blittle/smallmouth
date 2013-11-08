@@ -359,9 +359,64 @@ var SmallMouth;
 })(SmallMouth || (SmallMouth = {}));
 var SmallMouth;
 (function (SmallMouth) {
+    var SockJSAdapter = (function () {
+        function SockJSAdapter() {
+            this.id = new Date().getTime() + "";
+            this.eventListeners = {};
+        }
+        SockJSAdapter.prototype.connect = function (host) {
+            var _this = this;
+            if (!host || this.socket)
+                return;
+
+            this.socket = new SockJS(host);
+
+            this.socket.onmessage = function (e) {
+                var resp = JSON.parse(e.data);
+                if (_this.eventListeners[resp.type]) {
+                    _this.eventListeners[resp.type](resp.data);
+                }
+            };
+
+            this.onMessage('ready', function (resp) {
+                _this.id = resp.id;
+            });
+
+            return this;
+        };
+
+        SockJSAdapter.prototype.onMessage = function (type, callback) {
+            if (this.socket) {
+                this.eventListeners[type] = callback;
+            }
+            return this;
+        };
+
+        SockJSAdapter.prototype.send = function (type, data, onComplete) {
+            if (this.socket) {
+                this.socket.send(JSON.stringify({
+                    type: type,
+                    data: data
+                }));
+            }
+            return this;
+        };
+        return SockJSAdapter;
+    })();
+    SmallMouth.SockJSAdapter = SockJSAdapter;
+})(SmallMouth || (SmallMouth = {}));
+var SmallMouth;
+(function (SmallMouth) {
+    SmallMouth.SERVER_TYPES = {
+        SOCK_JS: "SockJSAdapter",
+        SOCKET_IO: "SocketIOAdapter"
+    };
+
+    SmallMouth.serverAdapterType = SmallMouth.SERVER_TYPES.SOCKET_IO;
+
     var LargeMouthAdapter = (function () {
         function LargeMouthAdapter(host, type) {
-            if (typeof type === "undefined") { type = "SocketIOAdapter"; }
+            if (typeof type === "undefined") { type = SmallMouth.serverAdapterType; }
             this._callbackId = 0;
             this._adapter = new SmallMouth[type]();
 

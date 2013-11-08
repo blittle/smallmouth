@@ -5,7 +5,8 @@ module.exports = function(grunt) {
     pkg: grunt.file.readJSON('package.json'),
     uglify: {
       options: {
-        banner: '/*! <%= pkg.name %> v<%= pkg.version %> */\n'
+        banner: '/*! <%= pkg.name %> v<%= pkg.version %> */\n',
+        mangle: true
       },
       build: {
         src: 'build/smallmouth.js',

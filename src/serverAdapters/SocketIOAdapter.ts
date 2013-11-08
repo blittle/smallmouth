@@ -2,6 +2,7 @@
 ///<reference path="../../d.ts/DefinitelyTyped/socket.io/socket.io.d.ts"/>
 
 module SmallMouth {
+
 	export class SocketIOAdapter implements SmallMouth.ServerAdapter {
 
 		public socket: Socket; 
