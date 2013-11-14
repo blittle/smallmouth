@@ -21,17 +21,17 @@ module SmallMouth {
 			path = parse[5],
 			query = parse[6],
 			host = (scheme ? scheme : "") + (domain ? domain : ""),
-			url = Resource.cleanPath((path ? path : "") + (query ? query : "")),
+			path = Resource.cleanPath((path ? path : "") + (query ? query : "")),
 			scope = this;	
 
-			this._path = url;
+			this._path = path;
 			this._host = host;
 
 			this._largeMouthAdapter = SmallMouth.makeConnection(host);
 			this._dataRegistry = SmallMouth.makeDataRegistry(host, this._largeMouthAdapter);
 
 			var data = this._dataRegistry.initializeResource(this);
-			this._largeMouthAdapter.subscribe(url);
+			this._largeMouthAdapter.subscribe(path);
 		}
 
 		on(

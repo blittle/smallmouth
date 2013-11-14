@@ -80,18 +80,18 @@ module SmallMouth {
 			}
 		}
 
-		subscribe( url: string ): LargeMouthAdapter {
+		subscribe( path: string ): LargeMouthAdapter {
 			if(!this._host) return;
 
 			this._adapter.send('subscribe', {
-				url: url,
-				value: SmallMouth.DataRegistry.getDataRegistry(this._host).getData(url)
+				path: path,
+				value: SmallMouth.DataRegistry.getDataRegistry(this._host).getData(path)
 			});
 
 			return this;
 		}
 
-		syncRemote(data, url: string, onComplete ?: (error) => any): LargeMouthAdapter {
+		syncRemote(data, path: string, onComplete ?: (error) => any): LargeMouthAdapter {
 
 			if(!this._host) return;
 
@@ -101,7 +101,7 @@ module SmallMouth {
 			}
 
 			this._adapter.send('set', {
-				url: url,
+				path: path,
 				value: data,
 				reqId: callbackId	
 			});

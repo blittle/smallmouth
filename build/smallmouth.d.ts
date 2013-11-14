@@ -129,8 +129,8 @@ declare module SmallMouth {
         private generateCallbackId();
         public connect(host: string): LargeMouthAdapter;
         public executeCallback(id, err): void;
-        public subscribe(url: string): LargeMouthAdapter;
-        public syncRemote(data, url: string, onComplete?: (error: any) => any): LargeMouthAdapter;
+        public subscribe(path: string): LargeMouthAdapter;
+        public syncRemote(data, path: string, onComplete?: (error: any) => any): LargeMouthAdapter;
         public generateId(): string;
     }
 }

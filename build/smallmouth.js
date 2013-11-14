@@ -4,16 +4,16 @@ var SmallMouth;
 
     var Resource = (function () {
         function Resource(address) {
-            var parse = urlReg.exec(address), scheme = parse[1], domain = parse[3], path = parse[5], query = parse[6], host = (scheme ? scheme : "") + (domain ? domain : ""), url = Resource.cleanPath((path ? path : "") + (query ? query : "")), scope = this;
+            var parse = urlReg.exec(address), scheme = parse[1], domain = parse[3], path = parse[5], query = parse[6], host = (scheme ? scheme : "") + (domain ? domain : ""), path = Resource.cleanPath((path ? path : "") + (query ? query : "")), scope = this;
 
-            this._path = url;
+            this._path = path;
             this._host = host;
 
             this._largeMouthAdapter = SmallMouth.makeConnection(host);
             this._dataRegistry = SmallMouth.makeDataRegistry(host, this._largeMouthAdapter);
 
             var data = this._dataRegistry.initializeResource(this);
-            this._largeMouthAdapter.subscribe(url);
+            this._largeMouthAdapter.subscribe(path);
         }
         Resource.prototype.on = function (eventType, callback, cancelCallback, context) {
             if (typeof cancelCallback == 'function') {
@@ -477,19 +477,19 @@ var SmallMouth;
             }
         };
 
-        LargeMouthAdapter.prototype.subscribe = function (url) {
+        LargeMouthAdapter.prototype.subscribe = function (path) {
             if (!this._host)
                 return;
 
             this._adapter.send('subscribe', {
-                url: url,
-                value: SmallMouth.DataRegistry.getDataRegistry(this._host).getData(url)
+                path: path,
+                value: SmallMouth.DataRegistry.getDataRegistry(this._host).getData(path)
             });
 
             return this;
         };
 
-        LargeMouthAdapter.prototype.syncRemote = function (data, url, onComplete) {
+        LargeMouthAdapter.prototype.syncRemote = function (data, path, onComplete) {
             if (!this._host)
                 return;
 
@@ -499,7 +499,7 @@ var SmallMouth;
             }
 
             this._adapter.send('set', {
-                url: url,
+                path: path,
                 value: data,
                 reqId: callbackId
             });
