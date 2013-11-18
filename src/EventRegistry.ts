@@ -95,7 +95,7 @@ module SmallMouth._eventRegistry {
 	}
 
 	function triggerEvent(path: string, type: string, host: string, snapshot, options: any = {}) {
-		var event = getEvent(path, {trigger: type, host: host, remote: options.remote});
+		var event = getEvent(path, {trigger: type, host: host, local: options.local});
 
 		var eventList = event.events[type];
 

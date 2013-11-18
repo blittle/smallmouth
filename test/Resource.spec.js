@@ -302,4 +302,20 @@ describe('Resource', function() {
 
 		expect(SmallMouth._eventRegistry.eventRegistry.children.chats.events.value).not.toBeDefined();
 	});
+
+	it('Should pass a parameter with an event defining if it is local data', function() {
+		var spy = jasmine.createSpy();
+		var chats = new SmallMouth.Resource('chats');
+		chats.on('value', spy);
+		expect(spy.mostRecentCall.args[1].local).toBeTruthy();
+
+		chats.set({'some': 'data'});
+		expect(spy.mostRecentCall.args[1].local).toBeTruthy();
+
+		chats.update({'some': 'data2'});
+		expect(spy.mostRecentCall.args[1].local).toBeTruthy();
+
+		chats.remove();
+		expect(spy.mostRecentCall.args[1].local).toBeTruthy();
+	});
 });

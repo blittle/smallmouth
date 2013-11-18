@@ -51,7 +51,7 @@ module SmallMouth {
 					resp.path,
 					registryData,
 					host
-				), {remote: true});
+				), {local: false});
 			});
 
 			this._adapter.onMessage('update', (resp) => {
@@ -63,7 +63,7 @@ module SmallMouth {
 					resp.path,
 					registryData,
 					host
-				), {remote: true});
+				), {local: false});
 			});
 
 			this._adapter.onMessage('syncComplete', (resp) => {

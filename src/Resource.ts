@@ -44,10 +44,10 @@ module SmallMouth {
 			if(typeof cancelCallback == 'function') {
 				SmallMouth._eventRegistry.addEvent(this._path, eventType, callback, context);	
 				SmallMouth._eventRegistry.addEvent(this._path, "cancel", cancelCallback, context);
-				callback.call(context, this._getSnapshot());
+				callback.call(context, this._getSnapshot(), {local: true});
 			} else {
 				SmallMouth._eventRegistry.addEvent(this._path, eventType, callback, cancelCallback);	
-				callback.call(cancelCallback, this._getSnapshot());
+				callback.call(cancelCallback, this._getSnapshot(), {local: true});
 			}
 
 			return this;
@@ -60,19 +60,25 @@ module SmallMouth {
 
 		set(value: any, onComplete ?: (error) => any): Resource {
 			var changed = this._dataRegistry.updateRegistry(this, value, {onComplete: onComplete});	
-			if(changed) SmallMouth._eventRegistry.triggerEvent(this._path, 'value', this._host, this._getSnapshot());
+			if(changed) SmallMouth._eventRegistry.triggerEvent(
+				this._path, 'value', this._host, this._getSnapshot(), {local: true}
+			);
 			return this;	
 		}
 
 		update( value: any, onComplete ?: (error) => any ): Resource {
 			var changed = this._dataRegistry.updateRegistry(this, value, {merge: true, onComplete: onComplete});	
-			if(changed) SmallMouth._eventRegistry.triggerEvent(this._path, 'value', this._host, this._getSnapshot());
+			if(changed) SmallMouth._eventRegistry.triggerEvent(
+				this._path, 'value', this._host, this._getSnapshot(), {local: true}
+			);
 			return this;
 		}
 
 		remove( onComplete?: (error) => any ): void {
 			this._dataRegistry.remove(this, {onComplete: onComplete});
-			SmallMouth._eventRegistry.triggerEvent(this._path, 'value', this._host, this._getSnapshot());
+			SmallMouth._eventRegistry.triggerEvent(
+				this._path, 'value', this._host, this._getSnapshot(), {local: true}
+			);
 		}
 
 		push( value: any, complete ?: (error) => any ): Resource {

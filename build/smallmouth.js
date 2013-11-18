@@ -19,10 +19,10 @@ var SmallMouth;
             if (typeof cancelCallback == 'function') {
                 SmallMouth._eventRegistry.addEvent(this._path, eventType, callback, context);
                 SmallMouth._eventRegistry.addEvent(this._path, "cancel", cancelCallback, context);
-                callback.call(context, this._getSnapshot());
+                callback.call(context, this._getSnapshot(), { local: true });
             } else {
                 SmallMouth._eventRegistry.addEvent(this._path, eventType, callback, cancelCallback);
-                callback.call(cancelCallback, this._getSnapshot());
+                callback.call(cancelCallback, this._getSnapshot(), { local: true });
             }
 
             return this;
@@ -36,20 +36,20 @@ var SmallMouth;
         Resource.prototype.set = function (value, onComplete) {
             var changed = this._dataRegistry.updateRegistry(this, value, { onComplete: onComplete });
             if (changed)
-                SmallMouth._eventRegistry.triggerEvent(this._path, 'value', this._host, this._getSnapshot());
+                SmallMouth._eventRegistry.triggerEvent(this._path, 'value', this._host, this._getSnapshot(), { local: true });
             return this;
         };
 
         Resource.prototype.update = function (value, onComplete) {
             var changed = this._dataRegistry.updateRegistry(this, value, { merge: true, onComplete: onComplete });
             if (changed)
-                SmallMouth._eventRegistry.triggerEvent(this._path, 'value', this._host, this._getSnapshot());
+                SmallMouth._eventRegistry.triggerEvent(this._path, 'value', this._host, this._getSnapshot(), { local: true });
             return this;
         };
 
         Resource.prototype.remove = function (onComplete) {
             this._dataRegistry.remove(this, { onComplete: onComplete });
-            SmallMouth._eventRegistry.triggerEvent(this._path, 'value', this._host, this._getSnapshot());
+            SmallMouth._eventRegistry.triggerEvent(this._path, 'value', this._host, this._getSnapshot(), { local: true });
         };
 
         Resource.prototype.push = function (value, complete) {
@@ -212,7 +212,7 @@ var SmallMouth;
 
         function triggerEvent(path, type, host, snapshot, options) {
             if (typeof options === "undefined") { options = {}; }
-            var event = getEvent(path, { trigger: type, host: host, remote: options.remote });
+            var event = getEvent(path, { trigger: type, host: host, local: options.local });
 
             var eventList = event.events[type];
 
@@ -452,7 +452,7 @@ var SmallMouth;
 
                 var registryData = SmallMouth.DataRegistry.getDataRegistry(_this._host).getData(resp.path);
 
-                SmallMouth._eventRegistry.triggerEvent(resp.path, 'value', host, new SmallMouth.Snapshot(resp.path, registryData, host), { remote: true });
+                SmallMouth._eventRegistry.triggerEvent(resp.path, 'value', host, new SmallMouth.Snapshot(resp.path, registryData, host), { local: false });
             });
 
             this._adapter.onMessage('update', function (resp) {
@@ -460,7 +460,7 @@ var SmallMouth;
 
                 var registryData = SmallMouth.DataRegistry.getDataRegistry(_this._host).getData(resp.path);
 
-                SmallMouth._eventRegistry.triggerEvent(resp.path, 'value', host, new SmallMouth.Snapshot(resp.path, registryData, host), { remote: true });
+                SmallMouth._eventRegistry.triggerEvent(resp.path, 'value', host, new SmallMouth.Snapshot(resp.path, registryData, host), { local: false });
             });
 
             this._adapter.onMessage('syncComplete', function (resp) {
