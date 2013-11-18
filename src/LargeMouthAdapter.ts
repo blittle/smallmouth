@@ -47,7 +47,7 @@ module SmallMouth {
 
 				var registryData = SmallMouth.DataRegistry.getDataRegistry(this._host).getData(resp.path);	
 
-				SmallMouth._eventRegistry.triggerEvent(resp.path, 'value', host, new SmallMouth.Snapshot(
+				SmallMouth.EventRegistry.getEventRegistry(this._host).triggerEvent(resp.path, 'value', host, new SmallMouth.Snapshot(
 					resp.path,
 					registryData,
 					host
@@ -59,7 +59,7 @@ module SmallMouth {
 
 				var registryData = SmallMouth.DataRegistry.getDataRegistry(this._host).getData(resp.path);	
 
-				SmallMouth._eventRegistry.triggerEvent(resp.path, 'value', host, new SmallMouth.Snapshot(
+				SmallMouth.EventRegistry.getEventRegistry(this._host).triggerEvent(resp.path, 'value', host, new SmallMouth.Snapshot(
 					resp.path,
 					registryData,
 					host

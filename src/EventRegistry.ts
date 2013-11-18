@@ -1,119 +1,143 @@
-module SmallMouth._eventRegistry {
+///<reference path="DataRegistry"/>
+///<reference path="SmallMouth"/>
 
-	var eventRegistry = {
-		events: {},
-		children: {}
-	};
+module SmallMouth {
 
-	function getEvent(path: string, options: any = {}) {
-		var event = eventRegistry;
-		var paths = path.split('/');
+	export class EventRegistry {
 
-		var tempPath = paths[0];
+		private eventRegistry;
+		private _host: string;
 
-		for(var i=0, iLength = paths.length; i < iLength; i++) {
+		constructor(host: string) {
+			this.eventRegistry = {
+				events: {},
+				children: {}
+			};
 
-			if(!event.children[paths[i]]) {
-				event.children[paths[i]] = {
-					events: {},
-					children: {}	
+			this._host = host;
+		}
+
+		addEvent(
+			path: string, type: string, callback: Function, context
+		): EventRegistry {
+
+			var event = this.getEvent(path);
+
+			event.events[type] || (event.events[type] = []);
+			
+			event.events[type].push({
+				callback: callback,
+				context: context
+			});
+
+			return this;
+		}
+
+		removeEvent(
+			path: string, type: string, callback: Function
+		): any {
+			var removeIndex;
+
+			var event = this.getEvent(path);
+
+			if(typeof type === 'undefined' || type === null) {
+				var keys : string[] = Object.keys(event.events);
+				for( var i=0, iLength = keys.length; i < iLength; i++) {
+					delete event.events[keys[i]];
+				}
+				return;
+			}
+
+			if(!event.events[type]) return;
+
+			if(typeof callback !== 'function') {
+				return event.events[type].length = 0;
+			}
+
+			for(var i=0, iLength : number = event.events[type].length; i < iLength; i++) {
+				if(event.events[type][i].callback === callback) {
+					removeIndex = i;
+					break;
 				}
 			}
 
-			if(typeof options.trigger !== 'undefined') {
-				var eventList = event.events[options.trigger];
+			if(typeof removeIndex !== 'undefined') {
+				event.events[type].splice(removeIndex, 1);
+			}
+		}
 
-				if(eventList) {
+		triggerEvent(
+			path: string, type: string, host: string, snapshot, options: any = {}
+		): EventRegistry {
 
-					var registryData = SmallMouth.DataRegistry.getDataRegistry(options.host).getData(tempPath);	
-					var snapshot = new SmallMouth.Snapshot(
-						tempPath,
-						registryData,
-						options.host
-					);
+			var event = this.getEvent(path, {trigger: type, host: host, local: options.local});
 
-					for(var j=0, jLength = eventList.length; j < jLength; j++) {
-						eventList[j].callback.call(
-							eventList[j].context, 
-							snapshot,
-							options
-						);
+			var eventList = event.events[type];
+
+			if(!eventList) return;
+
+			for(var i=0, iLength = eventList.length; i < iLength; i++) {
+				eventList[i].callback.call(eventList[i].context, snapshot, options);
+			}
+
+			return this;
+		}
+
+		resetRegistry(): EventRegistry {
+			this.eventRegistry.events = {};
+			this.eventRegistry.children = {};
+			return this;
+		}
+
+		private getEvent(path: string, options: any = {}) {
+			var event = this.eventRegistry;
+			var paths = path.split('/');
+
+			var tempPath = paths[0];
+
+			for(var i=0, iLength = paths.length; i < iLength; i++) {
+
+				if(!event.children[paths[i]]) {
+					event.children[paths[i]] = {
+						events: {},
+						children: {}	
 					}
 				}
-			}			
 
-			event = event.children[paths[i]];
+				if(typeof options.trigger !== 'undefined') {
+					var eventList = event.events[options.trigger];
+
+					if(eventList) {
+
+						var registryData = SmallMouth.DataRegistry.getDataRegistry(options.host).getData(tempPath);	
+						var snapshot = new SmallMouth.Snapshot(
+							tempPath,
+							registryData,
+							options.host
+						);
+
+						for(var j=0, jLength = eventList.length; j < jLength; j++) {
+							eventList[j].callback.call(
+								eventList[j].context, 
+								snapshot,
+								options
+							);
+						}
+					}
+				}			
+
+				event = event.children[paths[i]];
+				
+				if(i) {
+					tempPath = tempPath + "/" + paths[i];
+				}
+			}
 			
-			if(i) {
-				tempPath = tempPath + "/" + paths[i];
-			}
-		}
-		
-		return event;	
-	}
-
-	function addEvent(path: string, type: string, callback: Function, context) {
-		var event = getEvent(path);
-
-		event.events[type] || (event.events[type] = []);
-		
-		event.events[type].push({
-			callback: callback,
-			context: context
-		});
-	}
-
-	function removeEvent(path: string, type: string, callback: Function) {
-		var removeIndex;
-
-		var event = getEvent(path);
-
-		if(typeof type === 'undefined' || type === null) {
-			var keys : string[] = Object.keys(event.events);
-			for( var i=0, iLength = keys.length; i < iLength; i++) {
-				delete event.events[keys[i]];
-			}
-			return;
+			return event;	
 		}
 
-		if(!event.events[type]) return;
-
-		if(typeof callback !== 'function') {
-			return event.events[type].length = 0;
-		}
-
-		for(var i=0, iLength : number = event.events[type].length; i < iLength; i++) {
-			if(event.events[type][i].callback === callback) {
-				removeIndex = i;
-				break;
-			}
-		}
-
-		if(typeof removeIndex !== 'undefined') {
-			event.events[type].splice(removeIndex, 1);
+		public static getEventRegistry(host: string): EventRegistry {
+			return SmallMouth.hosts[host].eventRegistry;
 		}
 	}
-
-	function triggerEvent(path: string, type: string, host: string, snapshot, options: any = {}) {
-		var event = getEvent(path, {trigger: type, host: host, local: options.local});
-
-		var eventList = event.events[type];
-
-		if(!eventList) return;
-
-		for(var i=0, iLength = eventList.length; i < iLength; i++) {
-			eventList[i].callback.call(eventList[i].context, snapshot, options);
-		}
-	}
-
-	function resetRegistry() {
-		eventRegistry.events = {};
-		eventRegistry.children = {};
-	}
-
-	export var addEvent = addEvent;
-	export var removeEvent = removeEvent;
-	export var triggerEvent = triggerEvent;
-	export var resetRegistry = resetRegistry;
-	export var eventRegistry = eventRegistry;
 }

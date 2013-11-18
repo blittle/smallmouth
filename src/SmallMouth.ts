@@ -13,4 +13,10 @@ module SmallMouth {
 		if(hosts[host].data) return hosts[host].data;
 		return  hosts[host].data = new SmallMouth.DataRegistry(host, connection);
 	}
+
+	export var makeEventRegistry = function(host) {
+		if(!hosts[host]) hosts[host] = {};
+		if(hosts[host].eventRegistry) return hosts[host].eventRegistry;
+		return hosts[host].eventRegistry = new SmallMouth.EventRegistry(host);
+	}
 }

@@ -39,6 +39,7 @@ declare module SmallMouth {
         public _host: string;
         public _largeMouthAdapter: SmallMouth.LargeMouthAdapter;
         public _dataRegistry: SmallMouth.DataRegistry;
+        public _eventRegistry: SmallMouth.EventRegistry;
         constructor(address: string);
         public on(eventType: string, callback: (snapshot: SmallMouth.SnapshotInterface, previusChild?: string) => any, cancelCallback?: Function, context?: any): Resource;
         public off(eventType: string, callback?: Function, context?: any): Resource;
@@ -59,16 +60,20 @@ declare module SmallMouth {
     var hosts: {};
     var makeConnection: (host: any) => any;
     var makeDataRegistry: (host: any, connection: any) => any;
+    var makeEventRegistry: (host: any) => any;
 }
-declare module SmallMouth._eventRegistry {
-    var addEvent: (path: string, type: string, callback: Function, context: any) => void;
-    var removeEvent: (path: string, type: string, callback: Function) => number;
-    var triggerEvent: (path: string, type: string, host: string, snapshot: any, options?: any) => void;
-    var resetRegistry: () => void;
-    var eventRegistry: {
-        events: {};
-        children: {};
-    };
+declare module SmallMouth {
+    class EventRegistry {
+        private eventRegistry;
+        private _host;
+        constructor(host: string);
+        public addEvent(path: string, type: string, callback: Function, context): EventRegistry;
+        public removeEvent(path: string, type: string, callback: Function): any;
+        public triggerEvent(path: string, type: string, host: string, snapshot, options?: any): EventRegistry;
+        public resetRegistry(): EventRegistry;
+        private getEvent(path, options?);
+        static getEventRegistry(host: string): EventRegistry;
+    }
 }
 declare module SmallMouth {
     class Snapshot implements SmallMouth.SnapshotInterface {

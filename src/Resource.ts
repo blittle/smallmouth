@@ -13,6 +13,7 @@ module SmallMouth {
 		_host: string;
 		_largeMouthAdapter: SmallMouth.LargeMouthAdapter;
 		_dataRegistry: SmallMouth.DataRegistry;
+		_eventRegistry: SmallMouth.EventRegistry;
 
 		constructor(address: string) {
 			var parse = urlReg.exec(address),
@@ -26,6 +27,8 @@ module SmallMouth {
 
 			this._path = path;
 			this._host = host;
+
+			this._eventRegistry = SmallMouth.makeEventRegistry(host);
 
 			this._largeMouthAdapter = SmallMouth.makeConnection(host);
 			this._dataRegistry = SmallMouth.makeDataRegistry(host, this._largeMouthAdapter);
@@ -42,11 +45,11 @@ module SmallMouth {
 		): Resource {
 
 			if(typeof cancelCallback == 'function') {
-				SmallMouth._eventRegistry.addEvent(this._path, eventType, callback, context);	
-				SmallMouth._eventRegistry.addEvent(this._path, "cancel", cancelCallback, context);
+				this._eventRegistry.addEvent(this._path, eventType, callback, context);	
+				this._eventRegistry.addEvent(this._path, "cancel", cancelCallback, context);
 				callback.call(context, this._getSnapshot(), {local: true});
 			} else {
-				SmallMouth._eventRegistry.addEvent(this._path, eventType, callback, cancelCallback);	
+				this._eventRegistry.addEvent(this._path, eventType, callback, cancelCallback);	
 				callback.call(cancelCallback, this._getSnapshot(), {local: true});
 			}
 
@@ -54,13 +57,13 @@ module SmallMouth {
 		}
 
 		off( eventType: string, callback ?: Function, context ?: any ): Resource {
-			SmallMouth._eventRegistry.removeEvent(this._path, eventType, callback);
+			this._eventRegistry.removeEvent(this._path, eventType, callback);
 			return this;
 		}
 
 		set(value: any, onComplete ?: (error) => any): Resource {
 			var changed = this._dataRegistry.updateRegistry(this, value, {onComplete: onComplete});	
-			if(changed) SmallMouth._eventRegistry.triggerEvent(
+			if(changed) this._eventRegistry.triggerEvent(
 				this._path, 'value', this._host, this._getSnapshot(), {local: true}
 			);
 			return this;	
@@ -68,7 +71,7 @@ module SmallMouth {
 
 		update( value: any, onComplete ?: (error) => any ): Resource {
 			var changed = this._dataRegistry.updateRegistry(this, value, {merge: true, onComplete: onComplete});	
-			if(changed) SmallMouth._eventRegistry.triggerEvent(
+			if(changed) this._eventRegistry.triggerEvent(
 				this._path, 'value', this._host, this._getSnapshot(), {local: true}
 			);
 			return this;
@@ -76,7 +79,7 @@ module SmallMouth {
 
 		remove( onComplete?: (error) => any ): void {
 			this._dataRegistry.remove(this, {onComplete: onComplete});
-			SmallMouth._eventRegistry.triggerEvent(
+			this._eventRegistry.triggerEvent(
 				this._path, 'value', this._host, this._getSnapshot(), {local: true}
 			);
 		}

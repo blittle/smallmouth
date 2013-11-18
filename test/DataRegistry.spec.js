@@ -2,15 +2,17 @@ describe("Data Registry", function() {
 
 	var dataRegistry;
 	var serverConnection;
+	var eventRegistry;
 
 	beforeEach(function() {
+		eventRegistry = SmallMouth.makeEventRegistry('');
 		serverConnection = SmallMouth.makeConnection('');
 		dataRegistry = SmallMouth.makeDataRegistry('', serverConnection);
 	});
 
 	afterEach(function() {
 		dataRegistry.resetRegistry();
-		SmallMouth._eventRegistry.resetRegistry();
+		eventRegistry.resetRegistry();
 	});
 
 	it("Should initialize the registry with correctly", function() {

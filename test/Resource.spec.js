@@ -1,15 +1,17 @@
 describe('Resource', function() {
 	var dataRegistry;
 	var serverConnection;
+	var eventRegistry;
 
 	beforeEach(function() {
+		eventRegistry = SmallMouth.makeEventRegistry('');
 		serverConnection = SmallMouth.makeConnection('');
 		dataRegistry = SmallMouth.makeDataRegistry('', serverConnection);
 	});
 
 	afterEach(function() {
 		dataRegistry.resetRegistry();
-		SmallMouth._eventRegistry.resetRegistry();
+		eventRegistry.resetRegistry();
 	});
 
 
@@ -278,29 +280,29 @@ describe('Resource', function() {
 
 		chats.on('value', func);
 
-		expect(SmallMouth._eventRegistry.eventRegistry.children.chats.events.value.length).toBe(1);
+		expect(eventRegistry.eventRegistry.children.chats.events.value.length).toBe(1);
 
 		chats.off('value', func);
 
-		expect(SmallMouth._eventRegistry.eventRegistry.children.chats.events.value.length).toBe(0);
+		expect(eventRegistry.eventRegistry.children.chats.events.value.length).toBe(0);
 
 		chats.on('value', func);
 		chats.on('value', func);
 
-		expect(SmallMouth._eventRegistry.eventRegistry.children.chats.events.value.length).toBe(2);
+		expect(eventRegistry.eventRegistry.children.chats.events.value.length).toBe(2);
 
 		chats.off('value');
 
-		expect(SmallMouth._eventRegistry.eventRegistry.children.chats.events.value.length).toBe(0);
+		expect(eventRegistry.eventRegistry.children.chats.events.value.length).toBe(0);
 
 		chats.on('value', func);
 		chats.on('value', func);
 
-		expect(SmallMouth._eventRegistry.eventRegistry.children.chats.events.value.length).toBe(2);
+		expect(eventRegistry.eventRegistry.children.chats.events.value.length).toBe(2);
 
 		chats.off();
 
-		expect(SmallMouth._eventRegistry.eventRegistry.children.chats.events.value).not.toBeDefined();
+		expect(eventRegistry.eventRegistry.children.chats.events.value).not.toBeDefined();
 	});
 
 	it('Should pass a parameter with an event defining if it is local data', function() {
