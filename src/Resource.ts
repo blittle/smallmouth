@@ -111,6 +111,10 @@ module SmallMouth {
 			return this._path.substring( this._path.lastIndexOf('/') + 1 );
 		}
 
+		getSocket(): any {
+			return this._largeMouthAdapter.adapter.socket;
+		}
+
 		toString(): string {
 			return this._path;
 		}

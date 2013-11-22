@@ -81,6 +81,10 @@ var SmallMouth;
             return this._path.substring(this._path.lastIndexOf('/') + 1);
         };
 
+        Resource.prototype.getSocket = function () {
+            return this._largeMouthAdapter.adapter.socket;
+        };
+
         Resource.prototype.toString = function () {
             return this._path;
         };
@@ -450,7 +454,7 @@ var SmallMouth;
         function LargeMouthAdapter(host, type) {
             if (typeof type === "undefined") { type = SmallMouth.serverAdapterType; }
             this._callbackId = 0;
-            this._adapter = new SmallMouth[type]();
+            this.adapter = new SmallMouth[type]();
 
             this.connect(host);
             this._host = host;
@@ -462,9 +466,9 @@ var SmallMouth;
 
         LargeMouthAdapter.prototype.connect = function (host) {
             var _this = this;
-            this._adapter.connect(host);
+            this.adapter.connect(host);
 
-            this._adapter.onMessage('set', function (resp) {
+            this.adapter.onMessage('set', function (resp) {
                 SmallMouth.DataRegistry.getDataRegistry(_this._host).serverSetData(resp.path, resp.value);
 
                 var registryData = SmallMouth.DataRegistry.getDataRegistry(_this._host).getData(resp.path);
@@ -472,7 +476,7 @@ var SmallMouth;
                 SmallMouth.EventRegistry.getEventRegistry(_this._host).triggerEvent(resp.path, 'value', host, new SmallMouth.Snapshot(resp.path, registryData, host), { local: false });
             });
 
-            this._adapter.onMessage('update', function (resp) {
+            this.adapter.onMessage('update', function (resp) {
                 SmallMouth.DataRegistry.getDataRegistry(_this._host).serverUpdateData(resp.path, resp.value);
 
                 var registryData = SmallMouth.DataRegistry.getDataRegistry(_this._host).getData(resp.path);
@@ -480,7 +484,7 @@ var SmallMouth;
                 SmallMouth.EventRegistry.getEventRegistry(_this._host).triggerEvent(resp.path, 'value', host, new SmallMouth.Snapshot(resp.path, registryData, host), { local: false });
             });
 
-            this._adapter.onMessage('syncComplete', function (resp) {
+            this.adapter.onMessage('syncComplete', function (resp) {
                 _this.executeCallback(resp.reqId, resp.err);
             });
 
@@ -498,7 +502,7 @@ var SmallMouth;
             if (!this._host)
                 return;
 
-            this._adapter.send('subscribe', {
+            this.adapter.send('subscribe', {
                 path: path,
                 value: SmallMouth.DataRegistry.getDataRegistry(this._host).getData(path)
             });
@@ -515,7 +519,7 @@ var SmallMouth;
                 this._callbacks[callbackId] = onComplete;
             }
 
-            this._adapter.send('set', {
+            this.adapter.send('set', {
                 path: path,
                 value: data,
                 reqId: callbackId
@@ -525,7 +529,7 @@ var SmallMouth;
         };
 
         LargeMouthAdapter.prototype.generateId = function () {
-            return this._adapter.id + "-" + (new Date()).getTime();
+            return this.adapter.id + "-" + (new Date()).getTime();
         };
         return LargeMouthAdapter;
     })();

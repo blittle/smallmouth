@@ -23,11 +23,11 @@ module SmallMouth {
 		private _callbackId = 0;
 		private _host: string;
 
-		private _adapter: SmallMouth.ServerAdapter;
+		public adapter: SmallMouth.ServerAdapter;
 
 		constructor(host: string, type: string = serverAdapterType) {
 
-			this._adapter = new SmallMouth[type]();
+			this.adapter = new SmallMouth[type]();
 
 			this.connect(host);
 			this._host = host;
@@ -40,9 +40,9 @@ module SmallMouth {
 
 		connect( host: string ): LargeMouthAdapter {
 
-			this._adapter.connect(host);
+			this.adapter.connect(host);
 
-			this._adapter.onMessage('set', (resp) => {
+			this.adapter.onMessage('set', (resp) => {
 				SmallMouth.DataRegistry.getDataRegistry(this._host).serverSetData(resp.path, resp.value);
 
 				var registryData = SmallMouth.DataRegistry.getDataRegistry(this._host).getData(resp.path);	
@@ -54,7 +54,7 @@ module SmallMouth {
 				), {local: false});
 			});
 
-			this._adapter.onMessage('update', (resp) => {
+			this.adapter.onMessage('update', (resp) => {
 				SmallMouth.DataRegistry.getDataRegistry(this._host).serverUpdateData(resp.path, resp.value);
 
 				var registryData = SmallMouth.DataRegistry.getDataRegistry(this._host).getData(resp.path);	
@@ -66,7 +66,7 @@ module SmallMouth {
 				), {local: false});
 			});
 
-			this._adapter.onMessage('syncComplete', (resp) => {
+			this.adapter.onMessage('syncComplete', (resp) => {
 				this.executeCallback(resp.reqId, resp.err);
 			});
 
@@ -83,7 +83,7 @@ module SmallMouth {
 		subscribe( path: string ): LargeMouthAdapter {
 			if(!this._host) return;
 
-			this._adapter.send('subscribe', {
+			this.adapter.send('subscribe', {
 				path: path,
 				value: SmallMouth.DataRegistry.getDataRegistry(this._host).getData(path)
 			});
@@ -100,7 +100,7 @@ module SmallMouth {
 				this._callbacks[callbackId] = onComplete;
 			}
 
-			this._adapter.send('set', {
+			this.adapter.send('set', {
 				path: path,
 				value: data,
 				reqId: callbackId	
@@ -110,7 +110,7 @@ module SmallMouth {
 		}
 
 		generateId(): string {			
-			return this._adapter.id + "-" + (new Date()).getTime();
+			return this.adapter.id + "-" + (new Date()).getTime();
 		}
 	}
 }

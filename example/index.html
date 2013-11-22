@@ -9,8 +9,10 @@
 	<script src="//cdnjs.cloudflare.com/ajax/libs/socket.io/0.9.16/socket.io.min.js"></script>
 	<script src="../build/smallmouth.js"></script>
 	<script>
-		var chats = new SmallMouth.Resource('http://localhost:3000/chats');
-		var test = new SmallMouth.Resource('http://localhost:3000/test');
+		var chats = new SmallMouth.Resource('http://192.168.0.29:3000/chats');
+		var test = new SmallMouth.Resource('http://192.168.0.29:3000/test');
+		var socket = test.getSocket();
+		
 		var i = 0;
 
 		test.on('value', function(snapshot) {
@@ -38,9 +40,11 @@
 			};
 
 			$scope.click = function() {
-				test.set((i++), function(err) {
-					console.log('callback', err);
-				});
+				// test.set((i++), function(err) {
+				// 	console.log('callback', err);
+				// });
+
+				socket.emit('someEvent', 'myDataDogg');
 			}
 		}
 	</script>

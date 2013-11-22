@@ -51,6 +51,7 @@ declare module SmallMouth {
         public parent(): Resource;
         public root(): Resource;
         public name(): string;
+        public getSocket(): any;
         public toString(): string;
         static cleanPath(_path: string): string;
         private _getSnapshot();
@@ -94,6 +95,7 @@ declare module SmallMouth {
 }
 declare module SmallMouth {
     interface ServerAdapter {
+        socket: any;
         id: string;
         connect(host): ServerAdapter;
         onMessage(type: string, callback?: (error: any) => any): ServerAdapter;
@@ -129,7 +131,7 @@ declare module SmallMouth {
         private _callbacks;
         private _callbackId;
         private _host;
-        private _adapter;
+        public adapter: SmallMouth.ServerAdapter;
         constructor(host: string, type?: string);
         private generateCallbackId();
         public connect(host: string): LargeMouthAdapter;
