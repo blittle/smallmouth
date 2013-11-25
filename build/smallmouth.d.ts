@@ -51,6 +51,7 @@ declare module SmallMouth {
         public parent(): Resource;
         public root(): Resource;
         public name(): string;
+        public postMessage(key: string, data: any): Resource;
         public getSocket(): any;
         public toString(): string;
         static cleanPath(_path: string): string;

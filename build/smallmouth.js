@@ -81,6 +81,11 @@ var SmallMouth;
             return this._path.substring(this._path.lastIndexOf('/') + 1);
         };
 
+        Resource.prototype.postMessage = function (key, data) {
+            this._largeMouthAdapter.adapter.send(key, data);
+            return this;
+        };
+
         Resource.prototype.getSocket = function () {
             return this._largeMouthAdapter.adapter.socket;
         };

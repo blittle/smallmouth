@@ -33,7 +33,7 @@ everything is stored locally before being saved to the server. Because all data 
 ```
 See a more [complete example](example/index.html) with AngularJS.
 ##Release notes
- - v0.2.4 - Add a method to the SmallMouth.Resource.getSocket() to return the actual socket connection to the server. This is useful for sending custom events. See LargeMouth's documentation for how to register custom event listeners.
+ - v0.2.4 - Add a method SmallMouth.Resource.postMessage() to sent a custom event/message to the server. See LargeMouth's documentation for how to register custom event listeners.
  - v0.2.3 - Refactor the EventRegistry into a class. For event listener callback functions, the second parameter is now an options object which currently is only passed whether or not the data is from the local or remote registry, egs. `{local: true}`
  - v0.2.1 - Fix sockjs implementation to queue events to send once the connection is finally made
  - v0.2.0 - Support connecting to multiple backend hosts (create separate data registries for each host). Support multiple types of socket architectures (socket.io and sockjs).

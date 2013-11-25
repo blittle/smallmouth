@@ -111,6 +111,11 @@ module SmallMouth {
 			return this._path.substring( this._path.lastIndexOf('/') + 1 );
 		}
 
+		postMessage(key: string, data: any): Resource {
+			this._largeMouthAdapter.adapter.send(key, data);
+			return this;
+		}
+
 		getSocket(): any {
 			return this._largeMouthAdapter.adapter.socket;
 		}
