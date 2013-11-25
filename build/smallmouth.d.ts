@@ -63,6 +63,7 @@ declare module SmallMouth {
     var makeConnection: (host: any) => any;
     var makeDataRegistry: (host: any, connection: any) => any;
     var makeEventRegistry: (host: any) => any;
+    function postMessage(host: string, key: string, data: any): void;
 }
 declare module SmallMouth {
     class EventRegistry {

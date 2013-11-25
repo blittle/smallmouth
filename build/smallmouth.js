@@ -139,6 +139,11 @@ var SmallMouth;
             return SmallMouth.hosts[host].eventRegistry;
         return SmallMouth.hosts[host].eventRegistry = new SmallMouth.EventRegistry(host);
     };
+
+    function postMessage(host, key, data) {
+        SmallMouth.makeConnection(host).adapter.send(key, data);
+    }
+    SmallMouth.postMessage = postMessage;
 })(SmallMouth || (SmallMouth = {}));
 var SmallMouth;
 (function (SmallMouth) {

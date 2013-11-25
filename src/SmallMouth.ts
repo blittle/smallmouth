@@ -19,4 +19,8 @@ module SmallMouth {
 		if(hosts[host].eventRegistry) return hosts[host].eventRegistry;
 		return hosts[host].eventRegistry = new SmallMouth.EventRegistry(host);
 	}
+
+	export function postMessage(host: string, key: string, data: any) {
+		SmallMouth.makeConnection(host).adapter.send(key, data);
+	}
 }
