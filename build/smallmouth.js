@@ -54,12 +54,12 @@ var SmallMouth;
             this._eventRegistry.triggerEvent(this._path, 'value', this._host, this._getSnapshot(), { local: true });
         };
 
-        Resource.prototype.push = function (value, complete) {
+        Resource.prototype.push = function (value, onComplete) {
             var id = this._largeMouthAdapter.generateId();
             var ref = this.child(id);
 
             if (typeof value !== 'undefined') {
-                ref.set(value);
+                ref.set(value, onComplete);
             }
 
             return ref;
@@ -281,6 +281,9 @@ var SmallMouth;
             for (var key in data.children) {
                 if (data.children.hasOwnProperty(key)) {
                     obj[key] = getJSON(data.children[key]);
+                    if (obj[key] == null) {
+                        delete obj[key];
+                    }
                 }
             }
         }
@@ -495,16 +498,22 @@ var SmallMouth;
             });
 
             this.adapter.onMessage('syncComplete', function (resp) {
-                _this.executeCallback(resp.reqId, resp.err);
+                _this.executeCallback(resp.reqId, resp.err, resp.path, resp.data);
             });
 
             return this;
         };
 
-        LargeMouthAdapter.prototype.executeCallback = function (id, err) {
+        LargeMouthAdapter.prototype.executeCallback = function (id, err, path, data) {
             if (typeof this._callbacks[id] == 'function') {
                 this._callbacks[id](err);
                 delete this._callbacks[id];
+            }
+
+            if (err && path) {
+                SmallMouth.DataRegistry.getDataRegistry(this._host).resetData(path, data);
+
+                SmallMouth.EventRegistry.getEventRegistry(this._host).triggerEvent(path, 'value', this._host, new SmallMouth.Snapshot(path, SmallMouth.DataRegistry.getDataRegistry(this._host).getData(path), this._host), { local: false });
             }
         };
 
@@ -775,6 +784,34 @@ else {
             }
 
             return versions;
+        };
+
+        DataRegistry.prototype.resetData = function (path, element) {
+            var paths = path.split('/');
+            var data = this._dataRegistry;
+
+            for (var i = 0, iLength = paths.length; i < iLength; i++) {
+                if (!data.children)
+                    data.children = {};
+
+                if (!data.children[paths[i]]) {
+                    data.children[paths[i]] = {
+                        version: 0
+                    };
+                }
+
+                if (i === paths.length - 1) {
+                    if (typeof element == 'undefined' || element == null) {
+                        delete data.children[paths[i]];
+                    } else {
+                        data.children[paths[i]] = element;
+                    }
+                } else {
+                    data = data.children[paths[i]];
+                }
+            }
+
+            this.saveToLocalStorage();
         };
 
         DataRegistry.prototype.serverUpdateData = function (path, element) {

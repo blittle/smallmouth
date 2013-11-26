@@ -244,6 +244,33 @@ module SmallMouth {
 			return versions;
 		}
 
+		resetData(path: string, element: any) {
+			var paths = path.split('/');
+			var data = this._dataRegistry;
+			
+			for(var i=0, iLength = paths.length; i < iLength; i++) {	
+				if(!data.children) data.children = {};
+
+				if(!data.children[paths[i]]) {
+					data.children[paths[i]] = {
+						version: 0
+					} 
+				} 
+
+				if(i === paths.length - 1) {
+					if(typeof element == 'undefined' || element == null) {
+						delete data.children[paths[i]];
+					} else {
+						data.children[paths[i]] = element;
+					}
+				} else {
+					data = data.children[paths[i]];
+				}
+			}
+
+			this.saveToLocalStorage();
+		}
+
 		serverUpdateData(path: string, element: any) {
 			var data = this.getData(path, {versionUpdate: true});
 			if(element) mergeRemoteData(data, element);

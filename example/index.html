@@ -31,7 +31,9 @@
 			});				
 
 			$scope.addChat = function(chat) {
-				chats.push({name: chat});
+				chats.push({name: chat}, function(err) {
+					if(err) alert(err);
+				});
 				$scope.newChat = "";
 			};
 

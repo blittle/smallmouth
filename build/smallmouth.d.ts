@@ -46,7 +46,7 @@ declare module SmallMouth {
         public set(value: any, onComplete?: (error: any) => any): Resource;
         public update(value: any, onComplete?: (error: any) => any): Resource;
         public remove(onComplete?: (error: any) => any): void;
-        public push(value: any, complete?: (error: any) => any): Resource;
+        public push(value: any, onComplete?: (error: any) => any): Resource;
         public child(childPath: string): Resource;
         public parent(): Resource;
         public root(): Resource;
@@ -137,7 +137,7 @@ declare module SmallMouth {
         constructor(host: string, type?: string);
         private generateCallbackId();
         public connect(host: string): LargeMouthAdapter;
-        public executeCallback(id, err): void;
+        public executeCallback(id: string, err: any, path: string, data: any): void;
         public subscribe(path: string): LargeMouthAdapter;
         public syncRemote(data, path: string, onComplete?: (error: any) => any): LargeMouthAdapter;
         public generateId(): string;
@@ -154,6 +154,7 @@ declare module SmallMouth {
         public getData(path, options?: any);
         public remove(resource: SmallMouth.Resource, options?: any);
         public getVersions(path): any[];
+        public resetData(path: string, element: any): void;
         public serverUpdateData(path: string, element: any): void;
         public serverSetData(path: string, element: any): void;
         public resetRegistry(): void;

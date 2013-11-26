@@ -84,12 +84,12 @@ module SmallMouth {
 			);
 		}
 
-		push( value: any, complete ?: (error) => any ): Resource {
+		push( value: any, onComplete ?: (error) => any ): Resource {
 			var id = this._largeMouthAdapter.generateId();
 			var ref = this.child(id);
 
 			if(typeof value !== 'undefined') {
-				ref.set(value);
+				ref.set(value, onComplete);
 			}
 
 			return ref;

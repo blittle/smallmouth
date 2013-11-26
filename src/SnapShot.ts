@@ -14,6 +14,9 @@ module SmallMouth {
 			for(var key in data.children) {
 				if(data.children.hasOwnProperty(key)) {
 					obj[key] = getJSON(data.children[key]);
+					if(obj[key] == null) {
+						delete obj[key];
+					}
 				}
 			}
 		} 

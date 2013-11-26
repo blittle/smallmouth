@@ -67,16 +67,26 @@ module SmallMouth {
 			});
 
 			this.adapter.onMessage('syncComplete', (resp) => {
-				this.executeCallback(resp.reqId, resp.err);
+				this.executeCallback(resp.reqId, resp.err, resp.path, resp.data);
 			});
 
 			return this;
 		}
 
-		executeCallback(id, err) {
+		executeCallback(id: string, err: any, path: string, data: any) {
 			if(typeof this._callbacks[id] == 'function') {
 				this._callbacks[id](err);
 				delete this._callbacks[id];
+			}
+
+			if(err && path) {
+				SmallMouth.DataRegistry.getDataRegistry(this._host).resetData(path, data);
+
+				SmallMouth.EventRegistry.getEventRegistry(this._host).triggerEvent(path, 'value', this._host, new SmallMouth.Snapshot(
+					path,
+					SmallMouth.DataRegistry.getDataRegistry(this._host).getData(path),
+					this._host
+				), {local: false});
 			}
 		}
 
