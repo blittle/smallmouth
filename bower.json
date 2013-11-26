@@ -1,12 +1,11 @@
 {
   "name": "smallmouth",
-  "version": "0.2.4",
+  "version": "0.2.5",
   "homepage": "https://github.com/blittle/smallmouth",
   "authors": [
     "Bret Little <bret.little@gmail.com>"
   ],
   "description": "The client library for LargeMouth BAAS",
-  "main": "build/smallmouth.min.js",
   "license": "MIT",
   "ignore": [
     "**/.*",
