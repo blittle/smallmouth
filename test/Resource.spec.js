@@ -80,8 +80,8 @@ describe('Resource', function() {
 		var resource2 = resource1.root();
 		var resource3 = new SmallMouth.Resource('/some');
 
-		expect(resource2._getSnapshot().val().data.for.you).toBeNull();
-		expect(resource3._getSnapshot().val().data.for.you).toBeNull();
+		expect(resource2._getSnapshot().val().data.for.you).toBeUndefined();
+		expect(resource3._getSnapshot().val().data.for.you).toBeUndefined();
 	});
 
 	it('Should return the resource name', function() {
@@ -175,7 +175,7 @@ describe('Resource', function() {
 		var parent = resource1.parent();
 		var snapshot = parent._getSnapshot();
 
-		expect(snapshot.val().data).toBeNull();
+		expect(snapshot.val().data).toBeUndefined();
 	});
 
 	it('Should update parent resources version when a sub resource is removed', function() {
@@ -248,8 +248,8 @@ describe('Resource', function() {
 		expect(spy1).toHaveBeenCalled();
 		expect(spy2).toHaveBeenCalled();
 
-		expect(spy1.mostRecentCall.args[0].val().child).toBe(null);
-		expect(spy2.mostRecentCall.args[0].val()).toBe(null);
+		expect(spy1.mostRecentCall.args[0].val().child).toBeUndefined();
+		expect(spy2.mostRecentCall.args[0].val()).toBeNull();
 	});
 
 	it('Should create child references', function() {

@@ -161,7 +161,7 @@ describe("Snapshot", function() {
 		expect(val[1]).toBe(0);
 		expect(val[2]).toBe("");
 		expect(val[3]).toBe(false);
-		expect(val[4]).toBe(null);
-		expect(val[5]).toBe(null);
+		expect(val[4]).toBeUndefined();
+		expect(val[5]).toBeUndefined();
 	})
 });
