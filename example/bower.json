@@ -1,0 +1,11 @@
+{
+  "name": "smallmouth-test",
+  "version": "0.0.0",
+  "authors": [
+    "Bret Little <bret.little@gmail.com>"
+  ],  
+  "license": "MIT",
+  "dependencies": {
+    "angular-smallmouth": "0.1.0"
+  }
+}

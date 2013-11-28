@@ -6,65 +6,44 @@
 	<link rel="stylesheet" href="http://yui.yahooapis.com/pure/0.3.0/pure-min.css">
 
 	<script src="//cdnjs.cloudflare.com/ajax/libs/angular.js/1.1.5/angular.min.js"></script>
+	<script src="bower_components/angular-smallmouth/angular-smallmouth.js"></script>
 	<script src="//cdnjs.cloudflare.com/ajax/libs/socket.io/0.9.16/socket.io.min.js"></script>
 	<script src="../build/smallmouth.js"></script>
-	<script>
-		var chats = new SmallMouth.Resource('http://localhost:3000/chats');
-		var test = new SmallMouth.Resource('http://localhost:3000/test');
-		var socket = test.getSocket();
-		
-		var i = 0;
-
-		test.on('value', function(snapshot) {
-			console.log('val', snapshot.val());
-		})
-
-		function smallmouth($scope, $timeout) {
-			$scope.chats = [];
-			$scope.newChat = "";
-
-			chats.on('value', function(snapshot, options) {					
-				$timeout(function() {
-					$scope.chats = snapshot.val();
-					$scope.$digest(); 
-				});
-			});				
-
-			$scope.addChat = function(chat) {
-				chats.push({name: chat}, function(err) {
-					if(err) alert(err);
-				});
-				$scope.newChat = "";
-			};
-
-			$scope.clearAll = function() {
-				chats.remove();
-			};
-
-			$scope.click = function() {
-				// test.set((i++), function(err) {
-				// 	console.log('callback', err);
-				// });
-				console.log('hi');	
-				chats.postMessage('someEvent', 'myDataDogg');
-			}
-		}
-	</script>
 </head>
-<body ng-app>
-	<div ng-controller="smallmouth">
-		<ul>
-			<li ng-repeat="(id, chat) in chats" id="{{id}}">
-				{{chat.name}}
-			</li>
+<body ng-app="UserApp">
+	<div ng-controller="UserController" class="pure-form">
+		<ul ng-repeat="user in users">
+			<li>{{user}} <button ng-click="removeUser(user)">x</button></li>
 		</ul>
-
-		<form class="pure-form">
-			<span>Say something: <input type="text" ng-model="newChat" /></span>
-			<button class="pure-button pure-button-primary" ng-click="addChat(newChat)">Add Chat</button>
-			<button class="pure-button" ng-click="clearAll()">Clear All</button>
-			<button ng-click="click()">Hi</button>
-		</form>
+		<input type="text" ng-model="newUser"/>
+		<button type="submit" class="pure-button pure-button-primary" ng-click="addUser()">Add New User</button>
+		<button class="pure-button pure-button-secondary" ng-click="clearUsers()">Clear All Users</button>
 	</div>
 </body>
+<script>
+	var userApp = angular.module("UserApp", ["angular-smallmouth"]);
+
+	userApp.controller("UserController", function($scope, AngularSmallMouth) {
+		var users = new SmallMouth.Resource("http://localhost:3000/users");
+
+		AngularSmallMouth.watchResource(users, $scope, 'users');
+
+		$scope.addUser = function() {
+			// Don't add the same user twice
+			if(!users[$scope.newUser]) {
+				users.child($scope.newUser).set($scope.newUser);
+			}
+
+			$scope.newUser = "";
+		}
+
+		$scope.clearUsers = function() {
+			users.set({});
+		}
+
+		$scope.removeUser = function(user) {
+			users.child(user).remove();
+		}
+	});
+</script>
 </html>
