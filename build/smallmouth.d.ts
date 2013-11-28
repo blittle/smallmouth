@@ -139,7 +139,9 @@ declare module SmallMouth {
         public connect(host: string): LargeMouthAdapter;
         public executeCallback(id: string, err: any, path: string, data: any): void;
         public subscribe(path: string): LargeMouthAdapter;
-        public syncRemote(data, path: string, onComplete?: (error: any) => any): LargeMouthAdapter;
+        private syncRemote(method, path, data?, onComplete?);
+        public setRemote(data, path: string, onComplete?: (error: any) => any): LargeMouthAdapter;
+        public removeRemote(data, path: string, onComplete?: (error: any) => any): LargeMouthAdapter;
         public generateId(): string;
     }
 }
@@ -152,14 +154,18 @@ declare module SmallMouth {
         public initializeResource(resource: SmallMouth.Resource): DataRegistry;
         public updateRegistry(resource: SmallMouth.Resource, value: any, options?: any): boolean;
         public getData(path, options?: any);
-        public remove(resource: SmallMouth.Resource, options?: any);
+        public remove(resource: SmallMouth.Resource, options?: any): void;
+        public serverRemove(path: string): void;
+        public removePath(path: string);
         public getVersions(path): any[];
         public resetData(path: string, element: any): void;
         public serverUpdateData(path: string, element: any): void;
         public serverSetData(path: string, element: any): void;
         public resetRegistry(): void;
         public saveToLocalStorage(): void;
-        public sync(resource: SmallMouth.Resource, onComplete?: (error: any) => any): void;
+        public persistSet(resource: SmallMouth.Resource, onComplete?: (error: any) => any): void;
+        public persistRemove(resource: SmallMouth.Resource, onComplete?: (error: any) => any): void;
+        public persist(method: string, path: string, data: any, onComplete?: (error: any) => any): void;
         static getDataRegistry(host: string): DataRegistry;
     }
 }

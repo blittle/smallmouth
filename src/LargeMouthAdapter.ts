@@ -66,6 +66,15 @@ module SmallMouth {
 				), {local: false});
 			});
 
+			this.adapter.onMessage('remove', (resp) => {
+				SmallMouth.DataRegistry.getDataRegistry(this._host).serverRemove(resp.path);
+
+				SmallMouth.EventRegistry.getEventRegistry(this._host)
+					.triggerEvent(resp.path, 'value', host, null, {local: false});
+
+				//@todo - Add a trigger event for "remove" on parent
+			});
+
 			this.adapter.onMessage('syncComplete', (resp) => {
 				this.executeCallback(resp.reqId, resp.err, resp.path, resp.data);
 			});
@@ -101,7 +110,7 @@ module SmallMouth {
 			return this;
 		}
 
-		syncRemote(data, path: string, onComplete ?: (error) => any): LargeMouthAdapter {
+		private syncRemote(method: string, path: string, data?: any, onComplete ?: (error) => any): LargeMouthAdapter {
 
 			if(!this._host) return;
 
@@ -110,13 +119,21 @@ module SmallMouth {
 				this._callbacks[callbackId] = onComplete;
 			}
 
-			this.adapter.send('set', {
+			this.adapter.send(method, {
 				path: path,
 				value: data,
 				reqId: callbackId	
 			});
 
 			return this;
+		}
+
+		setRemote(data, path: string, onComplete ?: (error) => any): LargeMouthAdapter {
+			return this.syncRemote('set', path, data, onComplete);
+		}
+
+		removeRemote(data, path: string, onComplete?: (error) => any): LargeMouthAdapter {
+			return this.syncRemote('remove', path, null, onComplete);
 		}
 
 		generateId(): string {			

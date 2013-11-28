@@ -177,7 +177,7 @@ module SmallMouth {
 			if(!isEqual(data, dataCache)) {
 				var data = this.getData(resource._path, {versionUpdate: true});
 				data.version++;
-				this.sync(resource, options.onComplete);
+				this.persistSet(resource, options.onComplete);
 				return true;
 			}
 
@@ -211,6 +211,17 @@ module SmallMouth {
 		remove(resource: SmallMouth.Resource, options: any = {}) {
 			var path = resource._path;
 
+			this.removePath(path);
+
+			if(resource._host) this.persistRemove(resource, options.onComplete);
+		}
+
+		serverRemove(path: string) {
+			this.removePath(path);
+			this.saveToLocalStorage();
+		}
+
+		removePath(path: string) {
 			if(path.trim() == '') return this._dataRegistry;
 
 			var paths = path.split('/');
@@ -222,10 +233,7 @@ module SmallMouth {
 				data.version++;
 			}			
 
-			delete data.children;
-			delete data.value;
-
-			if(resource._host) this.sync(resource, options.onComplete);		
+			delete data.children[paths[paths.length - 1]];
 		}
 
 		getVersions(path) {
@@ -296,17 +304,22 @@ module SmallMouth {
 			localStorage.setItem('LargeMouth_Registry_' + this._host, JSON.stringify(this._dataRegistry));
 		}
 
-		sync(resource: SmallMouth.Resource, onComplete ?: (error) => any ) {
-		
+		persistSet(resource: SmallMouth.Resource, onComplete ?: (error) => any ) {
+			this.persist('setRemote', resource._path, this.getData(resource._path), onComplete);
+		}
+
+		persistRemove(resource: SmallMouth.Resource, onComplete ?: (error) => any) {
+			this.persist('removeRemote', resource._path, null, onComplete);
+		}
+
+		persist(method: string, path: string, data: any, onComplete ?: (error) => any) {
 			this.saveToLocalStorage();
 
-			if(resource._host) {
-				this._largeMouthAdapter.syncRemote(
-					this.getData(resource._path), 
-					resource._path, 
-					onComplete
-				);
-			}
+			this._largeMouthAdapter[method](
+				data, 
+				path, 
+				onComplete
+			);
 		}
 
 		public static getDataRegistry(host: string): DataRegistry {

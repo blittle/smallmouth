@@ -497,6 +497,12 @@ var SmallMouth;
                 SmallMouth.EventRegistry.getEventRegistry(_this._host).triggerEvent(resp.path, 'value', host, new SmallMouth.Snapshot(resp.path, registryData, host), { local: false });
             });
 
+            this.adapter.onMessage('remove', function (resp) {
+                SmallMouth.DataRegistry.getDataRegistry(_this._host).serverRemove(resp.path);
+
+                SmallMouth.EventRegistry.getEventRegistry(_this._host).triggerEvent(resp.path, 'value', host, null, { local: false });
+            });
+
             this.adapter.onMessage('syncComplete', function (resp) {
                 _this.executeCallback(resp.reqId, resp.err, resp.path, resp.data);
             });
@@ -529,7 +535,7 @@ var SmallMouth;
             return this;
         };
 
-        LargeMouthAdapter.prototype.syncRemote = function (data, path, onComplete) {
+        LargeMouthAdapter.prototype.syncRemote = function (method, path, data, onComplete) {
             if (!this._host)
                 return;
 
@@ -538,13 +544,21 @@ var SmallMouth;
                 this._callbacks[callbackId] = onComplete;
             }
 
-            this.adapter.send('set', {
+            this.adapter.send(method, {
                 path: path,
                 value: data,
                 reqId: callbackId
             });
 
             return this;
+        };
+
+        LargeMouthAdapter.prototype.setRemote = function (data, path, onComplete) {
+            return this.syncRemote('set', path, data, onComplete);
+        };
+
+        LargeMouthAdapter.prototype.removeRemote = function (data, path, onComplete) {
+            return this.syncRemote('remove', path, null, onComplete);
         };
 
         LargeMouthAdapter.prototype.generateId = function () {
@@ -709,7 +723,7 @@ else {
             if (!isEqual(data, dataCache)) {
                 var data = this.getData(resource._path, { versionUpdate: true });
                 data.version++;
-                this.sync(resource, options.onComplete);
+                this.persistSet(resource, options.onComplete);
                 return true;
             }
 
@@ -748,6 +762,18 @@ else {
             if (typeof options === "undefined") { options = {}; }
             var path = resource._path;
 
+            this.removePath(path);
+
+            if (resource._host)
+                this.persistRemove(resource, options.onComplete);
+        };
+
+        DataRegistry.prototype.serverRemove = function (path) {
+            this.removePath(path);
+            this.saveToLocalStorage();
+        };
+
+        DataRegistry.prototype.removePath = function (path) {
             if (path.trim() == '')
                 return this._dataRegistry;
 
@@ -761,11 +787,7 @@ else {
                 data.version++;
             }
 
-            delete data.children;
-            delete data.value;
-
-            if (resource._host)
-                this.sync(resource, options.onComplete);
+            delete data.children[paths[paths.length - 1]];
         };
 
         DataRegistry.prototype.getVersions = function (path) {
@@ -841,12 +863,18 @@ else {
             localStorage.setItem('LargeMouth_Registry_' + this._host, JSON.stringify(this._dataRegistry));
         };
 
-        DataRegistry.prototype.sync = function (resource, onComplete) {
+        DataRegistry.prototype.persistSet = function (resource, onComplete) {
+            this.persist('setRemote', resource._path, this.getData(resource._path), onComplete);
+        };
+
+        DataRegistry.prototype.persistRemove = function (resource, onComplete) {
+            this.persist('removeRemote', resource._path, null, onComplete);
+        };
+
+        DataRegistry.prototype.persist = function (method, path, data, onComplete) {
             this.saveToLocalStorage();
 
-            if (resource._host) {
-                this._largeMouthAdapter.syncRemote(this.getData(resource._path), resource._path, onComplete);
-            }
+            this._largeMouthAdapter[method](data, path, onComplete);
         };
 
         DataRegistry.getDataRegistry = function (host) {
