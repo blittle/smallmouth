@@ -100,6 +100,7 @@ module SmallMouth {
 	function createSubDataFromObject(data, obj) {
 		if(obj instanceof Object && !(obj instanceof String) && !(obj instanceof Number) && !(obj instanceof Array) && !(obj instanceof Boolean) ) {
 			if(!data.children) data.children = {};
+			delete data.value;
 
 			for(var key in obj) {
 				if(obj.hasOwnProperty(key)) {
@@ -118,6 +119,7 @@ module SmallMouth {
 			}
 		} else {
 			data.value = obj;
+			delete data.children;
 		}
 	}
 
@@ -191,7 +193,7 @@ module SmallMouth {
 			var paths = path.split('/');
 			var data = this._dataRegistry;
 			
-			for(var i=0, iLength = paths.length; i < iLength; i++) {	
+			for(var i=0, iLength = paths.length; i < iLength; i++) {
 				if(!data.children) data.children = {};
 
 				if(!data.children[paths[i]]) {
@@ -201,6 +203,10 @@ module SmallMouth {
 				} 
 
 				if(options.versionUpdate) data.version++;
+
+				// Should be able to delete the current value 
+				// because we are not at a leaf node
+				delete data.value;
 
 				data = data.children[paths[i]];
 			}

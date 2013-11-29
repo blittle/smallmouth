@@ -28,12 +28,10 @@
 
 		AngularSmallMouth.watchResource(users, $scope, 'users');
 
-		$scope.addUser = function() {
-			// Don't add the same user twice
-			if(!users[$scope.newUser]) {
-				users.child($scope.newUser).set($scope.newUser);
-			}
-
+		$scope.addUser = function() {			
+			users.child($scope.newUser).set($scope.newUser, function(err){
+				if(err) alert('Cannot create user');
+			});
 			$scope.newUser = "";
 		}
 

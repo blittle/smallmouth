@@ -651,6 +651,7 @@ var SmallMouth;
         if (obj instanceof Object && !(obj instanceof String) && !(obj instanceof Number) && !(obj instanceof Array) && !(obj instanceof Boolean)) {
             if (!data.children)
                 data.children = {};
+            delete data.value;
 
             for (var key in obj) {
                 if (obj.hasOwnProperty(key)) {
@@ -668,6 +669,7 @@ var SmallMouth;
             }
         } else {
             data.value = obj;
+            delete data.children;
         }
     }
 
@@ -751,6 +753,8 @@ else {
 
                 if (options.versionUpdate)
                     data.version++;
+
+                delete data.value;
 
                 data = data.children[paths[i]];
             }
