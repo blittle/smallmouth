@@ -24,7 +24,7 @@
 	var userApp = angular.module("UserApp", ["angular-smallmouth"]);
 
 	userApp.controller("UserController", function($scope, AngularSmallMouth) {
-		var users = new SmallMouth.Resource("http://localhost:3000/users");
+		var users = new SmallMouth.Resource("http://10.1.11.40:3000/users");
 
 		AngularSmallMouth.watchResource(users, $scope, 'users');
 

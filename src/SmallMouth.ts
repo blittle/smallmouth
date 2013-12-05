@@ -23,4 +23,12 @@ module SmallMouth {
 	export function postMessage(host: string, key: string, data: any) {
 		SmallMouth.makeConnection(host).adapter.send(key, data);
 	}
+
+	export function getAvailableAdapters() {
+		return Object.keys(SmallMouth.SERVER_TYPES);
+	}
+
+	export function setSocketAdapter(adapter: string) {
+		SmallMouth.serverAdapterType = SmallMouth.SERVER_TYPES[adapter];
+	}
 }

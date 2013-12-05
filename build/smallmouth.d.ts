@@ -64,6 +64,8 @@ declare module SmallMouth {
     var makeDataRegistry: (host: any, connection: any) => any;
     var makeEventRegistry: (host: any) => any;
     function postMessage(host: string, key: string, data: any): void;
+    function getAvailableAdapters(): string[];
+    function setSocketAdapter(adapter: string): void;
 }
 declare module SmallMouth {
     class EventRegistry {
@@ -167,5 +169,24 @@ declare module SmallMouth {
         public persistRemove(resource: SmallMouth.Resource, onComplete?: (error: any) => any): void;
         public persist(method: string, path: string, data: any, onComplete?: (error: any) => any): void;
         static getDataRegistry(host: string): DataRegistry;
+    }
+}
+declare module SmallMouth {
+    interface WebSocket {
+        new(url: string, subprotocols?: string[]): WebSocket;
+        readyState: number;
+        send(data: any): any;
+        onmessage: Function;
+        onopen: Function;
+    }
+    class NativeAdapter implements SmallMouth.ServerAdapter {
+        public socket: WebSocket;
+        public id: string;
+        private eventListeners;
+        private messageQueue;
+        constructor();
+        public connect(host): NativeAdapter;
+        public onMessage(type: string, callback?: (resp: any) => any): NativeAdapter;
+        public send(type: string, data: any, onComplete?: (error: any) => any): NativeAdapter;
     }
 }

@@ -12,7 +12,8 @@ module SmallMouth {
 
 	export var SERVER_TYPES: any = {
 		SOCK_JS: "SockJSAdapter",
-		SOCKET_IO: "SocketIOAdapter"
+		SOCKET_IO: "SocketIOAdapter",
+		NATIVE: "NativeAdapter"
 	};
 	
 	export var serverAdapterType = SERVER_TYPES.SOCKET_IO;

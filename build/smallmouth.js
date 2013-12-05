@@ -144,6 +144,16 @@ var SmallMouth;
         SmallMouth.makeConnection(host).adapter.send(key, data);
     }
     SmallMouth.postMessage = postMessage;
+
+    function getAvailableAdapters() {
+        return Object.keys(SmallMouth.SERVER_TYPES);
+    }
+    SmallMouth.getAvailableAdapters = getAvailableAdapters;
+
+    function setSocketAdapter(adapter) {
+        SmallMouth.serverAdapterType = SmallMouth.SERVER_TYPES[adapter];
+    }
+    SmallMouth.setSocketAdapter = setSocketAdapter;
 })(SmallMouth || (SmallMouth = {}));
 var SmallMouth;
 (function (SmallMouth) {
@@ -458,7 +468,8 @@ var SmallMouth;
 (function (SmallMouth) {
     SmallMouth.SERVER_TYPES = {
         SOCK_JS: "SockJSAdapter",
-        SOCKET_IO: "SocketIOAdapter"
+        SOCKET_IO: "SocketIOAdapter",
+        NATIVE: "NativeAdapter"
     };
 
     SmallMouth.serverAdapterType = SmallMouth.SERVER_TYPES.SOCKET_IO;
@@ -887,5 +898,68 @@ else {
         return DataRegistry;
     })();
     SmallMouth.DataRegistry = DataRegistry;
+})(SmallMouth || (SmallMouth = {}));
+var SmallMouth;
+(function (SmallMouth) {
+    var NativeAdapter = (function () {
+        function NativeAdapter() {
+            this.id = new Date().getTime() + "";
+            this.eventListeners = {};
+            this.messageQueue = [];
+        }
+        NativeAdapter.prototype.connect = function (host) {
+            var _this = this;
+            if (!host || this.socket)
+                return;
+
+            this.socket = new WebSocket(host);
+
+            this.socket.onmessage = function (e) {
+                var resp = JSON.parse(e.data);
+                if (_this.eventListeners[resp.type]) {
+                    _this.eventListeners[resp.type](resp.data);
+                }
+            };
+
+            this.socket.onopen = function () {
+                while (this.messageQueue.length) {
+                    this.socket.send(this.messageQueue.splice(0, 1)[0]);
+                }
+            };
+
+            this.onMessage('ready', function (resp) {
+                _this.id = resp.id;
+            });
+
+            return this;
+        };
+
+        NativeAdapter.prototype.onMessage = function (type, callback) {
+            if (this.socket) {
+                this.eventListeners[type] = callback;
+            }
+            return this;
+        };
+
+        NativeAdapter.prototype.send = function (type, data, onComplete) {
+            var packet;
+
+            if (this.socket) {
+                packet = JSON.stringify({
+                    type: type,
+                    data: data
+                });
+
+                if (this.socket.readyState === 1) {
+                    this.socket.send(packet);
+                } else {
+                    this.messageQueue.push(packet);
+                }
+            }
+            return this;
+        };
+        return NativeAdapter;
+    })();
+    SmallMouth.NativeAdapter = NativeAdapter;
 })(SmallMouth || (SmallMouth = {}));
 //# sourceMappingURL=smallmouth.js.map
