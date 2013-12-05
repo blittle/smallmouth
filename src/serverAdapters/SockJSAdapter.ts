@@ -29,7 +29,7 @@ module SmallMouth {
 				}
 			};
 
-			this.socket.onopen = function() {
+			this.socket.onopen = () => {
 		    	while(this.messageQueue.length) {
 		    		this.socket.send(this.messageQueue.splice(0,1)[0]);
 		    	}

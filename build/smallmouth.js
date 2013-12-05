@@ -424,8 +424,8 @@ var SmallMouth;
             };
 
             this.socket.onopen = function () {
-                while (this.messageQueue.length) {
-                    this.socket.send(this.messageQueue.splice(0, 1)[0]);
+                while (_this.messageQueue.length) {
+                    _this.socket.send(_this.messageQueue.splice(0, 1)[0]);
                 }
             };
 
@@ -922,8 +922,8 @@ var SmallMouth;
             };
 
             this.socket.onopen = function () {
-                while (this.messageQueue.length) {
-                    this.socket.send(this.messageQueue.splice(0, 1)[0]);
+                while (_this.messageQueue.length) {
+                    _this.socket.send(_this.messageQueue.splice(0, 1)[0]);
                 }
             };
 
