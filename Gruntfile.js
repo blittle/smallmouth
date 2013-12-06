@@ -46,5 +46,6 @@ module.exports = function(grunt) {
 
   // Default task(s).
   grunt.registerTask('default', ['typescript', 'uglify']);
+  grunt.registerTask('test', ['typescript', 'karma:headless']);
 
 };
