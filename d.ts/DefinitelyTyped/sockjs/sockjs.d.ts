@@ -36,6 +36,10 @@ interface SockJS extends EventTarget {
 
 declare var SockJS: {
     prototype: SockJS;
+    OPEN: number;
+    CLOSING: number;
+    CONNECTING: number;
+    CLOSED: number;
     new (url: string, options?: {
          debug: boolean;
          devel: boolean;

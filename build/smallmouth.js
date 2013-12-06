@@ -456,7 +456,7 @@ var SmallMouth;
                     data: data
                 });
 
-                if (this.socket.readyState === this.socket.OPEN) {
+                if (this.socket.readyState === SockJS.OPEN) {
                     this.socket.send(packet);
                 } else {
                     this.messageQueue.push(packet);
