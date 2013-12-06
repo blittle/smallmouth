@@ -20,6 +20,10 @@ bower install smallmouth
 Create a new resource just as you would with FireBase, except make the server referenced is a running instance of LargeMouth.
 ```javascript
 	var chats = new SmallMouth.Resource('http://localhost:3000/chats');
+
+	// If the defaultHost is defined, the following statement is equivalent to the previous.
+	SmallMouth.defaultHost = "http://loclahost:3000";
+	chats = new SmallMouth.Resource('/chats');
 ```
 
 SmallMouth aggresively stores content within local storage on the client. As resources are created and data is saved, initially 
@@ -33,6 +37,7 @@ everything is stored locally before being saved to the server. Because all data 
 ```
 See a more [complete example](example/index.html) with AngularJS.
 ##Release notes
+ - v0.3.2 - Add a default host option allowing declarations not to include the host. 
  - v0.3.1 - Add an adapter for communicating with native websockets rather than a wrapper library. Also convenience methods for switching between adapters - SmallMouth.getAvailableAdapters() SmallMouth.setSocketAdapter(SmallMouth.getAvailableAdapters()[0]).
  - v0.3.0 - Implement basic security and the remove method.
  - v0.2.4 - Add a method SmallMouth.Resource.postMessage(type, data) and SmallMouth.postMessage(host, type, data) to send custom messages to the server. See LargeMouth's documentation for how to register custom event listeners.

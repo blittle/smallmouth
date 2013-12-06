@@ -60,6 +60,7 @@ declare module SmallMouth {
 }
 declare module SmallMouth {
     var hosts: {};
+    var defaultHost: string;
     var makeConnection: (host: any) => any;
     var makeDataRegistry: (host: any, connection: any) => any;
     var makeEventRegistry: (host: any) => any;

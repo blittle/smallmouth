@@ -6,6 +6,8 @@ var SmallMouth;
         function Resource(address) {
             var parse = urlReg.exec(address), scheme = parse[1], domain = parse[3], path = parse[5], query = parse[6], host = (scheme ? scheme : "") + (domain ? domain : ""), path = Resource.cleanPath((path ? path : "") + (query ? query : "")), scope = this;
 
+            host = host ? host : SmallMouth.defaultHost;
+
             this._path = path;
             this._host = host;
 
@@ -115,6 +117,8 @@ var SmallMouth;
 var SmallMouth;
 (function (SmallMouth) {
     SmallMouth.hosts = {};
+
+    SmallMouth.defaultHost = '';
 
     SmallMouth.makeConnection = function (host) {
         if (!SmallMouth.hosts[host])

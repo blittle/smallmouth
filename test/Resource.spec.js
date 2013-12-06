@@ -320,4 +320,20 @@ describe('Resource', function() {
 		chats.remove();
 		expect(spy.mostRecentCall.args[1].local).toBeTruthy();
 	});
+
+	it('Should use the default host', function() {
+		var chats = new SmallMouth.Resource('http://localhost:3000/chats');
+		expect(chats._host).toBe('http://localhost:3000');
+		expect(chats._path).toBe('chats');
+
+		SmallMouth.defaultHost = "http://localhost:9999";
+
+		chats = new SmallMouth.Resource('http://localhost:3000/chats');
+		expect(chats._host).toBe('http://localhost:3000');
+		expect(chats._path).toBe('chats');
+
+		chats = new SmallMouth.Resource('/chats');
+		expect(chats._host).toBe('http://localhost:9999');
+		expect(chats._path).toBe('chats');
+	});
 });
