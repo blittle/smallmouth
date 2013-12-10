@@ -37,6 +37,7 @@ everything is stored locally before being saved to the server. Because all data 
 ```
 See a more [complete example](example/index.html) with AngularJS.
 ##Release notes
+ - v0.3.3 - Add .auth method for custom authentication passing a token. LargeMouth must implement a auth method in its manifest file in order for it to resolve. We no longer immediately subscribe (or even connect to LargeMouth) when resources are created, rather we wait till an event is attached or remove, set, child, or update is called.
  - v0.3.2 - Add a default host option allowing declarations not to include the host. 
  - v0.3.1 - Add an adapter for communicating with native websockets rather than a wrapper library. Also convenience methods for switching between adapters - SmallMouth.getAvailableAdapters() SmallMouth.setSocketAdapter(SmallMouth.getAvailableAdapters()[0]).
  - v0.3.0 - Implement basic security and the remove method.
