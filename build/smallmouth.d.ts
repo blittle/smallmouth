@@ -113,6 +113,7 @@ declare module SmallMouth {
         send(type: string, data: any, onComplete?: (error: any) => any): ServerAdapter;
         unauth(): ServerAdapter;
         authenticated(): boolean;
+        isConnected(): boolean;
     }
 }
 declare module SmallMouth {
@@ -141,6 +142,7 @@ declare module SmallMouth {
         public connect(host, authToken?: any, onComplete?: (error: any) => any): SockJSAdapter;
         public unauth(): SmallMouth.ServerAdapter;
         public authenticated(): boolean;
+        public isConnected(): boolean;
         public onMessage(type: string, callback?: (resp: any) => any): SockJSAdapter;
         public send(type: string, data: any, onComplete?: (error: any) => any): SockJSAdapter;
     }
@@ -157,6 +159,7 @@ declare module SmallMouth {
         private generateCallbackId();
         public unauth(): LargeMouthAdapter;
         public authenticated(): boolean;
+        public isConnected(): boolean;
         public connect(host: string, authToken?: any, onComplete?: (error: any) => any): LargeMouthAdapter;
         public executeCallback(id: string, err: any, path: string, data: any): void;
         public subscribe(path: string): LargeMouthAdapter;
@@ -206,6 +209,7 @@ declare module SmallMouth {
         constructor();
         public unauth(): SmallMouth.ServerAdapter;
         public authenticated(): boolean;
+        public isConnected(): boolean;
         public connect(host, authToken?: any, onComplete?: (error: any) => any): NativeAdapter;
         public onMessage(type: string, callback?: (resp: any) => any): NativeAdapter;
         public send(type: string, data: any, onComplete?: (error: any) => any): NativeAdapter;

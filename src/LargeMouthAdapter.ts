@@ -53,6 +53,10 @@ module SmallMouth {
 			return this.adapter.authenticated();
 		}
 
+		isConnected(): boolean {
+			return this.adapter.isConnected();
+		}
+
 		connect( host: string, authToken?: any, onComplete?: (error) => any ): LargeMouthAdapter {
 
 			this.adapter.connect(host, authToken, onComplete);

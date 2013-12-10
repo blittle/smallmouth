@@ -11,7 +11,19 @@ module SmallMouth {
 
 	export var makeConnection = function(host, authToken?: any, onComplete?: (error) => any) {
 		if(!hosts[host]) hosts[host] = {};
-		if(hosts[host].connection) return hosts[host].connection;		
+
+		if(
+			hosts[host].connection
+		) {
+			var connection = hosts[host].connection;
+
+			if(!connection.authenticated() ||  !connection.isConnected()) {
+				connection.connect(host, authToken, onComplete);
+			}
+
+			return connection;
+		}
+
 		return hosts[host].connection = new SmallMouth.LargeMouthAdapter(
 			host, undefined, authToken, onComplete
 		);

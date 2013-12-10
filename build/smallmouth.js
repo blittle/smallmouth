@@ -177,8 +177,17 @@ var SmallMouth;
     SmallMouth.makeConnection = function (host, authToken, onComplete) {
         if (!SmallMouth.hosts[host])
             SmallMouth.hosts[host] = {};
-        if (SmallMouth.hosts[host].connection)
-            return SmallMouth.hosts[host].connection;
+
+        if (SmallMouth.hosts[host].connection) {
+            var connection = SmallMouth.hosts[host].connection;
+
+            if (!connection.authenticated() || !connection.isConnected()) {
+                connection.connect(host, authToken, onComplete);
+            }
+
+            return connection;
+        }
+
         return SmallMouth.hosts[host].connection = new SmallMouth.LargeMouthAdapter(host, undefined, authToken, onComplete);
     };
 
@@ -435,7 +444,7 @@ var SmallMouth;
         }
         SocketIOAdapter.prototype.connect = function (host, authToken, onComplete) {
             var _this = this;
-            if (!host || this.socket)
+            if (!host)
                 return;
 
             if (authToken) {
@@ -443,9 +452,16 @@ var SmallMouth;
                 this.needsAuth = true;
             }
 
-            this.socket = io.connect(host, authToken ? {
-                query: "token=" + authToken
-            } : null);
+            if (this.socket) {
+                this.socket = io.connect(host, authToken ? {
+                    query: "token=" + authToken,
+                    "force new connection": true
+                } : null);
+            } else {
+                this.socket = io.connect(host, authToken ? {
+                    query: "token=" + authToken
+                } : null);
+            }
 
             this.onMessage('ready', function (resp) {
                 _this.id = resp.id;
@@ -454,18 +470,21 @@ var SmallMouth;
             this.onMessage('connect', function (resp) {
                 _this.connected = true;
                 _this.isAuthenticated = true;
-                onComplete.call(null);
+                if (onComplete)
+                    onComplete.call(null);
             });
 
             this.onMessage('disconnect', function (resp) {
                 _this.connected = false;
+                _this.isAuthenticated = false;
             });
 
             this.onMessage('error', function (reason) {
                 _this.connected = false;
                 _this.isAuthenticated = false;
                 console.error('Unable to connect to LargeMouth backend', reason);
-                onComplete.call(null, reason);
+                if (onComplete)
+                    onComplete.call(null, reason);
             });
 
             return this;
@@ -543,6 +562,10 @@ var SmallMouth;
             return true;
         };
 
+        SockJSAdapter.prototype.isConnected = function () {
+            return true;
+        };
+
         SockJSAdapter.prototype.onMessage = function (type, callback) {
             if (this.socket) {
                 this.eventListeners[type] = callback;
@@ -602,6 +625,10 @@ var SmallMouth;
 
         LargeMouthAdapter.prototype.authenticated = function () {
             return this.adapter.authenticated();
+        };
+
+        LargeMouthAdapter.prototype.isConnected = function () {
+            return this.adapter.isConnected();
         };
 
         LargeMouthAdapter.prototype.connect = function (host, authToken, onComplete) {
@@ -1028,6 +1055,10 @@ var SmallMouth;
         };
 
         NativeAdapter.prototype.authenticated = function () {
+            return true;
+        };
+
+        NativeAdapter.prototype.isConnected = function () {
             return true;
         };
 

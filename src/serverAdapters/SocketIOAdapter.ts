@@ -17,16 +17,23 @@ module SmallMouth {
 
 		connect(host, authToken?: any, onComplete?: (error) => any): SocketIOAdapter {
 
-			if(!host || this.socket) return;
+			if(!host) return;
 
 			if(authToken) {
 				this.isAuthenticated = false;
 				this.needsAuth = true;
 			}
 
-			this.socket = io.connect(host, authToken ? {
-				query: "token=" + authToken
-			} : null);
+			if(this.socket) {
+				this.socket = io.connect(host, authToken ? {
+					query: "token=" + authToken,
+					"force new connection": true
+				} : null);
+			} else {
+				this.socket = io.connect(host, authToken ? {
+					query: "token=" + authToken
+				} : null);
+			}
 
 			this.onMessage('ready', (resp) => {
 				this.id = resp.id;
@@ -35,18 +42,19 @@ module SmallMouth {
 			this.onMessage('connect', (resp) => {
 				this.connected = true;
 				this.isAuthenticated = true;
-				onComplete.call(null);
+				if(onComplete) onComplete.call(null);
 			});
 
 			this.onMessage('disconnect', (resp) => {
 				this.connected = false;
+				this.isAuthenticated = false;
 			});
 
 			this.onMessage('error', (reason) => {
 				this.connected = false;
 				this.isAuthenticated = false;
 				console.error('Unable to connect to LargeMouth backend', reason);
-				onComplete.call(null, reason);
+				if(onComplete) onComplete.call(null, reason);
 			});
 
 			return this;

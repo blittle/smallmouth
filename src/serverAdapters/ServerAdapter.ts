@@ -7,5 +7,6 @@ module SmallMouth {
 		send(type: string, data: any, onComplete ?: (error) => any): ServerAdapter;
 		unauth(): ServerAdapter;
 		authenticated(): boolean;
+		isConnected(): boolean;
 	}
 }

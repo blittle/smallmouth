@@ -50,6 +50,10 @@ module SmallMouth {
 			return true;
 		}
 
+		isConnected(): boolean {
+			return true;
+		}
+
 		onMessage(type: string, callback ?: (resp) => any): SockJSAdapter {
 			if(this.socket) {
 				this.eventListeners[type] = callback;
