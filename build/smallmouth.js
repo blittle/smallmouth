@@ -27,6 +27,9 @@ var SmallMouth;
         Resource.prototype.initializeConnection = function (authToken, onComplete) {
             if (!this._largeMouthAdapter) {
                 this._largeMouthAdapter = SmallMouth.makeConnection(this._host, authToken, onComplete);
+            }
+
+            if (!this._dataRegistry) {
                 this._dataRegistry = SmallMouth.makeDataRegistry(this._host, this._largeMouthAdapter);
             }
         };
