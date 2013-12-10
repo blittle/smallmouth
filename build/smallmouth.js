@@ -4,6 +4,7 @@ var SmallMouth;
 
     var Resource = (function () {
         function Resource(address) {
+            this._subscribed = false;
             var parse = urlReg.exec(address), scheme = parse[1], domain = parse[3], path = parse[5], query = parse[6], host = (scheme ? scheme : "") + (domain ? domain : ""), path = Resource.cleanPath((path ? path : "") + (query ? query : "")), scope = this;
 
             host = host ? host : SmallMouth.defaultHost;
@@ -15,11 +16,23 @@ var SmallMouth;
 
             this._largeMouthAdapter = SmallMouth.makeConnection(host);
             this._dataRegistry = SmallMouth.makeDataRegistry(host, this._largeMouthAdapter);
-
-            var data = this._dataRegistry.initializeResource(this);
-            this._largeMouthAdapter.subscribe(path);
         }
+        Resource.prototype.auth = function (authToken, onSuccess) {
+            this._largeMouthAdapter.auth(authToken);
+            return this;
+        };
+
+        Resource.prototype.unauth = function () {
+            this._largeMouthAdapter.unauth();
+            return this;
+        };
+
         Resource.prototype.on = function (eventType, callback, cancelCallback, context) {
+            if (!this._subscribed) {
+                this._dataRegistry.initializeResource(this);
+                this._largeMouthAdapter.subscribe(this._path);
+            }
+
             if (typeof cancelCallback == 'function') {
                 this._eventRegistry.addEvent(this._path, eventType, callback, context);
                 this._eventRegistry.addEvent(this._path, "cancel", cancelCallback, context);
@@ -38,33 +51,58 @@ var SmallMouth;
         };
 
         Resource.prototype.set = function (value, onComplete) {
-            var changed = this._dataRegistry.updateRegistry(this, value, { onComplete: onComplete });
-            if (changed)
-                this._eventRegistry.triggerEvent(this._path, 'value', this._host, this._getSnapshot(), { local: true });
+            if (this._largeMouthAdapter.authenticated()) {
+                var changed = this._dataRegistry.updateRegistry(this, value, { onComplete: onComplete });
+                if (changed)
+                    this._eventRegistry.triggerEvent(this._path, 'value', this._host, this._getSnapshot(), { local: true });
+            } else {
+                console.error('Not authenticated');
+                if (typeof onComplete == 'function')
+                    onComplete.call(this, "Not authenticated");
+            }
+
             return this;
         };
 
         Resource.prototype.update = function (value, onComplete) {
-            var changed = this._dataRegistry.updateRegistry(this, value, { merge: true, onComplete: onComplete });
-            if (changed)
-                this._eventRegistry.triggerEvent(this._path, 'value', this._host, this._getSnapshot(), { local: true });
+            if (this._largeMouthAdapter.authenticated()) {
+                var changed = this._dataRegistry.updateRegistry(this, value, { merge: true, onComplete: onComplete });
+                if (changed)
+                    this._eventRegistry.triggerEvent(this._path, 'value', this._host, this._getSnapshot(), { local: true });
+            } else {
+                console.error('Not authenticated');
+                if (typeof onComplete == 'function')
+                    onComplete.call(this, "Not authenticated");
+            }
             return this;
         };
 
         Resource.prototype.remove = function (onComplete) {
-            this._dataRegistry.remove(this, { onComplete: onComplete });
-            this._eventRegistry.triggerEvent(this._path, 'value', this._host, this._getSnapshot(), { local: true });
+            if (this._largeMouthAdapter.authenticated()) {
+                this._dataRegistry.remove(this, { onComplete: onComplete });
+                this._eventRegistry.triggerEvent(this._path, 'value', this._host, this._getSnapshot(), { local: true });
+            } else {
+                console.error('Not authenticated');
+                if (typeof onComplete == 'function')
+                    onComplete.call(this, "Not authenticated");
+            }
         };
 
         Resource.prototype.push = function (value, onComplete) {
-            var id = this._largeMouthAdapter.generateId();
-            var ref = this.child(id);
+            if (this._largeMouthAdapter.authenticated()) {
+                var id = this._largeMouthAdapter.generateId();
+                var ref = this.child(id);
 
-            if (typeof value !== 'undefined') {
-                ref.set(value, onComplete);
+                if (typeof value !== 'undefined') {
+                    ref.set(value, onComplete);
+                }
+
+                return ref;
+            } else {
+                return console.error('Not authenticated');
+                if (typeof onComplete == 'function')
+                    onComplete.call(this, "Not authenticated");
             }
-
-            return ref;
         };
 
         Resource.prototype.child = function (childPath) {
@@ -375,6 +413,8 @@ var SmallMouth;
     var SocketIOAdapter = (function () {
         function SocketIOAdapter() {
             this.id = new Date().getTime() + "";
+            this.connected = false;
+            this.isAuthenticated = true;
         }
         SocketIOAdapter.prototype.connect = function (host) {
             var _this = this;
@@ -387,7 +427,36 @@ var SmallMouth;
                 _this.id = resp.id;
             });
 
+            this.onMessage('connect', function (resp) {
+                _this.connected = true;
+                _this.isAuthenticated = true;
+            });
+
+            this.onMessage('disconnect', function (resp) {
+                _this.connected = false;
+            });
+
+            this.onMessage('error', function (reason) {
+                _this.connected = false;
+                _this.isAuthenticated = false;
+                console.error('Unable to connect to LargeMouth backend', reason);
+            });
+
             return this;
+        };
+
+        SocketIOAdapter.prototype.auth = function (authToken) {
+            this.isAuthenticated = false;
+            return this;
+        };
+
+        SocketIOAdapter.prototype.unauth = function () {
+            this.isAuthenticated = false;
+            return this;
+        };
+
+        SocketIOAdapter.prototype.authenticated = function () {
+            return this.isAuthenticated;
         };
 
         SocketIOAdapter.prototype.onMessage = function (type, callback) {
@@ -400,6 +469,10 @@ var SmallMouth;
             if (this.socket)
                 this.socket.emit(type, data, onComplete);
             return this;
+        };
+
+        SocketIOAdapter.prototype.isConnected = function () {
+            return this.connected;
         };
         return SocketIOAdapter;
     })();
@@ -438,6 +511,18 @@ var SmallMouth;
             });
 
             return this;
+        };
+
+        SockJSAdapter.prototype.auth = function (authToken) {
+            return this;
+        };
+
+        SockJSAdapter.prototype.unauth = function () {
+            return this;
+        };
+
+        SockJSAdapter.prototype.authenticated = function () {
+            return true;
         };
 
         SockJSAdapter.prototype.onMessage = function (type, callback) {
@@ -490,6 +575,20 @@ var SmallMouth;
         }
         LargeMouthAdapter.prototype.generateCallbackId = function () {
             return ++this._callbackId;
+        };
+
+        LargeMouthAdapter.prototype.auth = function (authToken) {
+            this.adapter.auth(authToken);
+            return this;
+        };
+
+        LargeMouthAdapter.prototype.unauth = function () {
+            this.adapter.unauth();
+            return this;
+        };
+
+        LargeMouthAdapter.prototype.authenticated = function () {
+            return this.adapter.authenticated();
         };
 
         LargeMouthAdapter.prototype.connect = function (host) {
@@ -911,6 +1010,18 @@ var SmallMouth;
             this.eventListeners = {};
             this.messageQueue = [];
         }
+        NativeAdapter.prototype.auth = function (authToken) {
+            return this;
+        };
+
+        NativeAdapter.prototype.unauth = function () {
+            return this;
+        };
+
+        NativeAdapter.prototype.authenticated = function () {
+            return true;
+        };
+
         NativeAdapter.prototype.connect = function (host) {
             var _this = this;
             if (!host || this.socket)

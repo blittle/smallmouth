@@ -42,6 +42,18 @@ module SmallMouth {
 			return this;
 		}
 
+		auth(authToken): ServerAdapter {
+			return this;
+		}
+
+		unauth(): ServerAdapter {
+			return this;
+		}
+
+		authenticated(): boolean {
+			return true;
+		}
+
 		onMessage(type: string, callback ?: (resp) => any): SockJSAdapter {
 			if(this.socket) {
 				this.eventListeners[type] = callback;

@@ -24,13 +24,15 @@ declare module SmallMouth {
         off(eventType: string, callback?: Function, context?: any): ResourceInterface;
         set(value: any, onComplete?: (error: any) => any): ResourceInterface;
         update(value: any, onComplete?: (error: any) => any): ResourceInterface;
-        push(value: any, complete?: (error: any) => any): ResourceInterface;
+        push(value: any, complete?: (error: any) => any): any;
         remove(onComplete?: (error: any) => any): void;
         child(childPath: string): ResourceInterface;
         parent(): ResourceInterface;
         root(): ResourceInterface;
         name(): string;
         toString(): string;
+        auth(authToken, onSuccess?: (error: any, result: any) => any): ResourceInterface;
+        unauth(): ResourceInterface;
     }
 }
 declare module SmallMouth {
@@ -40,13 +42,16 @@ declare module SmallMouth {
         public _largeMouthAdapter: SmallMouth.LargeMouthAdapter;
         public _dataRegistry: SmallMouth.DataRegistry;
         public _eventRegistry: SmallMouth.EventRegistry;
+        public _subscribed: boolean;
         constructor(address: string);
+        public auth(authToken, onSuccess?: (error: any, result: any) => any): SmallMouth.ResourceInterface;
+        public unauth(): SmallMouth.ResourceInterface;
         public on(eventType: string, callback: (snapshot: SmallMouth.SnapshotInterface, previusChild?: string) => any, cancelCallback?: Function, context?: any): Resource;
         public off(eventType: string, callback?: Function, context?: any): Resource;
         public set(value: any, onComplete?: (error: any) => any): Resource;
         public update(value: any, onComplete?: (error: any) => any): Resource;
         public remove(onComplete?: (error: any) => any): void;
-        public push(value: any, onComplete?: (error: any) => any): Resource;
+        public push(value: any, onComplete?: (error: any) => any): {};
         public child(childPath: string): Resource;
         public parent(): Resource;
         public root(): Resource;
@@ -105,16 +110,25 @@ declare module SmallMouth {
         connect(host): ServerAdapter;
         onMessage(type: string, callback?: (error: any) => any): ServerAdapter;
         send(type: string, data: any, onComplete?: (error: any) => any): ServerAdapter;
+        auth(authToken): ServerAdapter;
+        unauth(): ServerAdapter;
+        authenticated(): boolean;
     }
 }
 declare module SmallMouth {
     class SocketIOAdapter implements SmallMouth.ServerAdapter {
         public socket: Socket;
         public id: string;
+        private connected;
+        private isAuthenticated;
         constructor();
         public connect(host): SocketIOAdapter;
+        public auth(authToken): SmallMouth.ServerAdapter;
+        public unauth(): SmallMouth.ServerAdapter;
+        public authenticated(): boolean;
         public onMessage(type: string, callback?: (resp: any) => any): SocketIOAdapter;
         public send(type: string, data: any, onComplete?: (error: any) => any): SocketIOAdapter;
+        public isConnected(): boolean;
     }
 }
 declare module SmallMouth {
@@ -125,6 +139,9 @@ declare module SmallMouth {
         private messageQueue;
         constructor();
         public connect(host): SockJSAdapter;
+        public auth(authToken): SmallMouth.ServerAdapter;
+        public unauth(): SmallMouth.ServerAdapter;
+        public authenticated(): boolean;
         public onMessage(type: string, callback?: (resp: any) => any): SockJSAdapter;
         public send(type: string, data: any, onComplete?: (error: any) => any): SockJSAdapter;
     }
@@ -139,6 +156,9 @@ declare module SmallMouth {
         public adapter: SmallMouth.ServerAdapter;
         constructor(host: string, type?: string);
         private generateCallbackId();
+        public auth(authToken): LargeMouthAdapter;
+        public unauth(): LargeMouthAdapter;
+        public authenticated(): boolean;
         public connect(host: string): LargeMouthAdapter;
         public executeCallback(id: string, err: any, path: string, data: any): void;
         public subscribe(path: string): LargeMouthAdapter;
@@ -186,6 +206,9 @@ declare module SmallMouth {
         private eventListeners;
         private messageQueue;
         constructor();
+        public auth(authToken): SmallMouth.ServerAdapter;
+        public unauth(): SmallMouth.ServerAdapter;
+        public authenticated(): boolean;
         public connect(host): NativeAdapter;
         public onMessage(type: string, callback?: (resp: any) => any): NativeAdapter;
         public send(type: string, data: any, onComplete?: (error: any) => any): NativeAdapter;

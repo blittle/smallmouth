@@ -25,6 +25,18 @@ module SmallMouth {
 			this.messageQueue = [];
 		}
 
+		auth(authToken): ServerAdapter {
+			return this;
+		}
+
+		unauth(): ServerAdapter {
+			return this;
+		}
+
+		authenticated(): boolean {
+			return true;
+		}
+
 		connect(host): NativeAdapter {
 
 			if(!host || this.socket) return;

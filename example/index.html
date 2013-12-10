@@ -24,23 +24,27 @@
 	var userApp = angular.module("UserApp", ["angular-smallmouth"]);
 
 	userApp.controller("UserController", function($scope, AngularSmallMouth) {
-		var users = new SmallMouth.Resource("http://10.1.11.40:3000/users");
+		var users = new SmallMouth.Resource("http://10.1.11.18:3000/users");
 
 		AngularSmallMouth.watchResource(users, $scope, 'users');
 
 		$scope.addUser = function() {			
 			users.child($scope.newUser).set($scope.newUser, function(err){
-				if(err) alert('Cannot create user');
+				if(err) alert('cannot create user');
 			});
 			$scope.newUser = "";
 		}
 
 		$scope.clearUsers = function() {
-			users.set({});
+			users.set({}, function(err) {
+				if(err) alert("cannot clear users");
+			});
 		}
 
 		$scope.removeUser = function(user) {
-			users.child(user).remove();
+			users.child(user).remove(function(err) {
+				if(err) alert("cannot delete user");
+			});
 		}
 	});
 </script>

@@ -9,7 +9,7 @@ module SmallMouth {
 		 
 		 set( value: any, onComplete ?: (error) => any ): ResourceInterface;
 		 update( value: any, onComplete ?: (error) => any ): ResourceInterface;
-		 push( value: any, complete ?: (error) => any ): ResourceInterface;
+		 push( value: any, complete ?: (error) => any ): any;
 		 remove( onComplete?: (error) => any ): void;
 
 		 child( childPath: string ): ResourceInterface;
@@ -18,10 +18,10 @@ module SmallMouth {
 		 name(): string;
 		 toString(): string;
 		 
-		 /**
 		 auth( authToken, onSuccess ?: (error, result) => any ): ResourceInterface;
 		 unauth(): ResourceInterface;
-		 
+
+		 /**
 		 setWithPriority( value: any, priority: any, onComplete ?: (error) => any ): ResourceInterface;
 		 setPriority( priority: any, onComplete ?: (error) => any ): ResourceInterface;
 		 transaction( updateFunction : (data: any) => any, onComplete ?: (error, commited: boolean, snapshot: SnapShotInterface) => any, applyLocally ?: boolean );

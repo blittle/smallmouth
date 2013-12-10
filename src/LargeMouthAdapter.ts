@@ -39,6 +39,20 @@ module SmallMouth {
 			return ++this._callbackId;
 		}
 
+		auth ( authToken ): LargeMouthAdapter {
+			this.adapter.auth(authToken);
+			return this;
+		}
+
+		unauth (): LargeMouthAdapter {
+			this.adapter.unauth();
+			return this;
+		}
+
+		authenticated(): boolean {
+			return this.adapter.authenticated();
+		}
+
 		connect( host: string ): LargeMouthAdapter {
 
 			this.adapter.connect(host);

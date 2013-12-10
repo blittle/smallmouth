@@ -14,6 +14,7 @@ module SmallMouth {
 		_largeMouthAdapter: SmallMouth.LargeMouthAdapter;
 		_dataRegistry: SmallMouth.DataRegistry;
 		_eventRegistry: SmallMouth.EventRegistry;
+		_subscribed = false;
 
 		constructor(address: string) {
 			var parse = urlReg.exec(address),
@@ -34,9 +35,17 @@ module SmallMouth {
 
 			this._largeMouthAdapter = SmallMouth.makeConnection(host);
 			this._dataRegistry = SmallMouth.makeDataRegistry(host, this._largeMouthAdapter);
+		}
 
-			var data = this._dataRegistry.initializeResource(this);
-			this._largeMouthAdapter.subscribe(path);
+		auth( authToken, onSuccess ?: (error, result) => any ): ResourceInterface {
+			this._largeMouthAdapter
+				.auth(authToken);
+			return this;
+		}
+
+		unauth(): ResourceInterface {
+			this._largeMouthAdapter.unauth();
+			return this;
 		}
 
 		on(
@@ -45,6 +54,11 @@ module SmallMouth {
 			cancelCallback ?: Function, 
 			context?: any
 		): Resource {
+
+			if(!this._subscribed) {
+				this._dataRegistry.initializeResource(this);
+				this._largeMouthAdapter.subscribe(this._path);
+			}
 
 			if(typeof cancelCallback == 'function') {
 				this._eventRegistry.addEvent(this._path, eventType, callback, context);	
@@ -59,42 +73,65 @@ module SmallMouth {
 		}
 
 		off( eventType: string, callback ?: Function, context ?: any ): Resource {
+			//@todo check if there are still events in the registry, if there 
+			// aren't, then we should probably kill the subscription
 			this._eventRegistry.removeEvent(this._path, eventType, callback);
 			return this;
 		}
 
 		set(value: any, onComplete ?: (error) => any): Resource {
-			var changed = this._dataRegistry.updateRegistry(this, value, {onComplete: onComplete});	
-			if(changed) this._eventRegistry.triggerEvent(
-				this._path, 'value', this._host, this._getSnapshot(), {local: true}
-			);
+			if(this._largeMouthAdapter.authenticated()) {
+				var changed = this._dataRegistry.updateRegistry(this, value, {onComplete: onComplete});	
+				if(changed) this._eventRegistry.triggerEvent(
+					this._path, 'value', this._host, this._getSnapshot(), {local: true}
+				);
+			} else {
+				console.error('Not authenticated');
+				if(typeof onComplete == 'function') onComplete.call(this, "Not authenticated");
+			}
+			
 			return this;	
 		}
 
 		update( value: any, onComplete ?: (error) => any ): Resource {
-			var changed = this._dataRegistry.updateRegistry(this, value, {merge: true, onComplete: onComplete});	
-			if(changed) this._eventRegistry.triggerEvent(
-				this._path, 'value', this._host, this._getSnapshot(), {local: true}
-			);
+			if(this._largeMouthAdapter.authenticated()) {
+				var changed = this._dataRegistry.updateRegistry(this, value, {merge: true, onComplete: onComplete});	
+				if(changed) this._eventRegistry.triggerEvent(
+					this._path, 'value', this._host, this._getSnapshot(), {local: true}
+				);
+			} else {
+				console.error('Not authenticated');
+				if(typeof onComplete == 'function') onComplete.call(this, "Not authenticated");
+			}
 			return this;
 		}
 
 		remove( onComplete?: (error) => any ): void {
-			this._dataRegistry.remove(this, {onComplete: onComplete});
-			this._eventRegistry.triggerEvent(
-				this._path, 'value', this._host, this._getSnapshot(), {local: true}
-			);
+			if(this._largeMouthAdapter.authenticated()) {
+				this._dataRegistry.remove(this, {onComplete: onComplete});
+				this._eventRegistry.triggerEvent(
+					this._path, 'value', this._host, this._getSnapshot(), {local: true}
+				);
+			} else {
+				console.error('Not authenticated');
+				if(typeof onComplete == 'function') onComplete.call(this, "Not authenticated");
+			}
 		}
 
-		push( value: any, onComplete ?: (error) => any ): Resource {
-			var id = this._largeMouthAdapter.generateId();
-			var ref = this.child(id);
+		push( value: any, onComplete ?: (error) => any ) {
+			if(this._largeMouthAdapter.authenticated()) {
+				var id = this._largeMouthAdapter.generateId();
+				var ref = this.child(id);
 
-			if(typeof value !== 'undefined') {
-				ref.set(value, onComplete);
+				if(typeof value !== 'undefined') {
+					ref.set(value, onComplete);
+				}
+
+				return ref;
+			} else {
+				return console.error('Not authenticated');
+				if(typeof onComplete == 'function') onComplete.call(this, "Not authenticated");
 			}
-
-			return ref;
 		}
 
 		child( childPath: string ): Resource {
