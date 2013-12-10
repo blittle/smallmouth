@@ -16,7 +16,7 @@ module SmallMouth {
 			this.messageQueue = [];
 		}
 
-		connect(host): SockJSAdapter {
+		connect(host, authToken?: any, onComplete?: (error) => any): SockJSAdapter {
 
 			if(!host || this.socket) return;
 
@@ -39,10 +39,6 @@ module SmallMouth {
 				this.id = resp.id;
 			});
 
-			return this;
-		}
-
-		auth(authToken): ServerAdapter {
 			return this;
 		}
 

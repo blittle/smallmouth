@@ -25,10 +25,6 @@ module SmallMouth {
 			this.messageQueue = [];
 		}
 
-		auth(authToken): ServerAdapter {
-			return this;
-		}
-
 		unauth(): ServerAdapter {
 			return this;
 		}
@@ -37,7 +33,7 @@ module SmallMouth {
 			return true;
 		}
 
-		connect(host): NativeAdapter {
+		connect(host, authToken?: any, onComplete?: (error) => any): NativeAdapter {
 
 			if(!host || this.socket) return;
 

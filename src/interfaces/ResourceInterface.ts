@@ -18,7 +18,7 @@ module SmallMouth {
 		 name(): string;
 		 toString(): string;
 		 
-		 auth( authToken, onSuccess ?: (error, result) => any ): ResourceInterface;
+		 auth( authToken, onSuccess ?: (error) => any ): ResourceInterface;
 		 unauth(): ResourceInterface;
 
 		 /**

@@ -26,22 +26,22 @@ module SmallMouth {
 
 		public adapter: SmallMouth.ServerAdapter;
 
-		constructor(host: string, type: string = serverAdapterType) {
+		constructor(
+			host: string, 
+			type: string = serverAdapterType, 
+			authToken?: any,
+			onSuccess?: (error) => any
+		) {
 
-			this.adapter = new SmallMouth[type]();
+			this.adapter = new SmallMouth[type](host);
 
-			this.connect(host);
+			this.connect(host, authToken, onSuccess);
 			this._host = host;
 			this._callbacks = {};
 		}
 
 		private generateCallbackId() {
 			return ++this._callbackId;
-		}
-
-		auth ( authToken ): LargeMouthAdapter {
-			this.adapter.auth(authToken);
-			return this;
 		}
 
 		unauth (): LargeMouthAdapter {
@@ -53,9 +53,9 @@ module SmallMouth {
 			return this.adapter.authenticated();
 		}
 
-		connect( host: string ): LargeMouthAdapter {
+		connect( host: string, authToken?: any, onComplete?: (error) => any ): LargeMouthAdapter {
 
-			this.adapter.connect(host);
+			this.adapter.connect(host, authToken, onComplete);
 
 			this.adapter.onMessage('set', (resp) => {
 				SmallMouth.DataRegistry.getDataRegistry(this._host).serverSetData(resp.path, resp.value);

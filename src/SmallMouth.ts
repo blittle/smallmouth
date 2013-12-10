@@ -9,10 +9,12 @@ module SmallMouth {
 	// a path (separate from the data path).
 	export var defaultHost = '';
 
-	export var makeConnection = function(host) {
+	export var makeConnection = function(host, authToken?: any, onComplete?: (error) => any) {
 		if(!hosts[host]) hosts[host] = {};
 		if(hosts[host].connection) return hosts[host].connection;		
-		return hosts[host].connection = new SmallMouth.LargeMouthAdapter(host);
+		return hosts[host].connection = new SmallMouth.LargeMouthAdapter(
+			host, undefined, authToken, onComplete
+		);
 	}
 
 	export var makeDataRegistry = function(host, connection) {
@@ -28,7 +30,8 @@ module SmallMouth {
 	}
 
 	export function postMessage(host: string, key: string, data: any) {
-		SmallMouth.makeConnection(host).adapter.send(key, data);
+		SmallMouth.makeConnection(host)
+			.adapter.send(key, data);
 	}
 
 	export function getAvailableAdapters() {

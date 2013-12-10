@@ -42,5 +42,5 @@ interface SocketNamespace {
 }
 
 interface SocketManager {
-	connect: (host: string)=>Socket;
+	connect: (host: string, options?: any)=>Socket;
 }

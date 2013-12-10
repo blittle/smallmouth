@@ -31,15 +31,11 @@ module SmallMouth {
 			this._path = path;
 			this._host = host;
 
-			this._eventRegistry = SmallMouth.makeEventRegistry(host);
-
-			this._largeMouthAdapter = SmallMouth.makeConnection(host);
-			this._dataRegistry = SmallMouth.makeDataRegistry(host, this._largeMouthAdapter);
+			this._eventRegistry = SmallMouth.makeEventRegistry(this._host);
 		}
 
-		auth( authToken, onSuccess ?: (error, result) => any ): ResourceInterface {
-			this._largeMouthAdapter
-				.auth(authToken);
+		auth( authToken, onComplete ?: (error) => any ): ResourceInterface {
+			this.initializeConnection(authToken, onComplete);
 			return this;
 		}
 
@@ -48,12 +44,21 @@ module SmallMouth {
 			return this;
 		}
 
+		initializeConnection(authToken?: any, onComplete?: (error) => any ) {
+			if(!this._largeMouthAdapter) {
+				this._largeMouthAdapter = SmallMouth.makeConnection(this._host, authToken, onComplete);
+				this._dataRegistry = SmallMouth.makeDataRegistry(this._host, this._largeMouthAdapter);
+			}
+		}
+
 		on(
 			eventType: string, 
 			callback: (snapshot: SmallMouth.SnapshotInterface, previusChild ?: string) => any, 
 			cancelCallback ?: Function, 
 			context?: any
 		): Resource {
+
+			this.initializeConnection();
 
 			if(!this._subscribed) {
 				this._dataRegistry.initializeResource(this);
@@ -80,6 +85,8 @@ module SmallMouth {
 		}
 
 		set(value: any, onComplete ?: (error) => any): Resource {
+			this.initializeConnection();
+
 			if(this._largeMouthAdapter.authenticated()) {
 				var changed = this._dataRegistry.updateRegistry(this, value, {onComplete: onComplete});	
 				if(changed) this._eventRegistry.triggerEvent(
@@ -94,6 +101,8 @@ module SmallMouth {
 		}
 
 		update( value: any, onComplete ?: (error) => any ): Resource {
+			this.initializeConnection();
+
 			if(this._largeMouthAdapter.authenticated()) {
 				var changed = this._dataRegistry.updateRegistry(this, value, {merge: true, onComplete: onComplete});	
 				if(changed) this._eventRegistry.triggerEvent(
@@ -107,6 +116,8 @@ module SmallMouth {
 		}
 
 		remove( onComplete?: (error) => any ): void {
+			this.initializeConnection();
+
 			if(this._largeMouthAdapter.authenticated()) {
 				this._dataRegistry.remove(this, {onComplete: onComplete});
 				this._eventRegistry.triggerEvent(
@@ -119,6 +130,8 @@ module SmallMouth {
 		}
 
 		push( value: any, onComplete ?: (error) => any ) {
+			this.initializeConnection();
+
 			if(this._largeMouthAdapter.authenticated()) {
 				var id = this._largeMouthAdapter.generateId();
 				var ref = this.child(id);
@@ -151,11 +164,13 @@ module SmallMouth {
 		}
 
 		postMessage(key: string, data: any): Resource {
+			this.initializeConnection();
 			this._largeMouthAdapter.adapter.send(key, data);
 			return this;
 		}
 
 		getSocket(): any {
+			this.initializeConnection();
 			return this._largeMouthAdapter.adapter.socket;
 		}
 

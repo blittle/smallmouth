@@ -25,6 +25,9 @@
 
 	userApp.controller("UserController", function($scope, AngularSmallMouth) {
 		var users = new SmallMouth.Resource("http://10.1.11.18:3000/users");
+		users.auth("doggies", function(err) {
+			if(err) alert('cannot connect! ' + err);
+		});
 
 		AngularSmallMouth.watchResource(users, $scope, 'users');
 
