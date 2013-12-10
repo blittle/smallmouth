@@ -59,9 +59,12 @@ describe('Resource', function() {
 	it('Should return children references', function() {
 		var resource1 = new SmallMouth.Resource('/some/data/for/you');
 		resource1.set('myData');
+
 		var resource2 = new SmallMouth.Resource('/some/data');
+		resource2.initializeConnection();
 
 		var resource3 = resource2.child('for/you');
+		resource3.initializeConnection();
 
 		expect(resource1._getSnapshot().val()).toBe(resource3._getSnapshot().val());
 	});
@@ -69,16 +72,25 @@ describe('Resource', function() {
 	it('Should return parent references', function() {
 		var resource1 = new SmallMouth.Resource('/some/data/for/you');
 		resource1.set('myData');
+
 		var resource2 = new SmallMouth.Resource('/some/data/for');
+		resource2.initializeConnection();
+
 		var resource3 = resource1.parent();
+		resource3.initializeConnection();
 
 		expect(resource2._getSnapshot().val().you).toBe(resource3._getSnapshot().val().you);
 	});
 
 	it('Should return the root reference', function() {
 		var resource1 = new SmallMouth.Resource('/some/data/for/you');
+		resource1.initializeConnection();
+
 		var resource2 = resource1.root();
+		resource2.initializeConnection();
+
 		var resource3 = new SmallMouth.Resource('/some');
+		resource3.initializeConnection();
 
 		expect(resource2._getSnapshot().val().data.for.you).toBeUndefined();
 		expect(resource3._getSnapshot().val().data.for.you).toBeUndefined();
@@ -114,12 +126,19 @@ describe('Resource', function() {
 				sub1: 1,
 				sub2: 2
 			}
-		});			
+		});
 
-		expect(resource1.child('prop1')._getSnapshot().val()).toBeNull();
+		var child = resource1.child('prop1');
+		child.initializeConnection();
+		expect(child._getSnapshot().val()).toBeNull();
 
-		expect(resource1.child('prop2/sub1')._getSnapshot().val()).toBe(1);
-		expect(resource1.child('prop2/sub2')._getSnapshot().val()).toBe(2);
+		child = resource1.child('prop2/sub1');
+		child.initializeConnection();
+		expect(child._getSnapshot().val()).toBe(1);
+
+		child = resource1.child('prop2/sub2');
+		child.initializeConnection();
+		expect(child._getSnapshot().val()).toBe(2);
 	});
 
 	it('Should create nested resources and merge on update', function() {
@@ -136,11 +155,19 @@ describe('Resource', function() {
 			}
 		});
 
-		expect(resource1.child('prop1')).toBeDefined();
-		expect(resource1.child('prop1')._getSnapshot().val()).toBe(1);
+		var child = resource1.child('prop1');
+		child.initializeConnection();
 
-		expect(resource1.child('prop2/sub1')._getSnapshot().val()).toBe(1);
-		expect(resource1.child('prop2/sub2')._getSnapshot().val()).toBe(2);
+		expect(child).toBeDefined();
+		expect(child._getSnapshot().val()).toBe(1);
+
+		child = resource1.child('prop2/sub1');
+		child.initializeConnection();
+		expect(child._getSnapshot().val()).toBe(1);
+
+		child = resource1.child('prop2/sub2');
+		child.initializeConnection();
+		expect(child._getSnapshot().val()).toBe(2);
 	});
 
 	it('Should update parent versions when nested resources are set', function() {
@@ -157,10 +184,16 @@ describe('Resource', function() {
 			'prop1': {
 				'sub2': 2
 			}
-		});				
-		
-		expect(resource1.child('prop1/sub2')._getSnapshot().val()).toBe(2);
-		expect(resource1.child('prop1')._getSnapshot().version).toBe(0);
+		});		
+
+		var child = resource1.child('prop1/sub2');
+		child.initializeConnection();				
+		expect(child._getSnapshot().val()).toBe(2);
+
+		var child = resource1.child('prop1');
+		child.initializeConnection();
+
+		expect(child._getSnapshot().version).toBe(0);
 		expect(resource1._getSnapshot().version).toBe(2);		
 	});
 
@@ -173,6 +206,7 @@ describe('Resource', function() {
 		expect(resource1._getSnapshot().val()).toBeNull();
 
 		var parent = resource1.parent();
+		parent.initializeConnection();
 		var snapshot = parent._getSnapshot();
 
 		expect(snapshot.val().data).toBeUndefined();
@@ -181,9 +215,12 @@ describe('Resource', function() {
 	it('Should update parent resources version when a sub resource is removed', function() {
 		var resource1 = new SmallMouth.Resource('/some/data');
 		resource1.set('value');
-		expect(resource1.parent()._getSnapshot().version).toBe(1);
+		var parent = resource1.parent();
+		parent.initializeConnection();
+
+		expect(parent._getSnapshot().version).toBe(1);
 		resource1.remove();
-		expect(resource1.parent()._getSnapshot().version).toBe(2);
+		expect(parent._getSnapshot().version).toBe(2);
 	});
 
 	it('Should register and execute events on value set', function() {
@@ -254,9 +291,12 @@ describe('Resource', function() {
 
 	it('Should create child references', function() {
 		var chats = new SmallMouth.Resource('chats');
+		debugger;
+		chats.initializeConnection();
 
 		var chat1 = chats.push();
 		chat1.name();
+		chat1.initializeConnection();
 
 		var snapshot = chats._getSnapshot();
 		expect(snapshot._data.children[chat1.name()]).toBeDefined();

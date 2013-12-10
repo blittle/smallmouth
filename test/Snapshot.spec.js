@@ -133,6 +133,7 @@ describe("Snapshot", function() {
 
 	it('Should return the snapshot name', function() {
 		var resource1 = new SmallMouth.Resource('http://localhost:8080/test/path/your/mom');
+		resource1.initializeConnection();
 
 		expect(resource._getSnapshot().name()).toBe('data');
 		expect(resource1._getSnapshot().name()).toBe('mom');
@@ -140,7 +141,9 @@ describe("Snapshot", function() {
 
 	it('Should return a new resource reference from a snapshot', function() {
 		var snapshot = resource._getSnapshot();
+
 		var ref = snapshot.ref();
+		ref.initializeConnection();
 
 		expect(ref._host).toBe(resource._host);
 		expect(ref._path).toBe(resource._path);

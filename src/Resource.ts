@@ -51,6 +51,7 @@ module SmallMouth {
 
 			if(!this._dataRegistry) {
 				this._dataRegistry = SmallMouth.makeDataRegistry(this._host, this._largeMouthAdapter);
+				this._dataRegistry.initializeResource(this);
 			}
 		}
 
@@ -64,7 +65,6 @@ module SmallMouth {
 			this.initializeConnection();
 
 			if(!this._subscribed) {
-				this._dataRegistry.initializeResource(this);
 				this._largeMouthAdapter.subscribe(this._path);
 			}
 

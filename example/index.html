@@ -26,12 +26,6 @@
 	userApp.controller("UserController", function($scope, AngularSmallMouth) {
 		var users = new SmallMouth.Resource("http://10.1.11.18:3000/users");
 
-		var u = new Date().getTime() + "hi";
-
-		users.child(u).set(u, function(err){
-			if(err) alert('cannot create user');
-		});
-
 		users.auth("doggies", function(err) {
 			if(err) alert('cannot connect! ' + err);
 		});

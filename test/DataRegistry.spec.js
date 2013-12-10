@@ -23,6 +23,8 @@ describe("Data Registry", function() {
 
 	it("Should add a resource to the registry", function() {
 		var resource1 = new SmallMouth.Resource('/resource1');
+		resource1.initializeConnection();
+		
 		expect(dataRegistry._dataRegistry.version).toBe(0);
 		expect(dataRegistry._dataRegistry.children.resource1).toBeDefined();
 		expect(dataRegistry._dataRegistry.children.resource1.version).toBe(0);
@@ -31,27 +33,33 @@ describe("Data Registry", function() {
 	it("Should update the resource in the registry", function() {
 		var resource1 = new SmallMouth.Resource('/resource1');
 		var resource2 = new SmallMouth.Resource('/resource1');
+		resource2.initializeConnection();
 
 		resource1.set('someValue');
 		expect(resource1._getSnapshot().val()).toBe('someValue');
 		expect(resource2._getSnapshot().val()).toBe('someValue');
 	});
 
-	it("Should create nested resources", function() {
-		
+	it("Should create nested resources", function() {		
 		var resource1 = new SmallMouth.Resource('/some/data/for/you');
+		resource1.initializeConnection();
 		expect(dataRegistry._dataRegistry.children.some.children.data.children.for.children.you).toBeDefined();
 	});
 
 	it("Should return the root registry if the path is an empty string", function() {
 		var resource1 = new SmallMouth.Resource('/test/path');
 		resource1.set('val');
+
 		var resource = new SmallMouth.Resource('/');
+		resource.initializeConnection();
+
 		expect(resource._getSnapshot().val().test.path).toBe('val');
 	});
 
 	it('Should update the version when the value is modified', function() {
 		var resource = new SmallMouth.Resource('/test');
+		resource.initializeConnection();
+
 		expect(resource._getSnapshot().version).toBe(0);
 		resource.set("some value");
 		expect(resource._getSnapshot().version).toBe(1);
@@ -61,8 +69,11 @@ describe("Data Registry", function() {
 
 	it('Should update a child\'s parent version', function() {
 		var name1 = new SmallMouth.Resource('/chats/1234/name');
+
 		var name2 = new SmallMouth.Resource('/chats/1235/name');
+
 		var root = name1.root();
+		root.initializeConnection();
 
 		name1.set('Joseph Smith');
 		name2.set('Brigham Young');
