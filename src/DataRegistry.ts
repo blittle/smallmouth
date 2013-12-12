@@ -153,9 +153,15 @@ module SmallMouth {
 			
 			this._largeMouthAdapter = largeMouthAdapter;
 
-			this._dataRegistry = JSON.parse(localStorage.getItem('LargeMouth_Registry_' + host)) || {
-				version: 0
-			};
+			if(typeof localStorage !== 'undefined') {
+				this._dataRegistry = JSON.parse(localStorage.getItem('LargeMouth_Registry_' + host))
+			}
+
+			if(!this._dataRegistry) {
+				this._dataRegistry = {
+					version: 0
+				};
+			}
 
 			this._host = host;
 		}
@@ -307,7 +313,9 @@ module SmallMouth {
 		}
 
 		saveToLocalStorage() {
-			localStorage.setItem('LargeMouth_Registry_' + this._host, JSON.stringify(this._dataRegistry));
+			if(typeof localStorage !== 'undefined') {
+				localStorage.setItem('LargeMouth_Registry_' + this._host, JSON.stringify(this._dataRegistry));
+			}
 		}
 
 		persistSet(resource: SmallMouth.Resource, onComplete ?: (error) => any ) {

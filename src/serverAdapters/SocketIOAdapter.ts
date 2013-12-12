@@ -1,7 +1,10 @@
 ///<reference path="ServerAdapter"/>
 ///<reference path="../../d.ts/DefinitelyTyped/socket.io/socket.io.d.ts"/>
+///<reference path="../../d.ts/DefinitelyTyped/node/node.d.ts"/>
 
 module SmallMouth {
+
+	var io = typeof require == 'function' ? require('socket.io-client') : io;
 
 	export class SocketIOAdapter implements SmallMouth.ServerAdapter {
 

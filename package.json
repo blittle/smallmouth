@@ -2,11 +2,13 @@
   "name": "smallmouth",
   "version": "0.3.3",
   "description": "smallmouth ==========",
-  "main": "smallmouth.js",
+  "main": "build/smallmouth.js",
   "dependencies": {
     "grunt": "~0.4.1",
     "grunt-typescript": "~0.2.4",
-    "grunt-contrib-uglify": "~0.2.4"
+    "grunt-contrib-uglify": "~0.2.4",
+    "socket.io-client": "~0.9.16",
+    "sockjs-client-node": "0.0.0"
   },
   "devDependencies": {
     "karma-script-launcher": "~0.1.0",

@@ -1,3 +1,4 @@
+/// <reference path="../d.ts/DefinitelyTyped/node/node.d.ts" />
 /// <reference path="../d.ts/DefinitelyTyped/socket.io/socket.io.d.ts" />
 /// <reference path="../d.ts/DefinitelyTyped/sockjs/sockjs.d.ts" />
 declare module SmallMouth {
@@ -191,6 +192,27 @@ declare module SmallMouth {
         public persistRemove(resource: SmallMouth.Resource, onComplete?: (error: any) => any): void;
         public persist(method: string, path: string, data: any, onComplete?: (error: any) => any): void;
         static getDataRegistry(host: string): DataRegistry;
+    }
+}
+declare module SmallMouth {
+    interface SimpleLoginOptions {
+        username: string;
+        password: string;
+        rememberMe: string;
+    }
+    interface SimpleLoginUser {
+        email: string;
+        authToken: string;
+        id: string;
+        md5_hash: string;
+        provider: string;
+        uid: string;
+    }
+    class SimpleLogin {
+        public res: SmallMouth.Resource;
+        public onComplete: (error: any, user: SimpleLoginUser) => any;
+        constructor(res: SmallMouth.Resource, onComplete: (error: any, user: SimpleLoginUser) => any);
+        public login(type: string, options: SimpleLoginOptions): SimpleLogin;
     }
 }
 declare module SmallMouth {

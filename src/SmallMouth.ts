@@ -1,3 +1,5 @@
+///<reference path="../d.ts/DefinitelyTyped/node/node.d.ts"/>
+
 module SmallMouth {
 
 	export var hosts = {};
@@ -52,5 +54,9 @@ module SmallMouth {
 
 	export function setSocketAdapter(adapter: string) {
 		SmallMouth.serverAdapterType = SmallMouth.SERVER_TYPES[adapter];
+	}
+
+	if (typeof exports === 'object') {
+		module.exports = SmallMouth;
 	}
 }

@@ -224,6 +224,10 @@ var SmallMouth;
         SmallMouth.serverAdapterType = SmallMouth.SERVER_TYPES[adapter];
     }
     SmallMouth.setSocketAdapter = setSocketAdapter;
+
+    if (typeof exports === 'object') {
+        module.exports = SmallMouth;
+    }
 })(SmallMouth || (SmallMouth = {}));
 var SmallMouth;
 (function (SmallMouth) {
@@ -438,6 +442,8 @@ var SmallMouth;
 })(SmallMouth || (SmallMouth = {}));
 var SmallMouth;
 (function (SmallMouth) {
+    var io = typeof require == 'function' ? require('socket.io-client') : io;
+
     var SocketIOAdapter = (function () {
         function SocketIOAdapter() {
             this.id = new Date().getTime() + "";
@@ -524,6 +530,8 @@ var SmallMouth;
 })(SmallMouth || (SmallMouth = {}));
 var SmallMouth;
 (function (SmallMouth) {
+    var SockJS = typeof require == 'function' ? require('sockjs-client-node') : SockJS;
+
     var SockJSAdapter = (function () {
         function SockJSAdapter() {
             this.id = new Date().getTime() + "";
@@ -856,9 +864,15 @@ else {
         function DataRegistry(host, largeMouthAdapter) {
             this._largeMouthAdapter = largeMouthAdapter;
 
-            this._dataRegistry = JSON.parse(localStorage.getItem('LargeMouth_Registry_' + host)) || {
-                version: 0
-            };
+            if (typeof localStorage !== 'undefined') {
+                this._dataRegistry = JSON.parse(localStorage.getItem('LargeMouth_Registry_' + host));
+            }
+
+            if (!this._dataRegistry) {
+                this._dataRegistry = {
+                    version: 0
+                };
+            }
 
             this._host = host;
         }
@@ -1021,7 +1035,9 @@ else {
         };
 
         DataRegistry.prototype.saveToLocalStorage = function () {
-            localStorage.setItem('LargeMouth_Registry_' + this._host, JSON.stringify(this._dataRegistry));
+            if (typeof localStorage !== 'undefined') {
+                localStorage.setItem('LargeMouth_Registry_' + this._host, JSON.stringify(this._dataRegistry));
+            }
         };
 
         DataRegistry.prototype.persistSet = function (resource, onComplete) {
@@ -1044,6 +1060,20 @@ else {
         return DataRegistry;
     })();
     SmallMouth.DataRegistry = DataRegistry;
+})(SmallMouth || (SmallMouth = {}));
+var SmallMouth;
+(function (SmallMouth) {
+    var SimpleLogin = (function () {
+        function SimpleLogin(res, onComplete) {
+            this.res = res;
+        }
+        SimpleLogin.prototype.login = function (type, options) {
+            this.res.auth;
+            return this;
+        };
+        return SimpleLogin;
+    })();
+    SmallMouth.SimpleLogin = SimpleLogin;
 })(SmallMouth || (SmallMouth = {}));
 var SmallMouth;
 (function (SmallMouth) {

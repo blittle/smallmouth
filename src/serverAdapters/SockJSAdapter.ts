@@ -1,7 +1,11 @@
 ///<reference path="ServerAdapter"/>
 ///<reference path="../../d.ts/DefinitelyTyped/sockjs/sockjs.d.ts"/>
+///<reference path="../../d.ts/DefinitelyTyped/node/node.d.ts"/>
 
 module SmallMouth {
+
+	// Check for CommonJS (nodejs) and load SockJS subsequently
+	var SockJS = typeof require == 'function' ? require('sockjs-client-node') : SockJS;
 
 	export class SockJSAdapter implements SmallMouth.ServerAdapter {
 
