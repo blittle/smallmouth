@@ -38,6 +38,8 @@ everything is stored locally before being saved to the server. Because all data 
 See a more [complete example](example/index.html) with AngularJS.
 ###SmallMouth in NodeJS
 Install SmallMouth via npm: `npm install smallmouth`
+
+When running in Node, SmallMouth depends upon jsdom, which in turn depends upon contextify. Building contextify requires native building. This should be fine in Linux or MacOS, but requires some extra setup for Windows. See [https://github.com/tmpvar/jsdom#contextify](https://github.com/tmpvar/jsdom#contextify) for additional instructions.
 ```javascript
 	var SmallMouth = require('smallmouth');
 	
