@@ -36,6 +36,17 @@ everything is stored locally before being saved to the server. Because all data 
 	});
 ```
 See a more [complete example](example/index.html) with AngularJS.
+###SmallMouth in NodeJS
+Install SmallMouth via npm: `npm install smallmouth`
+```javascript
+	var SmallMouth = require('smallmouth');
+	
+	var chats = new SmallMouth.Resource('http://localhost:3000/chats');
+
+	// The API is the same as the browser from here on out, 
+	// other than there is no "LocalStorage" implemented
+```
+
 ##Release notes
  - v0.3.3 - Add .auth method for custom authentication passing a token. LargeMouth must implement a auth method in its manifest file in order for it to resolve. We no longer immediately subscribe (or even connect to LargeMouth) when resources are created, rather we wait till an event is attached or remove, set, child, or update is called.
  - v0.3.2 - Add a default host option allowing declarations not to include the host. 
