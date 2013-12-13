@@ -82,8 +82,8 @@ module SmallMouth {
 
 			if(auth.type === 'password') {
 				return "username=" + auth.options.username + 
-						",password=" + auth.options.password +
-						",remember=" + auth.options.rememberMe
+						"&password=" + auth.options.password +
+						"&remember=" + auth.options.rememberMe
 			}
 
 			return "";
