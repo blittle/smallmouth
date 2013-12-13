@@ -82,7 +82,6 @@ describe("Data Registry", function() {
 	});
 
 	it('Should return an array of versions for a particular path', function() {
-		debugger;
 		var resource1 = new SmallMouth.Resource('bism/allah/irahman/irahim');
 		var resource2 = new SmallMouth.Resource('bism/allah/alhamdulillah');
 

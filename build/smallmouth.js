@@ -26,7 +26,23 @@ var SmallMouth;
 
         Resource.prototype.initializeConnection = function (authToken, onComplete) {
             if (!this._largeMouthAdapter) {
-                this._largeMouthAdapter = SmallMouth.makeConnection(this._host, authToken, onComplete);
+                this._largeMouthAdapter = SmallMouth.makeConnection(this._host, {
+                    authToken: authToken
+                }, onComplete);
+            }
+
+            if (!this._dataRegistry) {
+                this._dataRegistry = SmallMouth.makeDataRegistry(this._host, this._largeMouthAdapter);
+                this._dataRegistry.initializeResource(this);
+            }
+        };
+
+        Resource.prototype.authenticateConnection = function (type, options, onComplete) {
+            if (!this._largeMouthAdapter) {
+                this._largeMouthAdapter = SmallMouth.makeConnection(this._host, {
+                    type: type,
+                    options: options
+                }, onComplete);
             }
 
             if (!this._dataRegistry) {
@@ -177,7 +193,7 @@ var SmallMouth;
 
     SmallMouth.defaultHost = '';
 
-    SmallMouth.makeConnection = function (host, authToken, onComplete) {
+    SmallMouth.makeConnection = function (host, auth, onComplete) {
         if (!SmallMouth.hosts[host])
             SmallMouth.hosts[host] = {};
 
@@ -185,13 +201,13 @@ var SmallMouth;
             var connection = SmallMouth.hosts[host].connection;
 
             if (!connection.authenticated() || !connection.isConnected()) {
-                connection.connect(host, authToken, onComplete);
+                connection.connect(host, auth, onComplete);
             }
 
             return connection;
         }
 
-        return SmallMouth.hosts[host].connection = new SmallMouth.LargeMouthAdapter(host, undefined, authToken, onComplete);
+        return SmallMouth.hosts[host].connection = new SmallMouth.LargeMouthAdapter(host, undefined, auth, onComplete);
     };
 
     SmallMouth.makeDataRegistry = function (host, connection) {
@@ -442,7 +458,11 @@ var SmallMouth;
 })(SmallMouth || (SmallMouth = {}));
 var SmallMouth;
 (function (SmallMouth) {
-    var io = typeof require == 'function' ? require('socket.io-client') : io;
+    var nodeio;
+
+    if (typeof require == 'function') {
+        nodeio = require('socket.io-client');
+    }
 
     var SocketIOAdapter = (function () {
         function SocketIOAdapter() {
@@ -451,24 +471,27 @@ var SmallMouth;
             this.isAuthenticated = true;
             this.needsAuth = false;
         }
-        SocketIOAdapter.prototype.connect = function (host, authToken, onComplete) {
+        SocketIOAdapter.prototype.connect = function (host, auth, onComplete) {
             var _this = this;
             if (!host)
                 return;
 
-            if (authToken) {
+            var authQuery = "";
+
+            if (auth) {
                 this.isAuthenticated = false;
                 this.needsAuth = true;
+                authQuery = this.getAuthQuery(auth);
             }
 
             if (this.socket) {
-                this.socket = io.connect(host, authToken ? {
-                    query: "token=" + authToken,
+                this.socket = (nodeio ? nodeio : io).connect(host, auth ? {
+                    query: authQuery,
                     "force new connection": true
                 } : null);
             } else {
-                this.socket = io.connect(host, authToken ? {
-                    query: "token=" + authToken
+                this.socket = (nodeio ? nodeio : io).connect(host, auth ? {
+                    query: authQuery
                 } : null);
             }
 
@@ -497,6 +520,21 @@ var SmallMouth;
             });
 
             return this;
+        };
+
+        SocketIOAdapter.prototype.getAuthQuery = function (auth) {
+            if (!auth)
+                return "";
+
+            if (auth.authToken) {
+                return "token=" + auth.authToken;
+            }
+
+            if (auth.type === 'password') {
+                return "username=" + auth.options.username + ",password=" + auth.options.password + ",remember=" + auth.options.rememberMe;
+            }
+
+            return "";
         };
 
         SocketIOAdapter.prototype.unauth = function () {
@@ -538,7 +576,7 @@ var SmallMouth;
             this.eventListeners = {};
             this.messageQueue = [];
         }
-        SockJSAdapter.prototype.connect = function (host, authToken, onComplete) {
+        SockJSAdapter.prototype.connect = function (host, auth, onComplete) {
             var _this = this;
             if (!host || this.socket)
                 return;
@@ -616,12 +654,12 @@ var SmallMouth;
     SmallMouth.serverAdapterType = SmallMouth.SERVER_TYPES.SOCKET_IO;
 
     var LargeMouthAdapter = (function () {
-        function LargeMouthAdapter(host, type, authToken, onSuccess) {
+        function LargeMouthAdapter(host, type, auth, onSuccess) {
             if (typeof type === "undefined") { type = SmallMouth.serverAdapterType; }
             this._callbackId = 0;
             this.adapter = new SmallMouth[type](host);
 
-            this.connect(host, authToken, onSuccess);
+            this.connect(host, auth, onSuccess);
             this._host = host;
             this._callbacks = {};
         }
@@ -642,9 +680,9 @@ var SmallMouth;
             return this.adapter.isConnected();
         };
 
-        LargeMouthAdapter.prototype.connect = function (host, authToken, onComplete) {
+        LargeMouthAdapter.prototype.connect = function (host, auth, onComplete) {
             var _this = this;
-            this.adapter.connect(host, authToken, onComplete);
+            this.adapter.connect(host, auth, onComplete);
 
             this.adapter.onMessage('set', function (resp) {
                 SmallMouth.DataRegistry.getDataRegistry(_this._host).serverSetData(resp.path, resp.value);
@@ -843,7 +881,7 @@ var SmallMouth;
 
         if (remote.value)
             local.value = remote.value;
-else {
+        else {
             if (!local.children)
                 local.children = {};
 
@@ -1066,9 +1104,10 @@ var SmallMouth;
     var SimpleLogin = (function () {
         function SimpleLogin(res, onComplete) {
             this.res = res;
+            this.onComplete = onComplete;
         }
         SimpleLogin.prototype.login = function (type, options) {
-            this.res.auth;
+            this.res.authenticateConnection(type, options, this.onComplete);
             return this;
         };
         return SimpleLogin;
@@ -1095,7 +1134,7 @@ var SmallMouth;
             return true;
         };
 
-        NativeAdapter.prototype.connect = function (host, authToken, onComplete) {
+        NativeAdapter.prototype.connect = function (host, auth, onComplete) {
             var _this = this;
             if (!host || this.socket)
                 return;

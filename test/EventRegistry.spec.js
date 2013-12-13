@@ -61,7 +61,6 @@ describe("Event Registry", function() {
 
 			expect(eventRegistry.eventRegistry.children.resource1.events.value.length).toBe(3);
 
-			debugger;
 			eventRegistry.removeEvent('resource1');
 			expect(eventRegistry.eventRegistry.children.resource1.events.value).not.toBeDefined();
 		});

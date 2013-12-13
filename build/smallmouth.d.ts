@@ -25,14 +25,14 @@ declare module SmallMouth {
         off(eventType: string, callback?: Function, context?: any): ResourceInterface;
         set(value: any, onComplete?: (error: any) => any): ResourceInterface;
         update(value: any, onComplete?: (error: any) => any): ResourceInterface;
-        push(value: any, complete?: (error: any) => any): any;
+        push(value: any, onComplete?: SmallMouth.onCompleteSignature): any;
         remove(onComplete?: (error: any) => any): void;
         child(childPath: string): ResourceInterface;
         parent(): ResourceInterface;
         root(): ResourceInterface;
         name(): string;
         toString(): string;
-        auth(authToken, onSuccess?: (error: any) => any): ResourceInterface;
+        auth(authToken: any, onSuccess?: (error: any) => any): ResourceInterface;
         unauth(): ResourceInterface;
     }
 }
@@ -45,15 +45,16 @@ declare module SmallMouth {
         public _eventRegistry: SmallMouth.EventRegistry;
         public _subscribed: boolean;
         constructor(address: string);
-        public auth(authToken, onComplete?: (error: any) => any): SmallMouth.ResourceInterface;
+        public auth(authToken: any, onComplete?: (error: any) => any): SmallMouth.ResourceInterface;
         public unauth(): SmallMouth.ResourceInterface;
         public initializeConnection(authToken?: any, onComplete?: (error: any) => any): void;
+        public authenticateConnection(type: string, options: SmallMouth.SimpleLoginOptions, onComplete: SmallMouth.onCompleteSignature): void;
         public on(eventType: string, callback: (snapshot: SmallMouth.SnapshotInterface, previusChild?: string) => any, cancelCallback?: Function, context?: any): Resource;
         public off(eventType: string, callback?: Function, context?: any): Resource;
         public set(value: any, onComplete?: (error: any) => any): Resource;
         public update(value: any, onComplete?: (error: any) => any): Resource;
         public remove(onComplete?: (error: any) => any): void;
-        public push(value: any, onComplete?: (error: any) => any): {};
+        public push(value: any, onComplete?: SmallMouth.onCompleteSignature): any;
         public child(childPath: string): Resource;
         public parent(): Resource;
         public root(): Resource;
@@ -68,7 +69,16 @@ declare module SmallMouth {
 declare module SmallMouth {
     var hosts: {};
     var defaultHost: string;
-    var makeConnection: (host: any, authToken?: any, onComplete?: (error: any) => any) => any;
+    interface AuthInterface {
+        authToken?: string;
+        type?: string;
+        options?: SmallMouth.SimpleLoginOptions;
+    }
+    interface onCompleteSignature {
+        (error: any): any;
+        (error: any, user: SmallMouth.SimpleLoginUser): any;
+    }
+    var makeConnection: (host: any, auth?: AuthInterface, onComplete?: onCompleteSignature) => any;
     var makeDataRegistry: (host: any, connection: any) => any;
     var makeEventRegistry: (host: any) => any;
     function postMessage(host: string, key: string, data: any): void;
@@ -80,9 +90,9 @@ declare module SmallMouth {
         private eventRegistry;
         private _host;
         constructor(host: string);
-        public addEvent(path: string, type: string, callback: Function, context): EventRegistry;
+        public addEvent(path: string, type: string, callback: Function, context: any): EventRegistry;
         public removeEvent(path: string, type: string, callback: Function): any;
-        public triggerEvent(path: string, type: string, host: string, snapshot, options?: any): EventRegistry;
+        public triggerEvent(path: string, type: string, host: string, snapshot: any, options?: any): EventRegistry;
         public resetRegistry(): EventRegistry;
         private getEvent(path, options?);
         static getEventRegistry(host: string): EventRegistry;
@@ -93,8 +103,8 @@ declare module SmallMouth {
         private _path;
         private _data;
         private _host;
-        public version;
-        constructor(path, data, host);
+        public version: any;
+        constructor(path: any, data: any, host: any);
         public val(): any;
         public child(path: string): Snapshot;
         public forEach(childAction: (childSnapshot: SmallMouth.SnapshotInterface) => any): boolean;
@@ -109,7 +119,7 @@ declare module SmallMouth {
     interface ServerAdapter {
         socket: any;
         id: string;
-        connect(host, authToken?: any, onSuccess?: (error: any) => any): ServerAdapter;
+        connect(host: any, auth?: SmallMouth.AuthInterface, onSuccess?: (error: any) => any): ServerAdapter;
         onMessage(type: string, callback?: (error: any) => any): ServerAdapter;
         send(type: string, data: any, onComplete?: (error: any) => any): ServerAdapter;
         unauth(): ServerAdapter;
@@ -125,7 +135,8 @@ declare module SmallMouth {
         private isAuthenticated;
         private needsAuth;
         constructor();
-        public connect(host, authToken?: any, onComplete?: (error: any) => any): SocketIOAdapter;
+        public connect(host: string, auth?: SmallMouth.AuthInterface, onComplete?: (error: any) => any): SocketIOAdapter;
+        public getAuthQuery(auth: SmallMouth.AuthInterface): string;
         public unauth(): SmallMouth.ServerAdapter;
         public authenticated(): boolean;
         public onMessage(type: string, callback?: (resp: any) => any): SocketIOAdapter;
@@ -140,7 +151,7 @@ declare module SmallMouth {
         private eventListeners;
         private messageQueue;
         constructor();
-        public connect(host, authToken?: any, onComplete?: (error: any) => any): SockJSAdapter;
+        public connect(host: string, auth?: SmallMouth.AuthInterface, onComplete?: (error: any) => any): SockJSAdapter;
         public unauth(): SmallMouth.ServerAdapter;
         public authenticated(): boolean;
         public isConnected(): boolean;
@@ -150,23 +161,23 @@ declare module SmallMouth {
 }
 declare module SmallMouth {
     var SERVER_TYPES: any;
-    var serverAdapterType;
+    var serverAdapterType: any;
     class LargeMouthAdapter {
         private _callbacks;
         private _callbackId;
         private _host;
         public adapter: SmallMouth.ServerAdapter;
-        constructor(host: string, type?: string, authToken?: any, onSuccess?: (error: any) => any);
+        constructor(host: string, type?: string, auth?: SmallMouth.AuthInterface, onSuccess?: (error: any) => any);
         private generateCallbackId();
         public unauth(): LargeMouthAdapter;
         public authenticated(): boolean;
         public isConnected(): boolean;
-        public connect(host: string, authToken?: any, onComplete?: (error: any) => any): LargeMouthAdapter;
+        public connect(host: string, auth?: SmallMouth.AuthInterface, onComplete?: (error: any) => any): LargeMouthAdapter;
         public executeCallback(id: string, err: any, path: string, data: any): void;
         public subscribe(path: string): LargeMouthAdapter;
         private syncRemote(method, path, data?, onComplete?);
-        public setRemote(data, path: string, onComplete?: (error: any) => any): LargeMouthAdapter;
-        public removeRemote(data, path: string, onComplete?: (error: any) => any): LargeMouthAdapter;
+        public setRemote(data: any, path: string, onComplete?: (error: any) => any): LargeMouthAdapter;
+        public removeRemote(data: any, path: string, onComplete?: (error: any) => any): LargeMouthAdapter;
         public generateId(): string;
     }
 }
@@ -178,11 +189,11 @@ declare module SmallMouth {
         constructor(host: string, largeMouthAdapter: SmallMouth.LargeMouthAdapter);
         public initializeResource(resource: SmallMouth.Resource): DataRegistry;
         public updateRegistry(resource: SmallMouth.Resource, value: any, options?: any): boolean;
-        public getData(path, options?: any);
+        public getData(path: any, options?: any): any;
         public remove(resource: SmallMouth.Resource, options?: any): void;
         public serverRemove(path: string): void;
-        public removePath(path: string);
-        public getVersions(path): any[];
+        public removePath(path: string): any;
+        public getVersions(path: any): any[];
         public resetData(path: string, element: any): void;
         public serverUpdateData(path: string, element: any): void;
         public serverSetData(path: string, element: any): void;
@@ -210,8 +221,8 @@ declare module SmallMouth {
     }
     class SimpleLogin {
         public res: SmallMouth.Resource;
-        public onComplete: (error: any, user: SimpleLoginUser) => any;
-        constructor(res: SmallMouth.Resource, onComplete: (error: any, user: SimpleLoginUser) => any);
+        public onComplete: SmallMouth.onCompleteSignature;
+        constructor(res: SmallMouth.Resource, onComplete: SmallMouth.onCompleteSignature);
         public login(type: string, options: SimpleLoginOptions): SimpleLogin;
     }
 }
@@ -232,7 +243,7 @@ declare module SmallMouth {
         public unauth(): SmallMouth.ServerAdapter;
         public authenticated(): boolean;
         public isConnected(): boolean;
-        public connect(host, authToken?: any, onComplete?: (error: any) => any): NativeAdapter;
+        public connect(host: any, auth?: any, onComplete?: (error: any) => any): NativeAdapter;
         public onMessage(type: string, callback?: (resp: any) => any): NativeAdapter;
         public send(type: string, data: any, onComplete?: (error: any) => any): NativeAdapter;
     }

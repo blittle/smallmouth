@@ -291,7 +291,6 @@ describe('Resource', function() {
 
 	it('Should create child references', function() {
 		var chats = new SmallMouth.Resource('chats');
-		debugger;
 		chats.initializeConnection();
 
 		var chat1 = chats.push();

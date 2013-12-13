@@ -1,8 +1,10 @@
 var io = {
 	connect: function() {
 		return {
-			on: function() {
-
+			on: function(type, callback) {
+				if(type == 'connect') {
+					callback();
+				}
 			},
 			emit: function() {
 				
