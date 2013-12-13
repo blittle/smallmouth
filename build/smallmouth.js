@@ -531,7 +531,7 @@ var SmallMouth;
             }
 
             if (auth.type === 'password') {
-                return "username=" + auth.options.username + ",password=" + auth.options.password + ",remember=" + auth.options.rememberMe;
+                return "username=" + auth.options.username + "&password=" + auth.options.password + "&remember=" + auth.options.rememberMe;
             }
 
             return "";
