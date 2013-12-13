@@ -9,7 +9,7 @@ module SmallMouth {
 		 
 		 set( value: any, onComplete ?: (error) => any ): ResourceInterface;
 		 update( value: any, onComplete ?: (error) => any ): ResourceInterface;
-		 push( value: any, complete ?: (error) => any ): any;
+		 push( value: any, onComplete ?: SmallMouth.onCompleteSignature ): any;
 		 remove( onComplete?: (error) => any ): void;
 
 		 child( childPath: string ): ResourceInterface;

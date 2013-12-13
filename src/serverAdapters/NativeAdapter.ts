@@ -37,7 +37,7 @@ module SmallMouth {
 			return true;
 		}
 
-		connect(host, authToken?: any, onComplete?: (error) => any): NativeAdapter {
+		connect(host, auth?: any, onComplete?: (error) => any): NativeAdapter {
 
 			if(!host || this.socket) return;
 

@@ -29,13 +29,13 @@ module SmallMouth {
 		constructor(
 			host: string, 
 			type: string = serverAdapterType, 
-			authToken?: any,
+			auth?: SmallMouth.AuthInterface,
 			onSuccess?: (error) => any
 		) {
 
 			this.adapter = new SmallMouth[type](host);
 
-			this.connect(host, authToken, onSuccess);
+			this.connect(host, auth, onSuccess);
 			this._host = host;
 			this._callbacks = {};
 		}
@@ -57,9 +57,13 @@ module SmallMouth {
 			return this.adapter.isConnected();
 		}
 
-		connect( host: string, authToken?: any, onComplete?: (error) => any ): LargeMouthAdapter {
+		connect( 
+			host: string, 
+			auth?: SmallMouth.AuthInterface, 
+			onComplete?: (error) => any 
+		): LargeMouthAdapter {
 
-			this.adapter.connect(host, authToken, onComplete);
+			this.adapter.connect(host, auth, onComplete);
 
 			this.adapter.onMessage('set', (resp) => {
 				SmallMouth.DataRegistry.getDataRegistry(this._host).serverSetData(resp.path, resp.value);

@@ -46,7 +46,27 @@ module SmallMouth {
 
 		initializeConnection(authToken?: any, onComplete?: (error) => any ) {
 			if(!this._largeMouthAdapter) {
-				this._largeMouthAdapter = SmallMouth.makeConnection(this._host, authToken, onComplete);
+				this._largeMouthAdapter = SmallMouth.makeConnection(this._host, {
+					authToken: authToken
+				}, onComplete);
+			}
+
+			if(!this._dataRegistry) {
+				this._dataRegistry = SmallMouth.makeDataRegistry(this._host, this._largeMouthAdapter);
+				this._dataRegistry.initializeResource(this);
+			}
+		}
+
+		authenticateConnection(
+			type: string, 
+			options: SmallMouth.SimpleLoginOptions, 
+			onComplete: SmallMouth.onCompleteSignature
+		) {
+			if(!this._largeMouthAdapter) {
+				this._largeMouthAdapter = SmallMouth.makeConnection(this._host, {
+					type: type,
+					options: options
+				}, onComplete);
 			}
 
 			if(!this._dataRegistry) {
@@ -132,7 +152,7 @@ module SmallMouth {
 			}
 		}
 
-		push( value: any, onComplete ?: (error) => any ) {
+		push( value: any, onComplete ?: SmallMouth.onCompleteSignature ): any {
 			this.initializeConnection();
 
 			if(this._largeMouthAdapter.authenticated()) {

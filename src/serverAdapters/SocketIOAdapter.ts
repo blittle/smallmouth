@@ -3,8 +3,11 @@
 ///<reference path="../../d.ts/DefinitelyTyped/node/node.d.ts"/>
 
 module SmallMouth {
+	var nodeio;
 
-	var io = typeof require == 'function' ? require('socket.io-client') : io;
+	if(typeof require == 'function' ) {
+		 nodeio = require('socket.io-client');
+	}
 
 	export class SocketIOAdapter implements SmallMouth.ServerAdapter {
 
@@ -18,23 +21,30 @@ module SmallMouth {
 		constructor() {
 		}
 
-		connect(host, authToken?: any, onComplete?: (error) => any): SocketIOAdapter {
+		connect(
+			host: string, 
+			auth?: SmallMouth.AuthInterface, 
+			onComplete?: (error) => any
+		): SocketIOAdapter {
 
 			if(!host) return;
 
-			if(authToken) {
+			var authQuery = "";
+
+			if(auth) {
 				this.isAuthenticated = false;
 				this.needsAuth = true;
+				authQuery = this.getAuthQuery(auth);
 			}
 
 			if(this.socket) {
-				this.socket = io.connect(host, authToken ? {
-					query: "token=" + authToken,
+				this.socket = (nodeio ? nodeio : io).connect(host, auth ? {
+					query: authQuery,
 					"force new connection": true
 				} : null);
 			} else {
-				this.socket = io.connect(host, authToken ? {
-					query: "token=" + authToken
+				this.socket = (nodeio ? nodeio : io).connect(host, auth ? {
+					query: authQuery
 				} : null);
 			}
 
@@ -61,6 +71,22 @@ module SmallMouth {
 			});
 
 			return this;
+		}
+
+		getAuthQuery (auth: SmallMouth.AuthInterface) {
+			if(!auth) return "";
+
+			if(auth.authToken) {
+				return "token=" + auth.authToken;
+			}
+
+			if(auth.type === 'password') {
+				return "username=" + auth.options.username + 
+						",password=" + auth.options.password +
+						",remember=" + auth.options.rememberMe
+			}
+
+			return "";
 		}
 
 		unauth(): ServerAdapter {

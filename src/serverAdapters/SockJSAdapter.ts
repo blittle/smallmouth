@@ -20,7 +20,11 @@ module SmallMouth {
 			this.messageQueue = [];
 		}
 
-		connect(host, authToken?: any, onComplete?: (error) => any): SockJSAdapter {
+		connect(
+			host: string, 
+			auth?: SmallMouth.AuthInterface, 
+			onComplete?: (error) => any
+		): SockJSAdapter {
 
 			if(!host || this.socket) return;
 

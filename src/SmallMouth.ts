@@ -11,7 +11,18 @@ module SmallMouth {
 	// a path (separate from the data path).
 	export var defaultHost = '';
 
-	export var makeConnection = function(host, authToken?: any, onComplete?: (error) => any) {
+	export interface AuthInterface {
+		authToken?: string;
+		type?: string;
+		options?: SmallMouth.SimpleLoginOptions;
+	}
+
+	export interface onCompleteSignature {
+		(error: any): any;
+		(error: any, user: SmallMouth.SimpleLoginUser): any;
+	}
+
+	export var makeConnection = function(host, auth?: AuthInterface, onComplete?: onCompleteSignature) {
 		if(!hosts[host]) hosts[host] = {};
 
 		if(
@@ -20,14 +31,14 @@ module SmallMouth {
 			var connection = hosts[host].connection;
 
 			if(!connection.authenticated() ||  !connection.isConnected()) {
-				connection.connect(host, authToken, onComplete);
+				connection.connect(host, auth, onComplete);
 			}
 
 			return connection;
 		}
 
 		return hosts[host].connection = new SmallMouth.LargeMouthAdapter(
-			host, undefined, authToken, onComplete
+			host, undefined, auth, onComplete
 		);
 	}
 

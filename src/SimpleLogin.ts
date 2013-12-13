@@ -17,17 +17,18 @@ module SmallMouth {
 
 	export class SimpleLogin {
 		res: SmallMouth.Resource;
-		onComplete: (error: any, user: SimpleLoginUser) => any; 
+		onComplete: SmallMouth.onCompleteSignature 
 
 		constructor(
 			res: SmallMouth.Resource, 
-			onComplete : (error: any, user: SimpleLoginUser) => any
+			onComplete : SmallMouth.onCompleteSignature
 		) {
 			this.res = res;
+			this.onComplete = onComplete;
 		}
 
 		login(type: string, options: SimpleLoginOptions): SimpleLogin {
-			this.res.auth
+			this.res.authenticateConnection(type, options, this.onComplete);
 			return this;
 		}
 	}
