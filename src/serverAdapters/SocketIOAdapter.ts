@@ -34,7 +34,7 @@ module SmallMouth {
 			if(auth) {
 				this.isAuthenticated = false;
 				this.needsAuth = true;
-				authQuery = this.getAuthQuery(auth);
+				authQuery = this.getAuthQuery(auth, host);
 			}
 
 			if(this.socket) {
@@ -50,9 +50,8 @@ module SmallMouth {
 
 			this.onMessage('ready', (resp) => {
 				this.id = resp.id;
-			});
+				SmallMouth.auth.setAuthToken(host, resp.token);
 
-			this.onMessage('connect', (resp) => {
 				this.connected = true;
 				this.isAuthenticated = true;
 				if(onComplete) onComplete.call(null);
@@ -73,8 +72,10 @@ module SmallMouth {
 			return this;
 		}
 
-		getAuthQuery (auth: SmallMouth.AuthInterface) {
+		getAuthQuery (auth: SmallMouth.AuthInterface, host: string) {
 			if(!auth) return "";
+
+			auth.authToken = auth.authToken || SmallMouth.auth.getAuthToken(host);
 
 			if(auth.authToken) {
 				return "token=" + auth.authToken;

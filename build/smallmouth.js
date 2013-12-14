@@ -193,6 +193,28 @@ var SmallMouth;
 
     SmallMouth.defaultHost = '';
 
+    SmallMouth.auth = {
+        setAuthToken: function (host, token) {
+            if (!SmallMouth.hosts[host])
+                SmallMouth.hosts[host] = {};
+            SmallMouth.hosts[host].token = token;
+            if (sessionStorage) {
+                sessionStorage.setItem(host + "_token", token);
+            }
+        },
+        getAuthToken: function (host) {
+            if (SmallMouth.hosts[host] && SmallMouth.hosts[host].token)
+                return SmallMouth.hosts[host].token;
+            else if (sessionStorage) {
+                SmallMouth.auth.setAuthToken(host, sessionStorage.getItem(host + "_token"));
+
+                return arguments.callee.call(this, host);
+            }
+
+            return null;
+        }
+    };
+
     SmallMouth.makeConnection = function (host, auth, onComplete) {
         if (!SmallMouth.hosts[host])
             SmallMouth.hosts[host] = {};
@@ -481,7 +503,7 @@ var SmallMouth;
             if (auth) {
                 this.isAuthenticated = false;
                 this.needsAuth = true;
-                authQuery = this.getAuthQuery(auth);
+                authQuery = this.getAuthQuery(auth, host);
             }
 
             if (this.socket) {
@@ -497,9 +519,8 @@ var SmallMouth;
 
             this.onMessage('ready', function (resp) {
                 _this.id = resp.id;
-            });
+                SmallMouth.auth.setAuthToken(host, resp.token);
 
-            this.onMessage('connect', function (resp) {
                 _this.connected = true;
                 _this.isAuthenticated = true;
                 if (onComplete)
@@ -522,9 +543,11 @@ var SmallMouth;
             return this;
         };
 
-        SocketIOAdapter.prototype.getAuthQuery = function (auth) {
+        SocketIOAdapter.prototype.getAuthQuery = function (auth, host) {
             if (!auth)
                 return "";
+
+            auth.authToken = auth.authToken || SmallMouth.auth.getAuthToken(host);
 
             if (auth.authToken) {
                 return "token=" + auth.authToken;
@@ -568,7 +591,9 @@ var SmallMouth;
 })(SmallMouth || (SmallMouth = {}));
 var SmallMouth;
 (function (SmallMouth) {
-    var SockJS = typeof require == 'function' ? require('sockjs-client-node') : SockJS;
+    if (typeof require == 'function') {
+        var NodeSockJS = require('sockjs-client-node');
+    }
 
     var SockJSAdapter = (function () {
         function SockJSAdapter() {
@@ -581,7 +606,7 @@ var SmallMouth;
             if (!host || this.socket)
                 return;
 
-            this.socket = new SockJS(host);
+            this.socket = new (NodeSockJS ? NodeSockJS : SockJS)(host);
 
             this.socket.onmessage = function (e) {
                 var resp = JSON.parse(e.data);

@@ -17,6 +17,30 @@ module SmallMouth {
 		options?: SmallMouth.SimpleLoginOptions;
 	}
 
+	export var auth = {
+		setAuthToken: function(host: string, token: string) {
+			if(!hosts[host]) hosts[host] = {};
+			hosts[host].token = token;
+			if(sessionStorage) {
+				sessionStorage.setItem(host+"_token", token)
+			}
+		},
+
+		getAuthToken: function(host: string) {
+			if(hosts[host] && hosts[host].token) return hosts[host].token;
+			else if(sessionStorage) {
+				SmallMouth.auth.setAuthToken(
+					host,
+					sessionStorage.getItem(host+"_token")
+				);
+
+				return arguments.callee.call(this, host);
+			}
+
+			return null;
+		}
+	}
+
 	export interface onCompleteSignature {
 		(error: any): any;
 		(error: any, user: SmallMouth.SimpleLoginUser): any;

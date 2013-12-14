@@ -5,7 +5,9 @@
 module SmallMouth {
 
 	// Check for CommonJS (nodejs) and load SockJS subsequently
-	var SockJS = typeof require == 'function' ? require('sockjs-client-node') : SockJS;
+	if(typeof require == 'function' ) {
+		 var NodeSockJS = require('sockjs-client-node');
+	}
 
 	export class SockJSAdapter implements SmallMouth.ServerAdapter {
 
@@ -28,7 +30,7 @@ module SmallMouth {
 
 			if(!host || this.socket) return;
 
-			this.socket = new SockJS(host);
+			this.socket = new (NodeSockJS ? NodeSockJS : SockJS)(host);
 
 			this.socket.onmessage = (e) => {
 				var resp = JSON.parse(e.data);

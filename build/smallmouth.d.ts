@@ -74,6 +74,10 @@ declare module SmallMouth {
         type?: string;
         options?: SmallMouth.SimpleLoginOptions;
     }
+    var auth: {
+        setAuthToken: (host: string, token: string) => void;
+        getAuthToken: (host: string) => any;
+    };
     interface onCompleteSignature {
         (error: any): any;
         (error: any, user: SmallMouth.SimpleLoginUser): any;
@@ -136,7 +140,7 @@ declare module SmallMouth {
         private needsAuth;
         constructor();
         public connect(host: string, auth?: SmallMouth.AuthInterface, onComplete?: (error: any) => any): SocketIOAdapter;
-        public getAuthQuery(auth: SmallMouth.AuthInterface): string;
+        public getAuthQuery(auth: SmallMouth.AuthInterface, host: string): string;
         public unauth(): SmallMouth.ServerAdapter;
         public authenticated(): boolean;
         public onMessage(type: string, callback?: (resp: any) => any): SocketIOAdapter;
