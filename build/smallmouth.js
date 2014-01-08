@@ -198,7 +198,7 @@ var SmallMouth;
             if (!SmallMouth.hosts[host])
                 SmallMouth.hosts[host] = {};
             SmallMouth.hosts[host].token = token;
-            if (sessionStorage) {
+            if (sessionStorage && token) {
                 sessionStorage.setItem(host + "_token", token);
             }
         },
@@ -206,9 +206,10 @@ var SmallMouth;
             if (SmallMouth.hosts[host] && SmallMouth.hosts[host].token)
                 return SmallMouth.hosts[host].token;
             else if (sessionStorage) {
-                SmallMouth.auth.setAuthToken(host, sessionStorage.getItem(host + "_token"));
-
-                return arguments.callee.call(this, host);
+                var token = sessionStorage.getItem(host + "_token");
+                if (token) {
+                    SmallMouth.hosts[host].token = token;
+                }
             }
 
             return null;
@@ -904,7 +905,7 @@ var SmallMouth;
     function mergeRemoteData(local, remote) {
         local.version = remote.version;
 
-        if (remote.value)
+        if (typeof remote.value !== 'undefined' && remote.value !== null)
             local.value = remote.value;
         else {
             if (!local.children)

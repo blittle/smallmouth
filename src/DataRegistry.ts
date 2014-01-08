@@ -126,7 +126,7 @@ module SmallMouth {
 	function mergeRemoteData(local, remote) {
 		local.version = remote.version;
 
-		if(remote.value) local.value = remote.value;
+		if(typeof remote.value !== 'undefined' && remote.value !== null) local.value = remote.value;
 		else {
 			if(!local.children) local.children = {};
 

@@ -21,7 +21,7 @@ module SmallMouth {
 		setAuthToken: function(host: string, token: string) {
 			if(!hosts[host]) hosts[host] = {};
 			hosts[host].token = token;
-			if(sessionStorage) {
+			if(sessionStorage && token) {
 				sessionStorage.setItem(host+"_token", token)
 			}
 		},
@@ -29,12 +29,10 @@ module SmallMouth {
 		getAuthToken: function(host: string) {
 			if(hosts[host] && hosts[host].token) return hosts[host].token;
 			else if(sessionStorage) {
-				SmallMouth.auth.setAuthToken(
-					host,
-					sessionStorage.getItem(host+"_token")
-				);
-
-				return arguments.callee.call(this, host);
+				var token = sessionStorage.getItem(host+"_token");
+				if(token) {
+					hosts[host].token = token;
+				}
 			}
 
 			return null;
