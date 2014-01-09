@@ -209,6 +209,7 @@ var SmallMouth;
                 var token = sessionStorage.getItem(host + "_token");
                 if (token) {
                     SmallMouth.hosts[host].token = token;
+                    return token;
                 }
             }
 
