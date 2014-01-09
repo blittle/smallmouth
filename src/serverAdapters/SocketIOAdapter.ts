@@ -34,27 +34,33 @@ module SmallMouth {
 			if(auth) {
 				this.isAuthenticated = false;
 				this.needsAuth = true;
-				authQuery = this.getAuthQuery(auth, host);
+				auth.authToken = auth.authToken || SmallMouth.auth.getAuthToken(host);
 			}
 
 			if(this.socket) {
 				this.socket = (nodeio ? nodeio : io).connect(host, auth ? {
-					query: authQuery,
 					"force new connection": true
 				} : null);
 			} else {
 				this.socket = (nodeio ? nodeio : io).connect(host, auth ? {
-					query: authQuery
 				} : null);
 			}
 
-			this.onMessage('ready', (resp) => {
+			this.onMessage('auth', (resp) => {
+				if(!resp.token) {
+					return this.socket.disconnect();
+				}
+
 				this.id = resp.id;
 				SmallMouth.auth.setAuthToken(host, resp.token);
 
 				this.connected = true;
 				this.isAuthenticated = true;
 				if(onComplete) onComplete.call(null);
+			});
+
+			this.onMessage('ready', (resp) => {
+				this.socket.emit('auth', auth);
 			});
 
 			this.onMessage('disconnect', (resp) => {
@@ -70,24 +76,6 @@ module SmallMouth {
 			});
 
 			return this;
-		}
-
-		getAuthQuery (auth: SmallMouth.AuthInterface, host: string) {
-			if(!auth) return "";
-
-			auth.authToken = auth.authToken || SmallMouth.auth.getAuthToken(host);
-
-			if(auth.authToken) {
-				return "token=" + auth.authToken;
-			}
-
-			if(auth.type === 'password') {
-				return "username=" + auth.options.username + 
-						"&password=" + auth.options.password +
-						"&remember=" + auth.options.rememberMe
-			}
-
-			return "";
 		}
 
 		unauth(): ServerAdapter {

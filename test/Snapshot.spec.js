@@ -2,7 +2,7 @@ describe("Snapshot", function() {
 	var resource;
 
 	beforeEach(function(){
-		resource = new SmallMouth.Resource('http://localhost:8080/data');
+		resource = new SmallMouth.Resource('/data');
 		resource.set('value');
 	});
 

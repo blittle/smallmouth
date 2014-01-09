@@ -46,9 +46,9 @@ module SmallMouth {
 
 		initializeConnection(authToken?: any, onComplete?: (error) => any ) {
 			if(!this._largeMouthAdapter) {
-				this._largeMouthAdapter = SmallMouth.makeConnection(this._host, {
+				this._largeMouthAdapter = SmallMouth.makeConnection(this._host, authToken ? {
 					authToken: authToken
-				}, onComplete);
+				} : null, onComplete);
 			}
 
 			if(!this._dataRegistry) {

@@ -140,7 +140,6 @@ declare module SmallMouth {
         private needsAuth;
         constructor();
         public connect(host: string, auth?: SmallMouth.AuthInterface, onComplete?: (error: any) => any): SocketIOAdapter;
-        public getAuthQuery(auth: SmallMouth.AuthInterface, host: string): string;
         public unauth(): SmallMouth.ServerAdapter;
         public authenticated(): boolean;
         public onMessage(type: string, callback?: (resp: any) => any): SocketIOAdapter;

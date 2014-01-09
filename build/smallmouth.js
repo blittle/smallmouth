@@ -26,9 +26,9 @@ var SmallMouth;
 
         Resource.prototype.initializeConnection = function (authToken, onComplete) {
             if (!this._largeMouthAdapter) {
-                this._largeMouthAdapter = SmallMouth.makeConnection(this._host, {
+                this._largeMouthAdapter = SmallMouth.makeConnection(this._host, authToken ? {
                     authToken: authToken
-                }, onComplete);
+                } : null, onComplete);
             }
 
             if (!this._dataRegistry) {
@@ -504,21 +504,22 @@ var SmallMouth;
             if (auth) {
                 this.isAuthenticated = false;
                 this.needsAuth = true;
-                authQuery = this.getAuthQuery(auth, host);
+                auth.authToken = auth.authToken || SmallMouth.auth.getAuthToken(host);
             }
 
             if (this.socket) {
                 this.socket = (nodeio ? nodeio : io).connect(host, auth ? {
-                    query: authQuery,
                     "force new connection": true
                 } : null);
             } else {
-                this.socket = (nodeio ? nodeio : io).connect(host, auth ? {
-                    query: authQuery
-                } : null);
+                this.socket = (nodeio ? nodeio : io).connect(host, auth ? {} : null);
             }
 
-            this.onMessage('ready', function (resp) {
+            this.onMessage('auth', function (resp) {
+                if (!resp.token) {
+                    return _this.socket.disconnect();
+                }
+
                 _this.id = resp.id;
                 SmallMouth.auth.setAuthToken(host, resp.token);
 
@@ -526,6 +527,10 @@ var SmallMouth;
                 _this.isAuthenticated = true;
                 if (onComplete)
                     onComplete.call(null);
+            });
+
+            this.onMessage('ready', function (resp) {
+                _this.socket.emit('auth', auth);
             });
 
             this.onMessage('disconnect', function (resp) {
@@ -542,23 +547,6 @@ var SmallMouth;
             });
 
             return this;
-        };
-
-        SocketIOAdapter.prototype.getAuthQuery = function (auth, host) {
-            if (!auth)
-                return "";
-
-            auth.authToken = auth.authToken || SmallMouth.auth.getAuthToken(host);
-
-            if (auth.authToken) {
-                return "token=" + auth.authToken;
-            }
-
-            if (auth.type === 'password') {
-                return "username=" + auth.options.username + "&password=" + auth.options.password + "&remember=" + auth.options.rememberMe;
-            }
-
-            return "";
         };
 
         SocketIOAdapter.prototype.unauth = function () {
