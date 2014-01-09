@@ -32,6 +32,7 @@ module SmallMouth {
 				var token = sessionStorage.getItem(host+"_token");
 				if(token) {
 					hosts[host].token = token;
+					return token;
 				}
 			}
 
