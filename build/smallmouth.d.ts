@@ -139,6 +139,7 @@ declare module SmallMouth {
         private isAuthenticated;
         private needsAuth;
         private isConnecting;
+        private messageQueue;
         constructor();
         public connect(host: string, auth?: SmallMouth.AuthInterface, onComplete?: (error: any) => any): SocketIOAdapter;
         public unauth(): SmallMouth.ServerAdapter;

@@ -504,6 +504,7 @@ var SmallMouth;
             this.isAuthenticated = true;
             this.needsAuth = false;
             this.isConnecting = false;
+            this.messageQueue = [];
         }
         SocketIOAdapter.prototype.connect = function (host, auth, onComplete) {
             var _this = this;
@@ -538,10 +539,15 @@ var SmallMouth;
 
                 _this.connected = true;
                 _this.isAuthenticated = true;
-                _this.isConnecting = true;
+                _this.isConnecting = false;
 
                 if (onComplete)
                     onComplete.call(null);
+
+                while (_this.messageQueue.length) {
+                    var m = _this.messageQueue.splice(0, 1)[0];
+                    _this.socket.emit(m.type, m.data, m.onComplete);
+                }
             });
 
             this.onMessage('ready', function (resp) {
@@ -556,7 +562,6 @@ var SmallMouth;
             this.onMessage('error', function (reason) {
                 _this.connected = false;
                 _this.isAuthenticated = false;
-                _this.isConnecting = false;
 
                 console.error('Unable to connect to LargeMouth backend', reason);
                 if (onComplete)
@@ -583,8 +588,15 @@ var SmallMouth;
         };
 
         SocketIOAdapter.prototype.send = function (type, data, onComplete) {
-            if (this.socket)
+            if (this.socket && this.connected && this.isAuthenticated && !this.isConnecting)
                 this.socket.emit(type, data, onComplete);
+            else {
+                this.messageQueue.push({
+                    type: type,
+                    data: data,
+                    onComplete: onComplete
+                });
+            }
             return this;
         };
 
