@@ -17,6 +17,7 @@ module SmallMouth {
 		private connected = false;
 		private isAuthenticated = true;
 		private needsAuth = false;
+		private isConnecting = false;
 
 		constructor() {
 		}
@@ -27,7 +28,9 @@ module SmallMouth {
 			onComplete?: (error) => any
 		): SocketIOAdapter {
 
-			if(!host) return;
+			if(!host || this.isConnecting) return;
+
+			this.isConnecting = true;
 
 			var authQuery = "";
 
@@ -56,6 +59,8 @@ module SmallMouth {
 
 				this.connected = true;
 				this.isAuthenticated = true;
+				this.isConnecting = true;
+
 				if(onComplete) onComplete.call(null);
 			});
 
@@ -71,6 +76,8 @@ module SmallMouth {
 			this.onMessage('error', (reason) => {
 				this.connected = false;
 				this.isAuthenticated = false;
+				this.isConnecting = false;
+
 				console.error('Unable to connect to LargeMouth backend', reason);
 				if(onComplete) onComplete.call(null, reason);
 			});
