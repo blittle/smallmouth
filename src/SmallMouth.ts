@@ -47,6 +47,15 @@ module SmallMouth {
 	export var makeConnection = function(host, auth?: AuthInterface, onComplete?: onCompleteSignature) {
 		if(!hosts[host]) hosts[host] = {};
 
+		if(!auth) {
+			var token = SmallMouth.auth.getAuthToken(host);
+			if(token) {
+				auth = {
+					authToken: token
+				}
+			}
+		} 
+
 		if(
 			hosts[host].connection
 		) {

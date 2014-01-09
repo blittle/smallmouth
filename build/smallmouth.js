@@ -220,6 +220,15 @@ var SmallMouth;
         if (!SmallMouth.hosts[host])
             SmallMouth.hosts[host] = {};
 
+        if (!auth) {
+            var token = SmallMouth.auth.getAuthToken(host);
+            if (token) {
+                auth = {
+                    authToken: token
+                };
+            }
+        }
+
         if (SmallMouth.hosts[host].connection) {
             var connection = SmallMouth.hosts[host].connection;
 
