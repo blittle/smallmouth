@@ -590,6 +590,8 @@ var SmallMouth;
             if (this.needsAuth) {
                 this.isAuthenticated = false;
                 this.connected = false;
+                this.isConnecting = false;
+
                 if (this.socket)
                     this.socket.disconnect();
                 SmallMouth.auth.removeAuthToken(this.host);
