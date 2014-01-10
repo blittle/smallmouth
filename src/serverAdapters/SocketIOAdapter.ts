@@ -43,7 +43,6 @@ module SmallMouth {
 			if(auth) {
 				this.isAuthenticated = false;
 				this.needsAuth = true;
-				auth.authToken = auth.authToken || SmallMouth.auth.getAuthToken(host);
 			}
 
 			if(this.socket) {
