@@ -17,6 +17,9 @@ module SmallMouth {
 		private eventListeners;
 		private messageQueue: string[];
 
+		private needsAuth = false;
+		private authenticated = false;
+
 		constructor() {
 			this.eventListeners = {};
 			this.messageQueue = [];
@@ -40,10 +43,26 @@ module SmallMouth {
 			};
 
 			this.socket.onopen = () => {
-		    	while(this.messageQueue.length) {
-		    		this.socket.send(this.messageQueue.splice(0,1)[0]);
-		    	}
+		    	this.socket.send({
+					type: 'auth',
+					data: {
+						jsessionid: "",
+						sf2sessionid: ""
+					}
+				});
 		   	};
+
+		   	this.onMessage('auth', (resp: any) => {
+		   		if(resp.data.success) {
+		   			this.authenticated = true;
+
+		   			while(this.messageQueue.length) {
+			    		this.socket.send(this.messageQueue.splice(0,1)[0]);
+			    	}
+		   		} else {
+		   			this.authenticated = false;
+		   		}
+	   		});
 
 			this.onMessage('ready', (resp) => {
 				this.id = resp.id;
@@ -53,15 +72,16 @@ module SmallMouth {
 		}
 
 		unauth(): ServerAdapter {
+			this.authenticated = false;
 			return this;
 		}
 
-		authenticated(): boolean {
-			return true;
+		isAuthenticated(): boolean {
+			return this.authenticated;
 		}
 
 		isConnected(): boolean {
-			return true;
+			return this.socket.readyState === SockJS.OPEN && this.authenticated;
 		}
 
 		onMessage(type: string, callback ?: (resp) => any): SockJSAdapter {
@@ -80,7 +100,7 @@ module SmallMouth {
 					data: data
 				});
 
-				if(this.socket.readyState === SockJS.OPEN) {
+				if(this.socket.readyState === SockJS.OPEN && this.authenticated) {
 					this.socket.send(packet);
 				} else {
 					this.messageQueue.push(packet);

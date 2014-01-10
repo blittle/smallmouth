@@ -8,7 +8,7 @@ module SmallMouth {
 		onMessage(type: string, callback ?: (error) => any): ServerAdapter;
 		send(type: string, data: any, onComplete ?: (error) => any): ServerAdapter;
 		unauth(): ServerAdapter;
-		authenticated(): boolean;
+		isAuthenticated(): boolean;
 		isConnected(): boolean;
 	}
 }

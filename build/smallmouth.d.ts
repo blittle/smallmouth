@@ -144,7 +144,7 @@ declare module SmallMouth {
         onMessage(type: string, callback?: (error: any) => any): ServerAdapter;
         send(type: string, data: any, onComplete?: (error: any) => any): ServerAdapter;
         unauth(): ServerAdapter;
-        authenticated(): boolean;
+        isAuthenticated(): boolean;
         isConnected(): boolean;
     }
 }
@@ -208,14 +208,14 @@ declare module SmallMouth {
         public id: string;
         private host;
         private connected;
-        private isAuthenticated;
+        private authenticated;
         private needsAuth;
         private isConnecting;
         private messageQueue;
         constructor();
         public connect(host: string, auth?: SmallMouth.AuthInterface, onComplete?: (error: any) => any): SocketIOAdapter;
         public unauth(): SmallMouth.ServerAdapter;
-        public authenticated(): boolean;
+        public isAuthenticated(): boolean;
         public onMessage(type: string, callback?: (resp: any) => any): SocketIOAdapter;
         public send(type: string, data: any, onComplete?: (error: any) => any): SocketIOAdapter;
         public isConnected(): boolean;

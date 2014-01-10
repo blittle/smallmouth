@@ -30,7 +30,7 @@ declare module SmallMouth {
         onMessage(type: string, callback?: (error: any) => any): ServerAdapter;
         send(type: string, data: any, onComplete?: (error: any) => any): ServerAdapter;
         unauth(): ServerAdapter;
-        authenticated(): boolean;
+        isAuthenticated(): boolean;
         isConnected(): boolean;
     }
 }
@@ -40,10 +40,12 @@ declare module SmallMouth {
         public id: string;
         private eventListeners;
         private messageQueue;
+        private needsAuth;
+        private authenticated;
         constructor();
         public connect(host: string, auth?: SmallMouth.AuthInterface, onComplete?: (error: any) => any): SockJSAdapter;
         public unauth(): SmallMouth.ServerAdapter;
-        public authenticated(): boolean;
+        public isAuthenticated(): boolean;
         public isConnected(): boolean;
         public onMessage(type: string, callback?: (resp: any) => any): SockJSAdapter;
         public send(type: string, data: any, onComplete?: (error: any) => any): SockJSAdapter;

@@ -48,7 +48,7 @@ module SmallMouth {
 		}
 
 		authenticated(): boolean {
-			return this.adapter.authenticated();
+			return this.adapter.isAuthenticated();
 		}
 
 		isConnected(): boolean {

@@ -7,6 +7,8 @@ var SmallMouth;
     var SockJSAdapter = (function () {
         function SockJSAdapter() {
             this.id = new Date().getTime() + "";
+            this.needsAuth = false;
+            this.authenticated = false;
             this.eventListeners = {};
             this.messageQueue = [];
         }
@@ -25,10 +27,26 @@ var SmallMouth;
             };
 
             this.socket.onopen = function () {
-                while (_this.messageQueue.length) {
-                    _this.socket.send(_this.messageQueue.splice(0, 1)[0]);
-                }
+                _this.socket.send({
+                    type: 'auth',
+                    data: {
+                        jsessionid: "",
+                        sf2sessionid: ""
+                    }
+                });
             };
+
+            this.onMessage('auth', function (resp) {
+                if (resp.data.success) {
+                    _this.authenticated = true;
+
+                    while (_this.messageQueue.length) {
+                        _this.socket.send(_this.messageQueue.splice(0, 1)[0]);
+                    }
+                } else {
+                    _this.authenticated = false;
+                }
+            });
 
             this.onMessage('ready', function (resp) {
                 _this.id = resp.id;
@@ -38,15 +56,16 @@ var SmallMouth;
         };
 
         SockJSAdapter.prototype.unauth = function () {
+            this.authenticated = false;
             return this;
         };
 
-        SockJSAdapter.prototype.authenticated = function () {
-            return true;
+        SockJSAdapter.prototype.isAuthenticated = function () {
+            return this.authenticated;
         };
 
         SockJSAdapter.prototype.isConnected = function () {
-            return true;
+            return this.socket.readyState === SockJS.OPEN && this.authenticated;
         };
 
         SockJSAdapter.prototype.onMessage = function (type, callback) {
@@ -65,7 +84,7 @@ var SmallMouth;
                     data: data
                 });
 
-                if (this.socket.readyState === SockJS.OPEN) {
+                if (this.socket.readyState === SockJS.OPEN && this.authenticated) {
                     this.socket.send(packet);
                 } else {
                     this.messageQueue.push(packet);

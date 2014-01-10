@@ -17,7 +17,7 @@ module SmallMouth {
 		private host: string;
 
 		private connected = false;
-		private isAuthenticated = true;
+		private authenticated = true;
 		private needsAuth = false;
 		private isConnecting = false;
 
@@ -41,7 +41,7 @@ module SmallMouth {
 			var authQuery = "";
 
 			if(auth) {
-				this.isAuthenticated = false;
+				this.authenticated = false;
 				this.needsAuth = true;
 			}
 
@@ -63,7 +63,7 @@ module SmallMouth {
 				SmallMouth.auth.setAuthToken(host, resp.token);
 
 				this.connected = true;
-				this.isAuthenticated = true;
+				this.authenticated = true;
 				this.isConnecting = false;
 
 				if(onComplete) onComplete.call(null);
@@ -96,7 +96,7 @@ module SmallMouth {
 
 		unauth(): ServerAdapter {
 			if(this.needsAuth) {
-				this.isAuthenticated = false;
+				this.authenticated = false;
 				this.connected = false;
 				this.isConnecting = false;
 
@@ -107,8 +107,8 @@ module SmallMouth {
 			return this;
 		}
 
-		authenticated(): boolean {
-			return this.isAuthenticated;
+		isAuthenticated(): boolean {
+			return this.authenticated;
 		}
 
 		onMessage(type: string, callback ?: (resp) => any): SocketIOAdapter {

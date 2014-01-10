@@ -533,7 +533,7 @@ var SmallMouth;
         };
 
         LargeMouthAdapter.prototype.authenticated = function () {
-            return this.adapter.authenticated();
+            return this.adapter.isAuthenticated();
         };
 
         LargeMouthAdapter.prototype.isConnected = function () {
@@ -986,7 +986,7 @@ var SmallMouth;
         function SocketIOAdapter() {
             this.id = new Date().getTime() + "";
             this.connected = false;
-            this.isAuthenticated = true;
+            this.authenticated = true;
             this.needsAuth = false;
             this.isConnecting = false;
             this.messageQueue = [];
@@ -1003,7 +1003,7 @@ var SmallMouth;
             var authQuery = "";
 
             if (auth) {
-                this.isAuthenticated = false;
+                this.authenticated = false;
                 this.needsAuth = true;
             }
 
@@ -1024,7 +1024,7 @@ var SmallMouth;
                 SmallMouth.auth.setAuthToken(host, resp.token);
 
                 _this.connected = true;
-                _this.isAuthenticated = true;
+                _this.authenticated = true;
                 _this.isConnecting = false;
 
                 if (onComplete)
@@ -1060,7 +1060,7 @@ var SmallMouth;
 
         SocketIOAdapter.prototype.unauth = function () {
             if (this.needsAuth) {
-                this.isAuthenticated = false;
+                this.authenticated = false;
                 this.connected = false;
                 this.isConnecting = false;
 
@@ -1072,8 +1072,8 @@ var SmallMouth;
             return this;
         };
 
-        SocketIOAdapter.prototype.authenticated = function () {
-            return this.isAuthenticated;
+        SocketIOAdapter.prototype.isAuthenticated = function () {
+            return this.authenticated;
         };
 
         SocketIOAdapter.prototype.onMessage = function (type, callback) {

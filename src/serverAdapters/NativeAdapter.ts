@@ -29,7 +29,7 @@ module SmallMouth {
 			return this;
 		}
 
-		authenticated(): boolean {
+		isAuthenticated(): boolean {
 			return true;
 		}
 
