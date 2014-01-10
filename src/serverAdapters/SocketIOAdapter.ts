@@ -14,6 +14,8 @@ module SmallMouth {
 		public socket: Socket; 
 		public id: string = new Date().getTime() + "";
 
+		private host: string;
+
 		private connected = false;
 		private isAuthenticated = true;
 		private needsAuth = false;
@@ -31,6 +33,8 @@ module SmallMouth {
 		): SocketIOAdapter {
 
 			if(!host || this.isConnecting) return;
+
+			this.host = host;
 
 			this.isConnecting = true;
 
@@ -76,23 +80,28 @@ module SmallMouth {
 			});
 
 			this.onMessage('disconnect', (resp) => {
-				this.connected = false;
-				this.isAuthenticated = false;
+				this.unauth();
 			});
 
 			this.onMessage('error', (reason) => {
-				this.connected = false;
-				this.isAuthenticated = false;
-
-				console.error('Unable to connect to LargeMouth backend', reason);
 				if(onComplete) onComplete.call(null, reason);
+			});
+
+			this.onMessage('authError', (message) => {
+				this.unauth();
 			});
 
 			return this;
 		}
 
 		unauth(): ServerAdapter {
-			if(this.needsAuth) this.isAuthenticated = false;
+			if(this.needsAuth) {
+				this.isAuthenticated = false;
+				this.connected = false;
+				if(this.socket) this.socket.disconnect();
+				SmallMouth.auth.removeAuthToken(this.host);
+			}
+
 			return this;
 		}
 

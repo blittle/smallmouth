@@ -30,7 +30,7 @@ module SmallMouth {
 			if(!hosts[host]) hosts[host] = {};
 
 			if(hosts[host] && hosts[host].token) return hosts[host].token;
-			
+
 			else if(sessionStorage) {
 				var token = sessionStorage.getItem(host+"_token");
 				if(token) {
@@ -40,6 +40,16 @@ module SmallMouth {
 			}
 
 			return null;
+		},
+
+		removeAuthToken: function(host: string) {
+			if(!hosts[host]) hosts[host] = {};
+
+			if(hosts[host] && hosts[host].token) delete hosts[host].token;
+
+			if(sessionStorage) {
+				sessionStorage.removeItem(host+"_token");
+			}
 		}
 	}
 

@@ -77,6 +77,7 @@ declare module SmallMouth {
     var auth: {
         setAuthToken: (host: string, token: string) => void;
         getAuthToken: (host: string) => any;
+        removeAuthToken: (host: string) => void;
     };
     interface onCompleteSignature {
         (error: any): any;
@@ -135,6 +136,7 @@ declare module SmallMouth {
     class SocketIOAdapter implements SmallMouth.ServerAdapter {
         public socket: Socket;
         public id: string;
+        private host;
         private connected;
         private isAuthenticated;
         private needsAuth;

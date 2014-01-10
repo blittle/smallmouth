@@ -217,6 +217,17 @@ var SmallMouth;
             }
 
             return null;
+        },
+        removeAuthToken: function (host) {
+            if (!SmallMouth.hosts[host])
+                SmallMouth.hosts[host] = {};
+
+            if (SmallMouth.hosts[host] && SmallMouth.hosts[host].token)
+                delete SmallMouth.hosts[host].token;
+
+            if (sessionStorage) {
+                sessionStorage.removeItem(host + "_token");
+            }
         }
     };
 
@@ -514,6 +525,8 @@ var SmallMouth;
             if (!host || this.isConnecting)
                 return;
 
+            this.host = host;
+
             this.isConnecting = true;
 
             var authQuery = "";
@@ -558,25 +571,30 @@ var SmallMouth;
             });
 
             this.onMessage('disconnect', function (resp) {
-                _this.connected = false;
-                _this.isAuthenticated = false;
+                _this.unauth();
             });
 
             this.onMessage('error', function (reason) {
-                _this.connected = false;
-                _this.isAuthenticated = false;
-
-                console.error('Unable to connect to LargeMouth backend', reason);
                 if (onComplete)
                     onComplete.call(null, reason);
+            });
+
+            this.onMessage('authError', function (message) {
+                _this.unauth();
             });
 
             return this;
         };
 
         SocketIOAdapter.prototype.unauth = function () {
-            if (this.needsAuth)
+            if (this.needsAuth) {
                 this.isAuthenticated = false;
+                this.connected = false;
+                if (this.socket)
+                    this.socket.disconnect();
+                SmallMouth.auth.removeAuthToken(this.host);
+            }
+
             return this;
         };
 
