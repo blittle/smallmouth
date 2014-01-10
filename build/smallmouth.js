@@ -581,6 +581,8 @@ var SmallMouth;
 
             this.onMessage('authError', function (message) {
                 _this.unauth();
+                if (onComplete)
+                    onComplete.call(null, message);
             });
 
             return this;

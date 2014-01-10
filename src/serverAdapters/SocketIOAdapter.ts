@@ -89,6 +89,7 @@ module SmallMouth {
 
 			this.onMessage('authError', (message) => {
 				this.unauth();
+				if(onComplete) onComplete.call(null, message);
 			});
 
 			return this;
@@ -99,7 +100,7 @@ module SmallMouth {
 				this.isAuthenticated = false;
 				this.connected = false;
 				this.isConnecting = false;
-				
+
 				if(this.socket) this.socket.disconnect();
 				SmallMouth.auth.removeAuthToken(this.host);
 			}
