@@ -1,4 +1,5 @@
 ///<reference path="../d.ts/DefinitelyTyped/node/node.d.ts"/>
+///<reference path="interfaces/AuthInterface"/>
 
 module SmallMouth {
 
@@ -10,12 +11,6 @@ module SmallMouth {
 	// to new SmallMouth.Resource("/path");  This field is also necessary if your host constains
 	// a path (separate from the data path).
 	export var defaultHost = '';
-
-	export interface AuthInterface {
-		authToken?: string;
-		type?: string;
-		options?: SmallMouth.SimpleLoginOptions;
-	}
 
 	export var auth = {
 		setAuthToken: function(host: string, token: string) {

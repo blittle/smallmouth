@@ -16,13 +16,29 @@ module.exports = function(grunt) {
 
     typescript: {
       base: {
-        src: ['src/**/*.ts'],
+        src: [
+          'src/*.ts',
+          'src/interfaces/*.ts',
+          'src/serverAdapters/ServerAdapter.ts',
+          'src/serverAdapters/SocketIOAdapter.ts'
+        ],
         dest: 'build/smallmouth.js',
         options: {
           module: 'amd', //or commonjs
           target: 'es5', //or es3
           sourcemap: true,
           declaration: true,
+        }
+      },
+      sockjs: {
+        src: [
+          'src/serverAdapters/SockJSAdapter.ts'
+        ],
+        dest: 'build/smallmouth.sockjs.js',
+        options: {
+          target: 'es5',
+          sourcemapp: true,
+          declaration: true
         }
       }
     },

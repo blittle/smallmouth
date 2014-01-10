@@ -505,213 +505,6 @@ var SmallMouth;
 })(SmallMouth || (SmallMouth = {}));
 var SmallMouth;
 (function (SmallMouth) {
-    var nodeio;
-
-    if (typeof require == 'function') {
-        nodeio = require('socket.io-client');
-    }
-
-    var SocketIOAdapter = (function () {
-        function SocketIOAdapter() {
-            this.id = new Date().getTime() + "";
-            this.connected = false;
-            this.isAuthenticated = true;
-            this.needsAuth = false;
-            this.isConnecting = false;
-            this.messageQueue = [];
-        }
-        SocketIOAdapter.prototype.connect = function (host, auth, onComplete) {
-            var _this = this;
-            if (!host || this.isConnecting)
-                return;
-
-            this.host = host;
-
-            this.isConnecting = true;
-
-            var authQuery = "";
-
-            if (auth) {
-                this.isAuthenticated = false;
-                this.needsAuth = true;
-            }
-
-            if (this.socket) {
-                this.socket = (nodeio ? nodeio : io).connect(host, auth ? {
-                    "force new connection": true
-                } : null);
-            } else {
-                this.socket = (nodeio ? nodeio : io).connect(host, auth ? {} : null);
-            }
-
-            this.onMessage('auth', function (resp) {
-                if (!resp.token) {
-                    return _this.socket.disconnect();
-                }
-
-                _this.id = resp.id;
-                SmallMouth.auth.setAuthToken(host, resp.token);
-
-                _this.connected = true;
-                _this.isAuthenticated = true;
-                _this.isConnecting = false;
-
-                if (onComplete)
-                    onComplete.call(null);
-
-                while (_this.messageQueue.length) {
-                    var m = _this.messageQueue.splice(0, 1)[0];
-                    _this.socket.emit(m.type, m.data, m.onComplete);
-                }
-            });
-
-            this.onMessage('ready', function (resp) {
-                _this.socket.emit('auth', auth);
-            });
-
-            this.onMessage('disconnect', function (resp) {
-                _this.unauth();
-            });
-
-            this.onMessage('error', function (reason) {
-                if (onComplete)
-                    onComplete.call(null, reason);
-            });
-
-            this.onMessage('authError', function (message) {
-                _this.unauth();
-                if (onComplete)
-                    onComplete.call(null, message);
-            });
-
-            return this;
-        };
-
-        SocketIOAdapter.prototype.unauth = function () {
-            if (this.needsAuth) {
-                this.isAuthenticated = false;
-                this.connected = false;
-                this.isConnecting = false;
-
-                if (this.socket)
-                    this.socket.disconnect();
-                SmallMouth.auth.removeAuthToken(this.host);
-            }
-
-            return this;
-        };
-
-        SocketIOAdapter.prototype.authenticated = function () {
-            return this.isAuthenticated;
-        };
-
-        SocketIOAdapter.prototype.onMessage = function (type, callback) {
-            if (this.socket)
-                this.socket.on(type, callback);
-            return this;
-        };
-
-        SocketIOAdapter.prototype.send = function (type, data, onComplete) {
-            if (this.socket && this.connected && this.isAuthenticated && !this.isConnecting)
-                this.socket.emit(type, data, onComplete);
-            else {
-                this.messageQueue.push({
-                    type: type,
-                    data: data,
-                    onComplete: onComplete
-                });
-            }
-            return this;
-        };
-
-        SocketIOAdapter.prototype.isConnected = function () {
-            return this.connected;
-        };
-        return SocketIOAdapter;
-    })();
-    SmallMouth.SocketIOAdapter = SocketIOAdapter;
-})(SmallMouth || (SmallMouth = {}));
-var SmallMouth;
-(function (SmallMouth) {
-    if (typeof require == 'function') {
-        var NodeSockJS = require('sockjs-client-node');
-    }
-
-    var SockJSAdapter = (function () {
-        function SockJSAdapter() {
-            this.id = new Date().getTime() + "";
-            this.eventListeners = {};
-            this.messageQueue = [];
-        }
-        SockJSAdapter.prototype.connect = function (host, auth, onComplete) {
-            var _this = this;
-            if (!host || this.socket)
-                return;
-
-            this.socket = new (NodeSockJS ? NodeSockJS : SockJS)(host);
-
-            this.socket.onmessage = function (e) {
-                var resp = JSON.parse(e.data);
-                if (_this.eventListeners[resp.type]) {
-                    _this.eventListeners[resp.type](resp.data);
-                }
-            };
-
-            this.socket.onopen = function () {
-                while (_this.messageQueue.length) {
-                    _this.socket.send(_this.messageQueue.splice(0, 1)[0]);
-                }
-            };
-
-            this.onMessage('ready', function (resp) {
-                _this.id = resp.id;
-            });
-
-            return this;
-        };
-
-        SockJSAdapter.prototype.unauth = function () {
-            return this;
-        };
-
-        SockJSAdapter.prototype.authenticated = function () {
-            return true;
-        };
-
-        SockJSAdapter.prototype.isConnected = function () {
-            return true;
-        };
-
-        SockJSAdapter.prototype.onMessage = function (type, callback) {
-            if (this.socket) {
-                this.eventListeners[type] = callback;
-            }
-            return this;
-        };
-
-        SockJSAdapter.prototype.send = function (type, data, onComplete) {
-            var packet;
-
-            if (this.socket) {
-                packet = JSON.stringify({
-                    type: type,
-                    data: data
-                });
-
-                if (this.socket.readyState === SockJS.OPEN) {
-                    this.socket.send(packet);
-                } else {
-                    this.messageQueue.push(packet);
-                }
-            }
-            return this;
-        };
-        return SockJSAdapter;
-    })();
-    SmallMouth.SockJSAdapter = SockJSAdapter;
-})(SmallMouth || (SmallMouth = {}));
-var SmallMouth;
-(function (SmallMouth) {
     SmallMouth.SERVER_TYPES = {
         SOCK_JS: "SockJSAdapter",
         SOCKET_IO: "SocketIOAdapter",
@@ -1183,77 +976,130 @@ var SmallMouth;
 })(SmallMouth || (SmallMouth = {}));
 var SmallMouth;
 (function (SmallMouth) {
-    var NativeAdapter = (function () {
-        function NativeAdapter() {
+    var nodeio;
+
+    if (typeof require == 'function') {
+        nodeio = require('socket.io-client');
+    }
+
+    var SocketIOAdapter = (function () {
+        function SocketIOAdapter() {
             this.id = new Date().getTime() + "";
-            this.eventListeners = {};
+            this.connected = false;
+            this.isAuthenticated = true;
+            this.needsAuth = false;
+            this.isConnecting = false;
             this.messageQueue = [];
         }
-        NativeAdapter.prototype.unauth = function () {
-            return this;
-        };
-
-        NativeAdapter.prototype.authenticated = function () {
-            return true;
-        };
-
-        NativeAdapter.prototype.isConnected = function () {
-            return true;
-        };
-
-        NativeAdapter.prototype.connect = function (host, auth, onComplete) {
+        SocketIOAdapter.prototype.connect = function (host, auth, onComplete) {
             var _this = this;
-            if (!host || this.socket)
+            if (!host || this.isConnecting)
                 return;
 
-            this.socket = new WebSocket(host);
+            this.host = host;
 
-            this.socket.onmessage = function (e) {
-                var resp = JSON.parse(e.data);
-                if (_this.eventListeners[resp.type]) {
-                    _this.eventListeners[resp.type](resp.data);
+            this.isConnecting = true;
+
+            var authQuery = "";
+
+            if (auth) {
+                this.isAuthenticated = false;
+                this.needsAuth = true;
+            }
+
+            if (this.socket) {
+                this.socket = (nodeio ? nodeio : io).connect(host, auth ? {
+                    "force new connection": true
+                } : null);
+            } else {
+                this.socket = (nodeio ? nodeio : io).connect(host, auth ? {} : null);
+            }
+
+            this.onMessage('auth', function (resp) {
+                if (!resp.token) {
+                    return _this.socket.disconnect();
                 }
-            };
 
-            this.socket.onopen = function () {
+                _this.id = resp.id;
+                SmallMouth.auth.setAuthToken(host, resp.token);
+
+                _this.connected = true;
+                _this.isAuthenticated = true;
+                _this.isConnecting = false;
+
+                if (onComplete)
+                    onComplete.call(null);
+
                 while (_this.messageQueue.length) {
-                    _this.socket.send(_this.messageQueue.splice(0, 1)[0]);
+                    var m = _this.messageQueue.splice(0, 1)[0];
+                    _this.socket.emit(m.type, m.data, m.onComplete);
                 }
-            };
+            });
 
             this.onMessage('ready', function (resp) {
-                _this.id = resp.id;
+                _this.socket.emit('auth', auth);
+            });
+
+            this.onMessage('disconnect', function (resp) {
+                _this.unauth();
+            });
+
+            this.onMessage('error', function (reason) {
+                if (onComplete)
+                    onComplete.call(null, reason);
+            });
+
+            this.onMessage('authError', function (message) {
+                _this.unauth();
+                if (onComplete)
+                    onComplete.call(null, message);
             });
 
             return this;
         };
 
-        NativeAdapter.prototype.onMessage = function (type, callback) {
-            if (this.socket) {
-                this.eventListeners[type] = callback;
+        SocketIOAdapter.prototype.unauth = function () {
+            if (this.needsAuth) {
+                this.isAuthenticated = false;
+                this.connected = false;
+                this.isConnecting = false;
+
+                if (this.socket)
+                    this.socket.disconnect();
+                SmallMouth.auth.removeAuthToken(this.host);
             }
+
             return this;
         };
 
-        NativeAdapter.prototype.send = function (type, data, onComplete) {
-            var packet;
+        SocketIOAdapter.prototype.authenticated = function () {
+            return this.isAuthenticated;
+        };
 
-            if (this.socket) {
-                packet = JSON.stringify({
+        SocketIOAdapter.prototype.onMessage = function (type, callback) {
+            if (this.socket)
+                this.socket.on(type, callback);
+            return this;
+        };
+
+        SocketIOAdapter.prototype.send = function (type, data, onComplete) {
+            if (this.socket && this.connected && this.isAuthenticated && !this.isConnecting)
+                this.socket.emit(type, data, onComplete);
+            else {
+                this.messageQueue.push({
                     type: type,
-                    data: data
+                    data: data,
+                    onComplete: onComplete
                 });
-
-                if (this.socket.readyState === 1) {
-                    this.socket.send(packet);
-                } else {
-                    this.messageQueue.push(packet);
-                }
             }
             return this;
         };
-        return NativeAdapter;
+
+        SocketIOAdapter.prototype.isConnected = function () {
+            return this.connected;
+        };
+        return SocketIOAdapter;
     })();
-    SmallMouth.NativeAdapter = NativeAdapter;
+    SmallMouth.SocketIOAdapter = SocketIOAdapter;
 })(SmallMouth || (SmallMouth = {}));
 //# sourceMappingURL=smallmouth.js.map

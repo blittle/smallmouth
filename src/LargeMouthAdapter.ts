@@ -5,8 +5,6 @@
 ///<reference path="EventRegistry"/>
 ///<reference path="SnapShot"/>
 ///<reference path="serverAdapters/ServerAdapter"/>
-///<reference path="serverAdapters/SocketIOAdapter"/>
-///<reference path="serverAdapters/SockJSAdapter"/>
 
 module SmallMouth {
 

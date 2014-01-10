@@ -1,3 +1,5 @@
+///<reference path="../interfaces/AuthInterface"/>
+
 module SmallMouth {
 	export interface ServerAdapter {
 		socket: any;

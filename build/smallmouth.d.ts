@@ -1,6 +1,5 @@
 /// <reference path="../d.ts/DefinitelyTyped/node/node.d.ts" />
 /// <reference path="../d.ts/DefinitelyTyped/socket.io/socket.io.d.ts" />
-/// <reference path="../d.ts/DefinitelyTyped/sockjs/sockjs.d.ts" />
 declare module SmallMouth {
     interface SnapshotInterface {
         val(): any;
@@ -67,13 +66,30 @@ declare module SmallMouth {
     }
 }
 declare module SmallMouth {
-    var hosts: {};
-    var defaultHost: string;
+    interface SimpleLoginOptions {
+        username: string;
+        password: string;
+        rememberMe: string;
+    }
+    interface SimpleLoginUser {
+        email: string;
+        authToken: string;
+        id: string;
+        md5_hash: string;
+        provider: string;
+        uid: string;
+    }
+}
+declare module SmallMouth {
     interface AuthInterface {
         authToken?: string;
         type?: string;
         options?: SmallMouth.SimpleLoginOptions;
     }
+}
+declare module SmallMouth {
+    var hosts: {};
+    var defaultHost: string;
     var auth: {
         setAuthToken: (host: string, token: string) => void;
         getAuthToken: (host: string) => any;
@@ -133,40 +149,6 @@ declare module SmallMouth {
     }
 }
 declare module SmallMouth {
-    class SocketIOAdapter implements SmallMouth.ServerAdapter {
-        public socket: Socket;
-        public id: string;
-        private host;
-        private connected;
-        private isAuthenticated;
-        private needsAuth;
-        private isConnecting;
-        private messageQueue;
-        constructor();
-        public connect(host: string, auth?: SmallMouth.AuthInterface, onComplete?: (error: any) => any): SocketIOAdapter;
-        public unauth(): SmallMouth.ServerAdapter;
-        public authenticated(): boolean;
-        public onMessage(type: string, callback?: (resp: any) => any): SocketIOAdapter;
-        public send(type: string, data: any, onComplete?: (error: any) => any): SocketIOAdapter;
-        public isConnected(): boolean;
-    }
-}
-declare module SmallMouth {
-    class SockJSAdapter implements SmallMouth.ServerAdapter {
-        public socket: SockJS;
-        public id: string;
-        private eventListeners;
-        private messageQueue;
-        constructor();
-        public connect(host: string, auth?: SmallMouth.AuthInterface, onComplete?: (error: any) => any): SockJSAdapter;
-        public unauth(): SmallMouth.ServerAdapter;
-        public authenticated(): boolean;
-        public isConnected(): boolean;
-        public onMessage(type: string, callback?: (resp: any) => any): SockJSAdapter;
-        public send(type: string, data: any, onComplete?: (error: any) => any): SockJSAdapter;
-    }
-}
-declare module SmallMouth {
     var SERVER_TYPES: any;
     var serverAdapterType: any;
     class LargeMouthAdapter {
@@ -213,45 +195,29 @@ declare module SmallMouth {
     }
 }
 declare module SmallMouth {
-    interface SimpleLoginOptions {
-        username: string;
-        password: string;
-        rememberMe: string;
-    }
-    interface SimpleLoginUser {
-        email: string;
-        authToken: string;
-        id: string;
-        md5_hash: string;
-        provider: string;
-        uid: string;
-    }
     class SimpleLogin {
         public res: SmallMouth.Resource;
         public onComplete: SmallMouth.onCompleteSignature;
         constructor(res: SmallMouth.Resource, onComplete: SmallMouth.onCompleteSignature);
-        public login(type: string, options: SimpleLoginOptions): SimpleLogin;
+        public login(type: string, options: SmallMouth.SimpleLoginOptions): SimpleLogin;
     }
 }
 declare module SmallMouth {
-    interface WebSocket {
-        new(url: string, subprotocols?: string[]): WebSocket;
-        readyState: number;
-        send(data: any): any;
-        onmessage: Function;
-        onopen: Function;
-    }
-    class NativeAdapter implements SmallMouth.ServerAdapter {
-        public socket: WebSocket;
+    class SocketIOAdapter implements SmallMouth.ServerAdapter {
+        public socket: Socket;
         public id: string;
-        private eventListeners;
+        private host;
+        private connected;
+        private isAuthenticated;
+        private needsAuth;
+        private isConnecting;
         private messageQueue;
         constructor();
+        public connect(host: string, auth?: SmallMouth.AuthInterface, onComplete?: (error: any) => any): SocketIOAdapter;
         public unauth(): SmallMouth.ServerAdapter;
         public authenticated(): boolean;
+        public onMessage(type: string, callback?: (resp: any) => any): SocketIOAdapter;
+        public send(type: string, data: any, onComplete?: (error: any) => any): SocketIOAdapter;
         public isConnected(): boolean;
-        public connect(host: any, auth?: any, onComplete?: (error: any) => any): NativeAdapter;
-        public onMessage(type: string, callback?: (resp: any) => any): NativeAdapter;
-        public send(type: string, data: any, onComplete?: (error: any) => any): NativeAdapter;
     }
 }
