@@ -203,6 +203,9 @@ var SmallMouth;
             }
         },
         getAuthToken: function (host) {
+            if (!SmallMouth.hosts[host])
+                SmallMouth.hosts[host] = {};
+
             if (SmallMouth.hosts[host] && SmallMouth.hosts[host].token)
                 return SmallMouth.hosts[host].token;
             else if (sessionStorage) {
