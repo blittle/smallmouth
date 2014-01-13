@@ -23,6 +23,8 @@ module SmallMouth {
 
 		private messageQueue = [];
 
+		public static resource = '/socket.io';
+
 		constructor() {
 		}
 
@@ -47,11 +49,15 @@ module SmallMouth {
 
 			if(this.socket) {
 				this.socket = (nodeio ? nodeio : io).connect(host, auth ? {
-					"force new connection": true
-				} : null);
+					"force new connection": true,
+					resource: SocketIOAdapter.resource
+				} : {
+					resource: SocketIOAdapter.resource
+				});
 			} else {
-				this.socket = (nodeio ? nodeio : io).connect(host, auth ? {
-				} : null);
+				this.socket = (nodeio ? nodeio : io).connect(host, {
+					resource: SocketIOAdapter.resource
+				});
 			}
 
 			this.onMessage('auth', (resp) => {
