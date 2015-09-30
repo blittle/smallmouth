@@ -26,7 +26,7 @@ Create a new resource just as you would with FireBase, except make the server re
 	chats = new SmallMouth.Resource('/chats');
 ```
 
-SmallMouth aggresively stores content within local storage on the client. As resources are created and data is saved, initially 
+SmallMouth aggressively stores content within local storage on the client. As resources are created and data is saved, initially 
 everything is stored locally before being saved to the server. Because all data is stored locally on the client, SmallMouth can be used as an entirely clientside store (note make sure a modern browser is used). Create a client side data structure by not including a server when instantiating a new resource:
 ```javascript
 	var chats = new SmallMouth.Resource('/chats');
